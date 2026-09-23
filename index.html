@@ -5,17 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ethan's Life</title>
   <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
 </head>
 <body>
+  <!-- Pływające balony w tle -->
+  <div class="balony">
+    <div class="balon b1"></div>
+    <div class="balon b2"></div>
+    <div class="balon b3"></div>
+    <div class="balon b4"></div>
+  </div>
+
   <header>
-    <h1>🌟 Ethan's Life 🌟</h1>
-    <p class="subtitle">A little diary of big adventures</p>
+    <div class="header-inner">
+      <h1>🌟 Ethan's Life 🌟</h1>
+      <p class="subtitle">A little diary of big adventures ✨</p>
+      <div class="kredki">
+        <span class="kredka c1"></span>
+        <span class="kredka c2"></span>
+        <span class="kredka c3"></span>
+        <span class="kredka c4"></span>
+        <span class="kredka c5"></span>
+      </div>
+    </div>
   </header>
 
   <main>
     <section class="intro">
-      <h2>Welcome!</h2>
+      <h2>👋 Welcome!</h2>
       <p>This is a place where we save the coolest moments, photos and memories of Ethan.</p>
     </section>
 
@@ -35,7 +52,7 @@
 
     <section class="slownik">
       <h2>📚 My Word Book</h2>
-      <p class="hint">Click on a word to see its meaning!</p>
+      <p class="hint">👆 Tap a word to hear it and see the meaning!</p>
       <div id="lista-slowek">
         <p class="loading">Loading words...</p>
       </div>
@@ -43,23 +60,46 @@
   </main>
 
   <footer>
-    <p>Made with ❤️ for Ethan</p>
+    <p>Made with ❤️ and 🖍️ for Ethan</p>
   </footer>
 
   <script>
-    // --- NOTES ---
+    // --- KONFETTI ---
+    function konfetti(x, y) {
+      const kolory = ['#ff6b9d', '#ffb84d', '#4a90e2', '#7ed957', '#b07de8'];
+      for (let i = 0; i < 12; i++) {
+        const el = document.createElement('div');
+        el.className = 'konfetti';
+        el.style.left = x + 'px';
+        el.style.top = y + 'px';
+        el.style.background = kolory[Math.floor(Math.random() * kolory.length)];
+        el.style.setProperty('--dx', (Math.random() * 200 - 100) + 'px');
+        el.style.setProperty('--dy', (Math.random() * 200 - 50) + 'px');
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1000);
+      }
+    }
+
+    // --- WYMOWA (Web Speech API) ---
+    function powiedzSlowo(slowo) {
+      if ('speechSynthesis' in window) {
+        const u = new SpeechSynthesisUtterance(slowo);
+        u.lang = 'en-US';
+        u.rate = 0.85;
+        speechSynthesis.cancel();
+        speechSynthesis.speak(u);
+      }
+    }
+
+    // --- NOTATKI ---
     async function loadNotes() {
       const kontener = document.getElementById('lista-notatek');
       try {
         const res = await fetch('./content/notatki/przyklad.md');
         if (!res.ok) throw new Error('no file');
         const text = await res.text();
-
-        // Wyciągnij tytuł z frontmatter
         const titleMatch = text.match(/title:\s*(.+)/);
         const title = titleMatch ? titleMatch[1].trim() : 'Note';
-
-        // Wyciągnij treść (po drugim ---)
         const parts = text.split('---');
         const body = parts.length >= 3 ? parts[2].trim() : text;
 
@@ -73,31 +113,37 @@
       }
     }
 
-    // --- WORDS ---
+    // --- SŁOWNICZEK ---
     async function loadWords() {
       const kontener = document.getElementById('lista-slowek');
       try {
         const res = await fetch('./content/slownik/przyklad.md');
         if (!res.ok) throw new Error('no file');
         const text = await res.text();
-
         const parts = text.split('---');
         const body = parts.length >= 3 ? parts[2].trim() : text;
-
         const lines = body.split('\n').filter(l => l.includes('|'));
         if (lines.length === 0) throw new Error('no words');
 
-        kontener.innerHTML = lines.map(line => {
+        kontener.innerHTML = lines.map((line, i) => {
           const [word, translation] = line.split('|').map(s => s.trim());
+          const kolor = ['#ffb84d', '#7ed957', '#4a90e2', '#b07de8', '#ff6b9d'][i % 5];
           return `
-            <div class="slowo" onclick="this.classList.toggle('odkryte')">
+            <div class="slowo" style="--kolor:${kolor}" onclick="klikniecieSlowa(event, '${word}')">
               <span class="ang">${word}</span>
               <span class="zh">${translation}</span>
+              <span class="glosnik">🔊</span>
             </div>`;
         }).join('');
       } catch (e) {
         kontener.innerHTML = '<p class="loading">No words yet. Add some in /admin!</p>';
       }
+    }
+
+    function klikniecieSlowa(e, slowo) {
+      e.currentTarget.classList.toggle('odkryte');
+      powiedzSlowo(slowo);
+      konfetti(e.clientX, e.clientY);
     }
 
     loadNotes();

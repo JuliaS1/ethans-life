@@ -4,38 +4,140 @@
   box-sizing: border-box;
 }
 
-body {
-  font-family: 'Nunito', sans-serif;
-  background: linear-gradient(135deg, #a8e6ff 0%, #ffe4f0 100%);
-  color: #333;
-  min-height: 100vh;
-  padding: 20px;
+:root {
+  --roz: #ff6b9d;
+  --pomarancz: #ffb84d;
+  --niebieski: #4a90e2;
+  --zielony: #7ed957;
+  --fiolet: #b07de8;
+  --kremowy: #fff9e6;
 }
 
+body {
+  font-family: 'Patrick Hand', cursive;
+  background: #fef6e4;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(255, 184, 77, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(255, 107, 157, 0.15) 0%, transparent 40%),
+    repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(74, 144, 226, 0.06) 40px, rgba(74, 144, 226, 0.06) 41px);
+  color: #3a3a3a;
+  min-height: 100vh;
+  padding: 20px;
+  overflow-x: hidden;
+}
+
+/* --- PŁYWAJĄCE BALONY --- */
+.balony {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.balon {
+  position: absolute;
+  width: 50px;
+  height: 65px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  opacity: 0.35;
+  animation: unos 12s ease-in-out infinite;
+}
+
+.balon::after {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  width: 1px;
+  height: 25px;
+  background: #999;
+  transform: translateX(-50%);
+}
+
+.b1 { background: var(--roz); left: 5%; top: 20%; animation-delay: 0s; }
+.b2 { background: var(--niebieski); left: 90%; top: 15%; animation-delay: 2s; }
+.b3 { background: var(--zielony); left: 15%; top: 70%; animation-delay: 4s; }
+.b4 { background: var(--fiolet); left: 80%; top: 60%; animation-delay: 6s; }
+
+@keyframes unos {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-30px) rotate(3deg); }
+}
+
+/* --- HEADER --- */
 header {
+  position: relative;
+  z-index: 1;
   text-align: center;
   padding: 40px 20px;
-  background: white;
-  border-radius: 30px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
   margin-bottom: 30px;
+}
+
+.header-inner {
+  background: white;
+  border: 4px dashed var(--pomarancz);
+  border-radius: 40px 15px 40px 15px;
+  padding: 35px 25px;
+  max-width: 700px;
+  margin: 0 auto;
+  box-shadow: 8px 8px 0 var(--roz);
+  transform: rotate(-1deg);
 }
 
 header h1 {
   font-family: 'Fredoka', sans-serif;
+  font-weight: 700;
   font-size: 3rem;
-  color: #ff6b9d;
+  color: var(--roz);
   margin-bottom: 10px;
+  text-shadow: 3px 3px 0 #ffe4f0, 6px 6px 0 rgba(74, 144, 226, 0.2);
+  letter-spacing: 1px;
 }
 
 .subtitle {
   color: #666;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
+  margin-bottom: 15px;
 }
 
+.kredki {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.kredka {
+  display: inline-block;
+  width: 8px;
+  height: 30px;
+  border-radius: 4px;
+  transform-origin: bottom;
+  animation: kiwanie 2s ease-in-out infinite;
+}
+
+.kredka:nth-child(2) { animation-delay: 0.2s; }
+.kredka:nth-child(3) { animation-delay: 0.4s; }
+.kredka:nth-child(4) { animation-delay: 0.6s; }
+.kredka:nth-child(5) { animation-delay: 0.8s; }
+
+.c1 { background: var(--roz); }
+.c2 { background: var(--pomarancz); }
+.c3 { background: var(--niebieski); }
+.c4 { background: var(--zielony); }
+.c5 { background: var(--fiolet); }
+
+@keyframes kiwanie {
+  0%, 100% { transform: rotate(-10deg); }
+  50% { transform: rotate(10deg); }
+}
+
+/* --- MAIN --- */
 main {
   max-width: 900px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 section {
@@ -43,114 +145,198 @@ section {
   border-radius: 25px;
   padding: 30px;
   margin-bottom: 30px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  box-shadow: 6px 6px 0 rgba(74, 144, 226, 0.25);
+  border: 3px solid #fff;
+  position: relative;
 }
+
+section::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 30px;
+  width: 60px;
+  height: 20px;
+  background: var(--pomarancz);
+  opacity: 0.7;
+  border-radius: 2px;
+  transform: rotate(-3deg);
+}
+
+.notatki::before { background: var(--roz); }
+.galeria::before { background: var(--niebieski); }
+.slownik::before { background: var(--zielony); }
+.intro::before { background: var(--fiolet); }
 
 section h2 {
   font-family: 'Fredoka', sans-serif;
-  color: #4a90e2;
+  font-weight: 600;
+  color: var(--niebieski);
   margin-bottom: 20px;
-  font-size: 1.8rem;
+  font-size: 1.9rem;
 }
 
 .intro p {
-  font-size: 1.1rem;
-  line-height: 1.6;
+  font-size: 1.2rem;
+  line-height: 1.7;
   color: #555;
 }
 
 .loading {
-  color: #aaa;
+  color: #bbb;
   font-style: italic;
 }
 
+/* --- NOTATKI (jak karteczki) --- */
 .notatka {
-  background: #fff9e6;
-  padding: 20px;
-  border-radius: 15px;
-  border-left: 5px solid #ffb84d;
-  margin-bottom: 15px;
+  background: var(--kremowy);
+  padding: 25px;
+  border-radius: 5px 20px 5px 20px;
+  margin-bottom: 20px;
+  position: relative;
+  box-shadow: 4px 4px 0 rgba(255, 184, 77, 0.4);
+  transform: rotate(-0.5deg);
+}
+
+.notatka::before {
+  content: '📌';
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.8rem;
 }
 
 .notatka h3 {
-  color: #ff6b9d;
+  color: var(--roz);
   margin-bottom: 10px;
+  font-family: 'Fredoka', sans-serif;
 }
 
+/* --- GALERIA --- */
 #galeria-zdjec {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 15px;
 }
 
 #galeria-zdjec img {
   width: 100%;
   border-radius: 15px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 4px 4px 0 rgba(74, 144, 226, 0.3);
+  border: 4px solid white;
   transition: transform 0.3s;
 }
 
 #galeria-zdjec img:hover {
-  transform: scale(1.05);
+  transform: scale(1.05) rotate(2deg);
 }
 
-/* --- Word Book --- */
+/* --- SŁOWNICZEK --- */
 .hint {
   color: #888;
   font-style: italic;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  font-size: 1.1rem;
 }
 
 #lista-slowek {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 15px;
 }
 
 .slowo {
-  background: #e6f4ff;
-  border: 3px solid #4a90e2;
-  border-radius: 15px;
-  padding: 15px;
+  background: var(--kolor, #e6f4ff);
+  border: 3px solid white;
+  border-radius: 20px 5px 20px 5px;
+  padding: 18px 12px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s;
   user-select: none;
+  position: relative;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .slowo:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 15px rgba(74, 144, 226, 0.3);
+  transform: translateY(-5px) rotate(-2deg);
+  box-shadow: 6px 8px 0 rgba(0, 0, 0, 0.15);
+}
+
+.slowo:active {
+  transform: translateY(0) scale(0.97);
 }
 
 .slowo .ang {
   display: block;
   font-family: 'Fredoka', sans-serif;
   font-size: 1.3rem;
-  color: #4a90e2;
-  font-weight: 600;
+  font-weight: 700;
+  color: #2c3e50;
+  text-shadow: 1px 1px 0 white;
 }
 
 .slowo .zh {
   display: block;
   margin-top: 8px;
-  font-size: 1rem;
-  color: #ff6b9d;
+  font-size: 1.2rem;
+  color: #2c3e50;
   opacity: 0;
-  transition: opacity 0.3s;
+  transform: scale(0.5);
+  transition: all 0.3s;
 }
 
 .slowo.odkryte .zh {
   opacity: 1;
+  transform: scale(1);
 }
 
+.slowo .glosnik {
+  position: absolute;
+  top: 5px;
+  right: 8px;
+  font-size: 0.9rem;
+  opacity: 0.5;
+}
+
+/* --- KONFETTI --- */
+.konfetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  animation: lec 1s ease-out forwards;
+}
+
+@keyframes lec {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* --- FOOTER --- */
 footer {
   text-align: center;
   padding: 30px;
-  color: #666;
+  color: #888;
+  font-size: 1.1rem;
+  position: relative;
+  z-index: 1;
 }
 
+/* --- MOBILE --- */
 @media (max-width: 600px) {
   header h1 { font-size: 2rem; }
+  .header-inner { padding: 25px 15px; }
   section { padding: 20px; }
+  #lista-slowek { grid-template-columns: repeat(2, 1fr); }
 }
