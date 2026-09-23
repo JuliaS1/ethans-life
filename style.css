@@ -131,7 +131,7 @@ section h2 {
   font-weight: 600;
 }
 
-.slowo .pl {
+.slowo .zh {
   display: block;
   margin-top: 8px;
   font-size: 1rem;
@@ -140,7 +140,7 @@ section h2 {
   transition: opacity 0.3s;
 }
 
-.slowo.odkryte .pl {
+.slowo.odkryte .zh {
   opacity: 1;
 }
 
