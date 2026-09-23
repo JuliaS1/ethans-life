@@ -1,0 +1,33 @@
+backend:
+  name: github
+  repo: JuliaS1/ethans-life
+  branch: main
+  
+media_folder: "images/uploads"
+public_folder: "/images/uploads"
+
+locale: pl
+
+collections:
+  - name: "notatki"
+    label: "Notes"
+    folder: "content/notatki"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Date", name: "date", widget: "datetime" }
+      - { label: "Photo", name: "image", widget: "image", required: false }
+      - { label: "Text", name: "body", widget: "markdown" }
+
+  - name: "slownik"
+    label: "Word Book"
+    folder: "content/slownik"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - label: "Words"
+        name: "body"
+        widget: "markdown"
+        hint: "Write one word per line like this: apple | jabłko"

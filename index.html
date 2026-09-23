@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ethan's Life</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <h1>🌟 Ethan's Life 🌟</h1>
+    <p class="subtitle">A little diary of big adventures</p>
+  </header>
+
+  <main>
+    <section class="intro">
+      <h2>Welcome!</h2>
+      <p>This is a place where we save the coolest moments, photos and memories of Ethan.</p>
+    </section>
+
+    <section class="notatki">
+      <h2>📔 Notes &amp; Memories</h2>
+      <div id="lista-notatek">
+        <p class="loading">Loading notes...</p>
+      </div>
+    </section>
+
+    <section class="galeria">
+      <h2>📸 Gallery</h2>
+      <div id="galeria-zdjec">
+        <p class="loading">Photos coming soon!</p>
+      </div>
+    </section>
+
+    <section class="slownik">
+      <h2>📚 My Word Book</h2>
+      <p class="hint">Click on a word to see its meaning!</p>
+      <div id="lista-slowek">
+        <p class="loading">Loading words...</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Made with ❤️ for Ethan</p>
+  </footer>
+
+  <script>
+    // --- NOTES ---
+    async function loadNotes() {
+      const kontener = document.getElementById('lista-notatek');
+      try {
+        const res = await fetch('./content/notatki/przyklad.md');
+        if (!res.ok) throw new Error('no file');
+        const text = await res.text();
+
+        // Wyciągnij tytuł z frontmatter
+        const titleMatch = text.match(/title:\s*(.+)/);
+        const title = titleMatch ? titleMatch[1].trim() : 'Note';
+
+        // Wyciągnij treść (po drugim ---)
+        const parts = text.split('---');
+        const body = parts.length >= 3 ? parts[2].trim() : text;
+
+        kontener.innerHTML = `
+          <article class="notatka">
+            <h3>${title}</h3>
+            <p>${body.replace(/\n/g, '<br>')}</p>
+          </article>`;
+      } catch (e) {
+        kontener.innerHTML = '<p class="loading">No notes yet. Add one in /admin!</p>';
+      }
+    }
+
+    // --- WORDS ---
+    async function loadWords() {
+      const kontener = document.getElementById('lista-slowek');
+      try {
+        const res = await fetch('./content/slownik/przyklad.md');
+        if (!res.ok) throw new Error('no file');
+        const text = await res.text();
+
+        const parts = text.split('---');
+        const body = parts.length >= 3 ? parts[2].trim() : text;
+
+        const lines = body.split('\n').filter(l => l.includes('|'));
+        if (lines.length === 0) throw new Error('no words');
+
+        kontener.innerHTML = lines.map(line => {
+          const [word, translation] = line.split('|').map(s => s.trim());
+          return `
+            <div class="slowo" onclick="this.classList.toggle('odkryte')">
+              <span class="ang">${word}</span>
+              <span class="pl">${translation}</span>
+            </div>`;
+        }).join('');
+      } catch (e) {
+        kontener.innerHTML = '<p class="loading">No words yet. Add some in /admin!</p>';
+      }
+    }
+
+    loadNotes();
+    loadWords();
+  </script>
+</body>
+</html>
