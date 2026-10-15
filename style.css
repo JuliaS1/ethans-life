@@ -1,3 +1,5 @@
+
+/* ===== ETHAN'S LIFE — COLORS & RESET ===== */
 * {
   margin: 0;
   padding: 0;
@@ -11,22 +13,46 @@
   --zielony: #7ed957;
   --fiolet: #b07de8;
   --kremowy: #fff9e6;
+  --tekst: #3a3a3a;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   font-family: 'Patrick Hand', cursive;
   background: #fef6e4;
   background-image:
-    radial-gradient(circle at 20% 30%, rgba(255, 184, 77, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(255, 107, 157, 0.15) 0%, transparent 40%),
-    repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(74, 144, 226, 0.06) 40px, rgba(74, 144, 226, 0.06) 41px);
-  color: #3a3a3a;
+    radial-gradient(circle at 20% 30%, rgba(255,184,77,.15), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(255,107,157,.15), transparent 40%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 40px,
+      rgba(74,144,226,.06) 40px,
+      rgba(74,144,226,.06) 41px
+    );
+  color: var(--tekst);
   min-height: 100vh;
   padding: 20px;
   overflow-x: hidden;
 }
 
-/* --- PŁYWAJĄCE BALONY --- */
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--niebieski);
+  outline-offset: 3px;
+}
+
+/* ===== FLOATING BALLOONS ===== */
 .balony {
   position: fixed;
   inset: 0;
@@ -40,7 +66,7 @@ body {
   width: 50px;
   height: 65px;
   border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-  opacity: 0.35;
+  opacity: .35;
   animation: unos 12s ease-in-out infinite;
 }
 
@@ -55,17 +81,39 @@ body {
   transform: translateX(-50%);
 }
 
-.b1 { background: var(--roz); left: 5%; top: 20%; animation-delay: 0s; }
-.b2 { background: var(--niebieski); left: 90%; top: 15%; animation-delay: 2s; }
-.b3 { background: var(--zielony); left: 15%; top: 70%; animation-delay: 4s; }
-.b4 { background: var(--fiolet); left: 80%; top: 60%; animation-delay: 6s; }
+.b1 {
+  background: var(--roz);
+  left: 5%;
+  top: 20%;
+}
+
+.b2 {
+  background: var(--niebieski);
+  left: 90%;
+  top: 15%;
+  animation-delay: 2s;
+}
+
+.b3 {
+  background: var(--zielony);
+  left: 15%;
+  top: 70%;
+  animation-delay: 4s;
+}
+
+.b4 {
+  background: var(--fiolet);
+  left: 80%;
+  top: 60%;
+  animation-delay: 6s;
+}
 
 @keyframes unos {
   0%, 100% { transform: translateY(0) rotate(-3deg); }
   50% { transform: translateY(-30px) rotate(3deg); }
 }
 
-/* --- HEADER --- */
+/* ===== HEADER ===== */
 header {
   position: relative;
   z-index: 1;
@@ -91,7 +139,8 @@ header h1 {
   font-size: 3rem;
   color: var(--roz);
   margin-bottom: 10px;
-  text-shadow: 3px 3px 0 #ffe4f0, 6px 6px 0 rgba(74, 144, 226, 0.2);
+  text-shadow: 3px 3px 0 #ffe4f0,
+               6px 6px 0 rgba(74,144,226,.2);
   letter-spacing: 1px;
 }
 
@@ -116,10 +165,10 @@ header h1 {
   animation: kiwanie 2s ease-in-out infinite;
 }
 
-.kredka:nth-child(2) { animation-delay: 0.2s; }
-.kredka:nth-child(3) { animation-delay: 0.4s; }
-.kredka:nth-child(4) { animation-delay: 0.6s; }
-.kredka:nth-child(5) { animation-delay: 0.8s; }
+.kredka:nth-child(2) { animation-delay: .2s; }
+.kredka:nth-child(3) { animation-delay: .4s; }
+.kredka:nth-child(4) { animation-delay: .6s; }
+.kredka:nth-child(5) { animation-delay: .8s; }
 
 .c1 { background: var(--roz); }
 .c2 { background: var(--pomarancz); }
@@ -132,7 +181,7 @@ header h1 {
   50% { transform: rotate(10deg); }
 }
 
-/* --- MAIN --- */
+/* ===== PAGE LAYOUT ===== */
 main {
   max-width: 900px;
   margin: 0 auto;
@@ -145,7 +194,7 @@ section {
   border-radius: 25px;
   padding: 30px;
   margin-bottom: 30px;
-  box-shadow: 6px 6px 0 rgba(74, 144, 226, 0.25);
+  box-shadow: 6px 6px 0 rgba(74,144,226,.25);
   border: 3px solid #fff;
   position: relative;
 }
@@ -158,7 +207,7 @@ section::before {
   width: 60px;
   height: 20px;
   background: var(--pomarancz);
-  opacity: 0.7;
+  opacity: .7;
   border-radius: 2px;
   transform: rotate(-3deg);
 }
@@ -182,20 +231,132 @@ section h2 {
   color: #555;
 }
 
-.loading {
-  color: #bbb;
+.hint {
+  color: #888;
   font-style: italic;
+  margin-bottom: 20px;
+  font-size: 1.1rem;
 }
 
-/* --- NOTATKI (jak karteczki) --- */
+.loading {
+  color: #888;
+  font-style: italic;
+  padding: 10px 0;
+}
+
+/* ===== ADD NOTE / WORD FORMS ===== */
+.formularz {
+  max-width: 650px;
+  margin: 10px auto 28px;
+  padding: 22px;
+  border: 2px dashed #f2b4d1;
+  border-radius: 18px;
+  background: #fff7fb;
+  box-shadow: 3px 4px 0 rgba(255,107,157,.12);
+}
+
+.slownik .formularz {
+  border-color: #b9e6a7;
+  background: #f8fff4;
+}
+
+.formularz h3 {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.4rem;
+  color: var(--roz);
+  margin-bottom: 14px;
+}
+
+.slownik .formularz h3 {
+  color: #489d3c;
+}
+
+.formularz label {
+  display: block;
+  font-size: 1.1rem;
+  margin: 12px 0 5px;
+  color: #555;
+}
+
+.formularz input,
+.formularz textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 2px solid #f0d5e3;
+  border-radius: 12px;
+  background: white;
+  color: var(--tekst);
+  font-size: 1.05rem;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.formularz input:focus,
+.formularz textarea:focus {
+  border-color: var(--roz);
+  box-shadow: 0 0 0 3px rgba(255,107,157,.12);
+}
+
+.formularz textarea {
+  min-height: 125px;
+  resize: vertical;
+}
+
+.formularz button {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 11px 20px;
+  border: none;
+  border-radius: 12px;
+  background: var(--roz);
+  color: white;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: transform .2s, opacity .2s;
+}
+
+.slownik .formularz button {
+  background: #69b957;
+}
+
+.formularz button:hover {
+  transform: translateY(-2px);
+  opacity: .9;
+}
+
+.formularz button:disabled {
+  opacity: .6;
+  cursor: wait;
+  transform: none;
+}
+
+.komunikat {
+  margin-top: 12px;
+  color: #378044;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.komunikat:empty {
+  display: none;
+}
+
+.komunikat.blad {
+  color: #b42342;
+}
+
+/* ===== NOTES ===== */
 .notatka {
   background: var(--kremowy);
   padding: 25px;
   border-radius: 5px 20px 5px 20px;
-  margin-bottom: 20px;
+  margin: 25px 0 20px;
   position: relative;
-  box-shadow: 4px 4px 0 rgba(255, 184, 77, 0.4);
-  transform: rotate(-0.5deg);
+  box-shadow: 4px 4px 0 rgba(255,184,77,.4);
+  transform: rotate(-.5deg);
+  overflow-wrap: anywhere;
 }
 
 .notatka::before {
@@ -211,9 +372,15 @@ section h2 {
   color: var(--roz);
   margin-bottom: 10px;
   font-family: 'Fredoka', sans-serif;
+  font-size: 1.35rem;
 }
 
-/* --- GALERIA --- */
+.notatka p {
+  font-size: 1.15rem;
+  line-height: 1.65;
+}
+
+/* ===== GALLERY ===== */
 #galeria-zdjec {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -221,25 +388,19 @@ section h2 {
 }
 
 #galeria-zdjec img {
+  display: block;
   width: 100%;
   border-radius: 15px;
-  box-shadow: 4px 4px 0 rgba(74, 144, 226, 0.3);
+  box-shadow: 4px 4px 0 rgba(74,144,226,.3);
   border: 4px solid white;
-  transition: transform 0.3s;
+  transition: transform .3s;
 }
 
 #galeria-zdjec img:hover {
   transform: scale(1.05) rotate(2deg);
 }
 
-/* --- SŁOWNICZEK --- */
-.hint {
-  color: #888;
-  font-style: italic;
-  margin-bottom: 20px;
-  font-size: 1.1rem;
-}
-
+/* ===== WORD BOOK ===== */
 #lista-slowek {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -247,30 +408,33 @@ section h2 {
 }
 
 .slowo {
+  width: 100%;
+  min-width: 0;
   background: var(--kolor, #e6f4ff);
   border: 3px solid white;
   border-radius: 20px 5px 20px 5px;
   padding: 18px 12px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: transform .3s, box-shadow .3s;
   user-select: none;
   position: relative;
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  box-shadow: 4px 4px 0 rgba(0,0,0,.1);
+  overflow-wrap: anywhere;
 }
 
 .slowo:hover {
   transform: translateY(-5px) rotate(-2deg);
-  box-shadow: 6px 8px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 6px 8px 0 rgba(0,0,0,.15);
 }
 
 .slowo:active {
-  transform: translateY(0) scale(0.97);
+  transform: translateY(0) scale(.97);
 }
 
 .slowo .ang {
   display: block;
+  padding: 0 12px;
   font-family: 'Fredoka', sans-serif;
   font-size: 1.3rem;
   font-weight: 700;
@@ -284,8 +448,8 @@ section h2 {
   font-size: 1.2rem;
   color: #2c3e50;
   opacity: 0;
-  transform: scale(0.5);
-  transition: all 0.3s;
+  transform: scale(.5);
+  transition: opacity .3s, transform .3s;
 }
 
 .slowo.odkryte .zh {
@@ -297,11 +461,11 @@ section h2 {
   position: absolute;
   top: 5px;
   right: 8px;
-  font-size: 0.9rem;
-  opacity: 0.5;
+  font-size: .9rem;
+  opacity: .65;
 }
 
-/* --- KONFETTI --- */
+/* ===== CONFETTI ===== */
 .konfetti {
   position: fixed;
   width: 10px;
@@ -323,7 +487,7 @@ section h2 {
   }
 }
 
-/* --- FOOTER --- */
+/* ===== FOOTER ===== */
 footer {
   text-align: center;
   padding: 30px;
@@ -333,10 +497,59 @@ footer {
   z-index: 1;
 }
 
-/* --- MOBILE --- */
+/* ===== MOBILE ===== */
 @media (max-width: 600px) {
-  header h1 { font-size: 2rem; }
-  .header-inner { padding: 25px 15px; }
-  section { padding: 20px; }
-  #lista-slowek { grid-template-columns: repeat(2, 1fr); }
+  body {
+    padding: 12px;
+  }
+
+  header {
+    padding: 25px 8px;
+  }
+
+  header h1 {
+    font-size: 2rem;
+  }
+
+  .header-inner {
+    padding: 25px 15px;
+  }
+
+  section {
+    padding: 20px 16px;
+    border-radius: 20px;
+  }
+
+  section h2 {
+    font-size: 1.55rem;
+  }
+
+  .formularz {
+    padding: 16px;
+  }
+
+  #lista-slowek {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .slowo {
+    padding: 16px 8px;
+  }
+
+  #galeria-zdjec {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
 }
