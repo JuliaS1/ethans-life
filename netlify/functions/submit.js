@@ -18,7 +18,7 @@ function reply(statusCode, data) {
 async function supabaseRequest(path, options = {}) {
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     throw new Error(
-      "Brakuje SUPABASE_URL lub SUPABASE_ANON_KEY w ustawieniach Netlify."
+      "Brakuje SUPABASE_URL lub SUPABASE_ANON_KEY w zmiennych Netlify."
     );
   }
 
@@ -28,21 +28,17 @@ async function supabaseRequest(path, options = {}) {
     ...(options.headers || {})
   };
 
-  // Stare klucze anon są JWT. Nowe sb_publishable_ nie są JWT.
   if (SUPABASE_KEY.split(".").length === 3) {
     requestHeaders.Authorization = `Bearer ${SUPABASE_KEY}`;
   }
 
   return fetch(
     `${SUPABASE_URL.replace(/\/$/, "")}/rest/v1/${path}`,
-    {
-      ...options,
-      headers: requestHeaders
-    }
+    { ...options, headers: requestHeaders }
   );
 }
 
-async function getError(response) {
+async function supabaseError(response) {
   const text = await response.text();
 
   try {
@@ -89,23 +85,21 @@ exports.handler = async (event) => {
           "&status=eq.approved&order=created_at.desc&limit=100";
       } else {
         return reply(400, {
-          error: "Nieznany typ. Użyj ?type=words lub ?type=notes."
+          error: "Użyj ?type=words lub ?type=notes."
         });
       }
 
       const response = await supabaseRequest(path);
 
       if (!response.ok) {
-        return reply(502, await getError(response));
+        return reply(502, await supabaseError(response));
       }
 
       return reply(200, await response.json());
     }
 
     if (event.httpMethod !== "POST") {
-      return reply(405, {
-        error: "Użyj metody GET lub POST."
-      });
+      return reply(405, { error: "Użyj metody GET lub POST." });
     }
 
     let data;
@@ -113,30 +107,19 @@ exports.handler = async (event) => {
     try {
       data = JSON.parse(event.body || "{}");
     } catch {
-      return reply(400, {
-        error: "Nieprawidłowy format danych."
-      });
+      return reply(400, { error: "Nieprawidłowy format danych." });
     }
 
     if (data.type === "word") {
-      const word = typeof data.word === "string"
-        ? data.word.trim()
-        : "";
-
-      const emoji = typeof data.emoji === "string"
-        ? data.emoji.trim()
-        : "✨";
+      const word = typeof data.word === "string" ? data.word.trim() : "";
+      const emoji = typeof data.emoji === "string" ? data.emoji.trim() : "✨";
 
       if (!word || word.length > 100) {
-        return reply(400, {
-          error: "Wpisz angielskie słowo (maks. 100 znaków)."
-        });
+        return reply(400, { error: "Wpisz słowo (maks. 100 znaków)." });
       }
 
       if (!emoji || emoji.length > 32) {
-        return reply(400, {
-          error: "Wybierz emoji."
-        });
+        return reply(400, { error: "Wybierz emoji." });
       }
 
       const response = await supabaseRequest("words", {
@@ -150,33 +133,24 @@ exports.handler = async (event) => {
       });
 
       if (!response.ok) {
-        return reply(502, await getError(response));
+        return reply(502, await supabaseError(response));
       }
 
       return reply(201, {
-        message: "Word submitted for approval!"
+        message: "Słówko wysłane do zatwierdzenia."
       });
     }
 
     if (data.type === "note") {
-      const title = typeof data.title === "string"
-        ? data.title.trim()
-        : "";
-
-      const body = typeof data.body === "string"
-        ? data.body.trim()
-        : "";
+      const title = typeof data.title === "string" ? data.title.trim() : "";
+      const body = typeof data.body === "string" ? data.body.trim() : "";
 
       if (!title || title.length > 150) {
-        return reply(400, {
-          error: "Wpisz tytuł (maks. 150 znaków)."
-        });
+        return reply(400, { error: "Wpisz tytuł (maks. 150 znaków)." });
       }
 
       if (!body || body.length > 10000) {
-        return reply(400, {
-          error: "Wpisz treść notatki (maks. 10000 znaków)."
-        });
+        return reply(400, { error: "Wpisz treść notatki." });
       }
 
       const response = await supabaseRequest("notes", {
@@ -190,11 +164,11 @@ exports.handler = async (event) => {
       });
 
       if (!response.ok) {
-        return reply(502, await getError(response));
+        return reply(502, await supabaseError(response));
       }
 
       return reply(201, {
-        message: "Note submitted for approval!"
+        message: "Notatka wysłana do zatwierdzenia."
       });
     }
 
