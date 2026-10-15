@@ -108,6 +108,103 @@ async function supabaseError(response) {
   }
 }
 
+const IMAGE_BUCKET = "word-images";
+const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
+
+// Rozpoznaje typ obrazka po bajtach pliku (nie ufamy typowi z przeglądarki)
+function detectImage(buf) {
+  if (buf.length > 12 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) {
+    return { mime: "image/jpeg", ext: "jpg" };
+  }
+  if (
+    buf.length > 8 &&
+    buf.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))
+  ) {
+    return { mime: "image/png", ext: "png" };
+  }
+  if (buf.length > 6 && buf.subarray(0, 4).toString("latin1") === "GIF8") {
+    return { mime: "image/gif", ext: "gif" };
+  }
+  if (
+    buf.length > 12 &&
+    buf.subarray(0, 4).toString("latin1") === "RIFF" &&
+    buf.subarray(8, 12).toString("latin1") === "WEBP"
+  ) {
+    return { mime: "image/webp", ext: "webp" };
+  }
+  return null;
+}
+
+function storageHeaders(extra = {}) {
+  const h = { apikey: SUPABASE_SERVICE_KEY, ...extra };
+
+  if (SUPABASE_SERVICE_KEY.split(".").length === 3) {
+    h.Authorization = `Bearer ${SUPABASE_SERVICE_KEY}`;
+  }
+
+  return h;
+}
+
+async function uploadImage(base64) {
+  if (!SUPABASE_SERVICE_KEY) {
+    throw new Error("Brakuje SUPABASE_SERVICE_KEY w zmiennych Netlify.");
+  }
+
+  const buf = Buffer.from(base64, "base64");
+
+  if (!buf.length || buf.length > MAX_IMAGE_BYTES) {
+    return { error: "Obrazek jest za duży (maks. 3 MB)." };
+  }
+
+  const type = detectImage(buf);
+
+  if (!type) {
+    return { error: "Dozwolone są tylko obrazki JPG, PNG, GIF i WEBP." };
+  }
+
+  const name = `${crypto.randomUUID()}.${type.ext}`;
+  const origin = new URL(SUPABASE_URL).origin;
+
+  const response = await fetch(
+    `${origin}/storage/v1/object/${IMAGE_BUCKET}/${name}`,
+    {
+      method: "POST",
+      headers: storageHeaders({ "Content-Type": type.mime }),
+      body: buf
+    }
+  );
+
+  if (!response.ok) {
+    return { storageError: await supabaseError(response) };
+  }
+
+  return { url: `${origin}/storage/v1/object/public/${IMAGE_BUCKET}/${name}` };
+}
+
+async function removeImage(url) {
+  if (!url || !SUPABASE_SERVICE_KEY) return;
+
+  const origin = new URL(SUPABASE_URL).origin;
+  const marker = `/storage/v1/object/public/${IMAGE_BUCKET}/`;
+  const text = String(url);
+  const index = text.indexOf(marker);
+
+  if (index === -1) return;
+
+  const name = text.slice(index + marker.length);
+
+  if (!/^[A-Za-z0-9-]+\.(jpg|png|gif|webp)$/.test(name)) return;
+
+  try {
+    await fetch(`${origin}/storage/v1/object/${IMAGE_BUCKET}/${name}`, {
+      method: "DELETE",
+      headers: storageHeaders()
+    });
+  } catch (error) {
+    console.error("Nie udało się usunąć obrazka:", error);
+  }
+}
+
 exports.handler = async (event) => {
   try {
     if (event.httpMethod === "OPTIONS") {
@@ -128,7 +225,7 @@ exports.handler = async (event) => {
 
       if (type === "words") {
         path =
-          "words?select=id,word,emoji" +
+          "words?select=id,word,emoji,description,image_url" +
           "&status=eq.approved&order=created_at.desc&limit=100";
       } else if (type === "notes") {
         path =
@@ -214,6 +311,8 @@ exports.handler = async (event) => {
         return reply(404, { error: "Nie znaleziono wpisu do usunięcia." });
       }
 
+      await removeImage(deleted[0].image_url);
+
       return reply(200, { message: "Usunięto." });
     }
 
@@ -233,12 +332,37 @@ exports.handler = async (event) => {
         return reply(400, { error: "Wybierz emoji." });
       }
 
+      const description =
+        typeof data.description === "string" ? data.description.trim() : "";
+
+      if (description.length > 300) {
+        return reply(400, { error: "Opis może mieć maks. 300 znaków." });
+      }
+
+      let imageUrl = null;
+
+      if (typeof data.imageData === "string" && data.imageData) {
+        const uploaded = await uploadImage(data.imageData);
+
+        if (uploaded.error) {
+          return reply(400, { error: uploaded.error });
+        }
+
+        if (uploaded.storageError) {
+          return reply(502, uploaded.storageError);
+        }
+
+        imageUrl = uploaded.url;
+      }
+
       const response = await supabaseRequest("words", {
         method: "POST",
         headers: { Prefer: "return=minimal" },
         body: JSON.stringify({
           word,
           emoji,
+          description: description || null,
+          image_url: imageUrl,
           status: "pending"
         })
       });
