@@ -1,138 +1,181 @@
 
-exports.handler = async (event) => {
-  const headers = {
-    "Content-Type": "application/json",
-    "Cache-Control": "no-store"
-  };
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
 
-  const reply = (statusCode, data) => ({
+const headers = {
+  "Content-Type": "application/json; charset=utf-8",
+  "Cache-Control": "no-store"
+};
+
+function reply(statusCode, data) {
+  return {
     statusCode,
     headers,
     body: JSON.stringify(data)
-  });
+  };
+}
 
+async function supabaseRequest(path, options = {}) {
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    throw new Error("Brakuje konfiguracji Supabase w Netlify.");
+  }
+
+  return fetch(
+    `${SUPABASE_URL.replace(/\/$/, "")}/rest/v1/${path}`,
+    {
+      ...options,
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        ...(options.headers || {})
+      }
+    }
+  );
+}
+
+exports.handler = async (event) => {
   try {
-    const { SUPABASE_URL, SUPABASE_ANON_KEY } = process.env;
-
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-      return reply(500, { error: "Missing server configuration." });
+    if (event.httpMethod === "OPTIONS") {
+      return {
+        statusCode: 204,
+        headers: {
+          ...headers,
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type"
+        },
+        body: ""
+      };
     }
 
-    const apiHeaders = {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      "Content-Type": "application/json"
-    };
-
-    // Pobieranie zatwierdzonych wpisów
     if (event.httpMethod === "GET") {
       const type = event.queryStringParameters?.type;
 
-      const config = {
-        notes: {
-          table: "notes",
-          columns: "id,title,body,created_at"
-        },
-        words: {
-          table: "words",
-          columns: "id,word,translation,created_at"
-        }
-      };
+      if (type === "words") {
+        const response = await supabaseRequest(
+          "words?select=word,translation,emoji,created_at" +
+          "&status=eq.approved&order=created_at.desc&limit=100"
+        );
 
-      if (!config[type]) {
-        return reply(400, { error: "Unknown content type." });
+        if (!response.ok) {
+          console.error("Supabase words GET:", await response.text());
+          return reply(502, { error: "Nie udało się pobrać słówek." });
+        }
+
+        return reply(200, await response.json());
       }
 
-      const { table, columns } = config[type];
-      const url = new URL(
-        `${SUPABASE_URL}/rest/v1/${table}`
-      );
+      if (type === "notes") {
+        const response = await supabaseRequest(
+          "notes?select=title,body,created_at" +
+          "&status=eq.approved&order=created_at.desc&limit=100"
+        );
 
-      url.searchParams.set("select", columns);
-      url.searchParams.set("status", "eq.approved");
-      url.searchParams.set("order", "created_at.desc");
-      url.searchParams.set("limit", "100");
+        if (!response.ok) {
+          console.error("Supabase notes GET:", await response.text());
+          return reply(502, { error: "Nie udało się pobrać notatek." });
+        }
 
-      const response = await fetch(url, {
-        headers: apiHeaders
+        return reply(200, await response.json());
+      }
+
+      return reply(400, { error: "Nieznany typ treści." });
+    }
+
+    if (event.httpMethod !== "POST") {
+      return reply(405, { error: "Użyj metody GET lub POST." });
+    }
+
+    let data;
+
+    try {
+      data = JSON.parse(event.body || "{}");
+    } catch {
+      return reply(400, { error: "Nieprawidłowy format danych." });
+    }
+
+    if (data.type === "word") {
+      const word = typeof data.word === "string"
+        ? data.word.trim()
+        : "";
+
+      const translation = typeof data.translation === "string"
+        ? data.translation.trim()
+        : "";
+
+      const emoji = typeof data.emoji === "string"
+        ? data.emoji.trim()
+        : "✨";
+
+      if (!word || word.length > 100) {
+        return reply(400, { error: "Wpisz słówko (maks. 100 znaków)." });
+      }
+
+      if (!translation || translation.length > 200) {
+        return reply(400, { error: "Wpisz tłumaczenie (maks. 200 znaków)." });
+      }
+
+      if (!emoji || emoji.length > 32) {
+        return reply(400, { error: "Wybierz poprawny obrazek." });
+      }
+
+      const response = await supabaseRequest("words", {
+        method: "POST",
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify({
+          word,
+          translation,
+          emoji,
+          status: "pending"
+        })
       });
 
       if (!response.ok) {
-        return reply(502, { error: "Could not load content." });
+        console.error("Supabase words POST:", await response.text());
+        return reply(502, { error: "Nie udało się zapisać słówka." });
       }
 
-      return reply(200, await response.json());
+      return reply(201, { message: "Słówko wysłane do zatwierdzenia." });
     }
-
-    // Przyjmowanie nowych zgłoszeń
-    if (event.httpMethod !== "POST") {
-      return reply(405, { error: "Użyj metody POST." });
-    }
-
-    const data = JSON.parse(event.body || "{}");
-    let table;
-    let record;
 
     if (data.type === "note") {
-      if (
-        typeof data.title !== "string" ||
-        typeof data.body !== "string" ||
-        data.title.trim().length < 1 ||
-        data.title.trim().length > 150 ||
-        data.body.trim().length < 1 ||
-        data.body.trim().length > 10000
-      ) {
-        return reply(400, { error: "Sprawdź tytuł i treść notatki." });
+      const title = typeof data.title === "string"
+        ? data.title.trim()
+        : "";
+
+      const body = typeof data.body === "string"
+        ? data.body.trim()
+        : "";
+
+      if (!title || title.length > 150) {
+        return reply(400, { error: "Tytuł jest wymagany (maks. 150 znaków)." });
       }
 
-      table = "notes";
-      record = {
-        title: data.title.trim(),
-        body: data.body.trim(),
-        status: "pending"
-      };
-    } else if (data.type === "word") {
-      if (
-        typeof data.word !== "string" ||
-        typeof data.translation !== "string" ||
-        data.word.trim().length < 1 ||
-        data.word.trim().length > 100 ||
-        data.translation.trim().length < 1 ||
-        data.translation.trim().length > 200
-      ) {
-        return reply(400, { error: "Sprawdź słowo i tłumaczenie." });
+      if (!body || body.length > 10000) {
+        return reply(400, { error: "Treść jest wymagana (maks. 10000 znaków)." });
       }
 
-      table = "words";
-      record = {
-        word: data.word.trim(),
-        translation: data.translation.trim(),
-        status: "pending"
-      };
-    } else {
-      return reply(400, { error: "Unknown submission type." });
-    }
-
-    const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/${table}`,
-      {
+      const response = await supabaseRequest("notes", {
         method: "POST",
-        headers: {
-          ...apiHeaders,
-          Prefer: "return=minimal"
-        },
-        body: JSON.stringify(record)
-      }
-    );
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify({
+          title,
+          body,
+          status: "pending"
+        })
+      });
 
-    if (!response.ok) {
-      return reply(400, { error: "Nie udało się wysłać zgłoszenia." });
+      if (!response.ok) {
+        console.error("Supabase notes POST:", await response.text());
+        return reply(502, { error: "Nie udało się zapisać notatki." });
+      }
+
+      return reply(201, { message: "Notatka wysłana do zatwierdzenia." });
     }
 
-    return reply(201, {
-      message: "Zgłoszenie czeka na zatwierdzenie!"
-    });
+    return reply(400, { error: "Nieznany typ treści." });
   } catch (error) {
-    return reply(500, { error: "Wystąpił błąd serwera." });
+    console.error("Netlify function error:", error);
+    return reply(500, { error: "Wystąpił błąd serwera. Spróbuj ponownie później." });
   }
 };
