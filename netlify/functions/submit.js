@@ -1,5 +1,4 @@
-const RAW_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = (process.env.SUPABASE_ANON_KEY || "").trim();
+const crypto = require("crypto");
 
 // Czyści wartość z Netlify: spacje, cudzysłowy, końcowe "/", doklejone "/rest/v1"
 function normalizeSupabaseUrl(value) {
@@ -14,7 +13,10 @@ function normalizeSupabaseUrl(value) {
   return url;
 }
 
-const SUPABASE_URL = normalizeSupabaseUrl(RAW_URL);
+const SUPABASE_URL = normalizeSupabaseUrl(process.env.SUPABASE_URL);
+const SUPABASE_KEY = (process.env.SUPABASE_ANON_KEY || "").trim();
+const SUPABASE_SERVICE_KEY = (process.env.SUPABASE_SERVICE_KEY || "").trim();
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
 
 const headers = {
   "Content-Type": "application/json; charset=utf-8",
@@ -29,10 +31,28 @@ function reply(statusCode, data) {
   };
 }
 
-async function supabaseRequest(path, options = {}) {
-  if (!SUPABASE_URL || !SUPABASE_KEY) {
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Porównanie hasła odporne na ataki czasowe
+function passwordMatches(input) {
+  if (!ADMIN_PASSWORD) {
+    throw new Error("Brakuje ADMIN_PASSWORD w zmiennych Netlify.");
+  }
+
+  if (typeof input !== "string") return false;
+
+  const a = crypto.createHash("sha256").update(input).digest();
+  const b = crypto.createHash("sha256").update(ADMIN_PASSWORD).digest();
+
+  return crypto.timingSafeEqual(a, b);
+}
+
+async function supabaseRequest(path, options = {}, apiKey = SUPABASE_KEY) {
+  if (!SUPABASE_URL || !apiKey) {
     throw new Error(
-      "Brakuje SUPABASE_URL lub SUPABASE_ANON_KEY w zmiennych Netlify."
+      "Brakuje SUPABASE_URL lub klucza Supabase w zmiennych Netlify."
     );
   }
 
@@ -54,13 +74,13 @@ async function supabaseRequest(path, options = {}) {
   }
 
   const requestHeaders = {
-    apikey: SUPABASE_KEY,
+    apikey: apiKey,
     "Content-Type": "application/json",
     ...(options.headers || {})
   };
 
-  if (SUPABASE_KEY.split(".").length === 3) {
-    requestHeaders.Authorization = `Bearer ${SUPABASE_KEY}`;
+  if (apiKey.split(".").length === 3) {
+    requestHeaders.Authorization = `Bearer ${apiKey}`;
   }
 
   const url = `${parsed.origin}/rest/v1/${path}`;
@@ -108,11 +128,11 @@ exports.handler = async (event) => {
 
       if (type === "words") {
         path =
-          "words?select=word,emoji" +
+          "words?select=id,word,emoji" +
           "&status=eq.approved&order=created_at.desc&limit=100";
       } else if (type === "notes") {
         path =
-          "notes?select=title,body,created_at" +
+          "notes?select=id,title,body,created_at" +
           "&status=eq.approved&order=created_at.desc&limit=100";
       } else {
         return reply(400, {
@@ -141,6 +161,63 @@ exports.handler = async (event) => {
       return reply(400, { error: "Nieprawidłowy format danych." });
     }
 
+    // --- Logowanie administratora (sprawdzenie hasła) ---
+    if (data.type === "admin-check") {
+      if (!passwordMatches(data.password)) {
+        await sleep(600);
+        return reply(401, { error: "Wrong password." });
+      }
+
+      return reply(200, { ok: true });
+    }
+
+    // --- Usuwanie wpisu (tylko z hasłem) ---
+    if (data.type === "delete") {
+      if (!passwordMatches(data.password)) {
+        await sleep(600);
+        return reply(401, { error: "Wrong password." });
+      }
+
+      if (!SUPABASE_SERVICE_KEY) {
+        throw new Error("Brakuje SUPABASE_SERVICE_KEY w zmiennych Netlify.");
+      }
+
+      const table =
+        data.table === "word" ? "words" : data.table === "note" ? "notes" : null;
+
+      if (!table) {
+        return reply(400, { error: "Nieznany typ wpisu do usunięcia." });
+      }
+
+      const id = String(data.id ?? "");
+
+      if (!/^[A-Za-z0-9_-]{1,64}$/.test(id)) {
+        return reply(400, { error: "Nieprawidłowe ID wpisu." });
+      }
+
+      const response = await supabaseRequest(
+        `${table}?id=eq.${encodeURIComponent(id)}`,
+        {
+          method: "DELETE",
+          headers: { Prefer: "return=representation" }
+        },
+        SUPABASE_SERVICE_KEY
+      );
+
+      if (!response.ok) {
+        return reply(502, await supabaseError(response));
+      }
+
+      const deleted = await response.json();
+
+      if (!Array.isArray(deleted) || deleted.length === 0) {
+        return reply(404, { error: "Nie znaleziono wpisu do usunięcia." });
+      }
+
+      return reply(200, { message: "Usunięto." });
+    }
+
+    // --- Dodawanie słówka ---
     if (data.type === "word") {
       const word = typeof data.word === "string" ? data.word.trim() : "";
       const emoji =
@@ -175,6 +252,7 @@ exports.handler = async (event) => {
       });
     }
 
+    // --- Dodawanie notatki ---
     if (data.type === "note") {
       const title = typeof data.title === "string" ? data.title.trim() : "";
       const body = typeof data.body === "string" ? data.body.trim() : "";
@@ -207,7 +285,7 @@ exports.handler = async (event) => {
     }
 
     return reply(400, {
-      error: "Nieznany typ treści. Użyj word lub note."
+      error: "Nieznany typ treści. Użyj word, note, delete lub admin-check."
     });
   } catch (error) {
     console.error("Netlify function error:", error);
