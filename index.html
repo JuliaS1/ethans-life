@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,6 +10,47 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
   <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"></script>
+  <style>
+    /* Tryb administratora: usuwanie wpisów */
+    .item-wrap { position: relative; }
+    .item-wrap .word-card { width: 100%; height: 100%; }
+
+    .delete-button {
+      display: none;
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 32px;
+      height: 32px;
+      border: 0;
+      border-radius: 50%;
+      background: #ff6b81;
+      color: #fff;
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      z-index: 2;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    body.admin .delete-button { display: block; }
+    .delete-button:hover { background: #e63950; }
+
+    .admin-toggle {
+      display: inline-block;
+      margin-left: 10px;
+      padding: 2px 8px;
+      border: 0;
+      border-radius: 12px;
+      background: transparent;
+      font-size: 16px;
+      cursor: pointer;
+      opacity: 0.45;
+    }
+
+    .admin-toggle:hover,
+    body.admin .admin-toggle { opacity: 1; }
+  </style>
 </head>
 <body>
   <header class="hero">
@@ -106,7 +146,11 @@
     </section>
   </main>
 
-  <footer>Made with lots of love for Ethan 💛🌈⭐</footer>
+  <footer>
+    Made with lots of love for Ethan 💛🌈⭐
+    <button id="admin-toggle" class="admin-toggle" type="button"
+      aria-label="Admin" title="Admin">🔒</button>
+  </footer>
 
   <script>
     const API_URL = "/.netlify/functions/submit";
@@ -119,6 +163,16 @@
     const pickerPanel = document.getElementById("picker-panel");
     const togglePicker = document.getElementById("toggle-picker");
     const emojiPicker = document.getElementById("emoji-picker");
+    const adminToggle = document.getElementById("admin-toggle");
+
+    // Hasło administratora trzymane tylko w pamięci karty (sessionStorage)
+    let adminPassword = null;
+
+    try {
+      adminPassword = sessionStorage.getItem("adminPassword");
+    } catch {
+      adminPassword = null;
+    }
 
     togglePicker.addEventListener("click", () => {
       pickerPanel.hidden = !pickerPanel.hidden;
@@ -166,6 +220,14 @@
       return data;
     }
 
+    function postJSON(payload) {
+      return requestJSON(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    }
+
     function speak(word) {
       if (!("speechSynthesis" in window)) {
         showMessage("word-message", "Speech is not supported in this browser.", true);
@@ -179,7 +241,81 @@
       window.speechSynthesis.speak(utterance);
     }
 
+    // --- Usuwanie (tryb administratora) ---
+
+    function makeDeleteButton(table, item, label, reload) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "delete-button";
+      button.textContent = "✖";
+      button.setAttribute("aria-label", "Delete " + label);
+      button.title = "Delete";
+
+      button.addEventListener("click", async event => {
+        event.stopPropagation();
+
+        if (!confirm('Delete "' + label + '"? This cannot be undone.')) return;
+
+        button.disabled = true;
+
+        try {
+          await postJSON({
+            type: "delete",
+            table,
+            id: item.id,
+            password: adminPassword
+          });
+          reload();
+        } catch (error) {
+          button.disabled = false;
+          alert("Couldn't delete: " + error.message);
+        }
+      });
+
+      return button;
+    }
+
+    function setAdminMode(on) {
+      document.body.classList.toggle("admin", on);
+      adminToggle.textContent = on ? "🔓" : "🔒";
+      adminToggle.title = on ? "Log out of admin mode" : "Admin";
+    }
+
+    adminToggle.addEventListener("click", async () => {
+      if (document.body.classList.contains("admin")) {
+        adminPassword = null;
+
+        try {
+          sessionStorage.removeItem("adminPassword");
+        } catch {}
+
+        setAdminMode(false);
+        return;
+      }
+
+      const password = prompt("Admin password:");
+      if (!password) return;
+
+      try {
+        await postJSON({ type: "admin-check", password });
+        adminPassword = password;
+
+        try {
+          sessionStorage.setItem("adminPassword", password);
+        } catch {}
+
+        setAdminMode(true);
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    // --- Karty ---
+
     function makeWordCard(item) {
+      const wrap = document.createElement("div");
+      wrap.className = "item-wrap";
+
       const card = document.createElement("button");
       card.type = "button";
       card.className = "word-card";
@@ -199,12 +335,18 @@
 
       card.append(emoji, word, hint);
       card.addEventListener("click", () => speak(item.word));
-      return card;
+
+      wrap.append(
+        card,
+        makeDeleteButton("word", item, item.word, loadWords)
+      );
+
+      return wrap;
     }
 
     function makeNoteCard(item) {
       const card = document.createElement("article");
-      card.className = "note-card";
+      card.className = "note-card item-wrap";
 
       const title = document.createElement("h3");
       title.textContent = "💌 " + item.title;
@@ -212,7 +354,12 @@
       const body = document.createElement("p");
       body.textContent = item.body;
 
-      card.append(title, body);
+      card.append(
+        title,
+        body,
+        makeDeleteButton("note", item, item.title, loadNotes)
+      );
+
       return card;
     }
 
@@ -241,6 +388,20 @@
       }
     }
 
+    function loadWords() {
+      return loadItems(
+        "words", "words-list", makeWordCard, "New words are coming soon! 🌈"
+      );
+    }
+
+    function loadNotes() {
+      return loadItems(
+        "notes", "notes-list", makeNoteCard, "No notes yet. Leave the first one! 💛"
+      );
+    }
+
+    // --- Formularze ---
+
     wordForm.addEventListener("submit", async event => {
       event.preventDefault();
       const button = wordForm.querySelector('button[type="submit"]');
@@ -248,14 +409,10 @@
       showMessage("word-message", "Sending word... ✨");
 
       try {
-        await requestJSON(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "word",
-            word: wordInput.value.trim(),
-            emoji: emojiInput.value
-          })
+        await postJSON({
+          type: "word",
+          word: wordInput.value.trim(),
+          emoji: emojiInput.value
         });
 
         wordForm.reset();
@@ -278,14 +435,10 @@
       showMessage("note-message", "Sending note... ✨");
 
       try {
-        await requestJSON(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "note",
-            title: document.getElementById("note-title").value.trim(),
-            body: document.getElementById("note-body").value.trim()
-          })
+        await postJSON({
+          type: "note",
+          title: document.getElementById("note-title").value.trim(),
+          body: document.getElementById("note-body").value.trim()
         });
 
         noteForm.reset();
@@ -297,8 +450,23 @@
       }
     });
 
-    loadItems("words", "words-list", makeWordCard, "New words are coming soon! 🌈");
-    loadItems("notes", "notes-list", makeNoteCard, "No notes yet. Leave the first one! 💛");
+    // --- Start ---
+
+    // Jeśli hasło zostało zapamiętane w tej karcie, sprawdź je i włącz tryb admina
+    if (adminPassword) {
+      postJSON({ type: "admin-check", password: adminPassword })
+        .then(() => setAdminMode(true))
+        .catch(() => {
+          adminPassword = null;
+
+          try {
+            sessionStorage.removeItem("adminPassword");
+          } catch {}
+        });
+    }
+
+    loadWords();
+    loadNotes();
   </script>
 </body>
 </html>
