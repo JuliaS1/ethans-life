@@ -1,5 +1,4 @@
 
-/* ===== ETHAN'S LIFE — COLORS & RESET ===== */
 * {
   margin: 0;
   padding: 0;
@@ -13,7 +12,6 @@
   --zielony: #7ed957;
   --fiolet: #b07de8;
   --kremowy: #fff9e6;
-  --tekst: #3a3a3a;
 }
 
 html {
@@ -33,26 +31,25 @@ body {
       rgba(74,144,226,.06) 40px,
       rgba(74,144,226,.06) 41px
     );
-  color: var(--tekst);
+  color: #3a3a3a;
   min-height: 100vh;
   padding: 20px;
   overflow-x: hidden;
 }
 
-button,
-input,
-textarea {
+button, input, textarea, select {
   font: inherit;
 }
 
 button:focus-visible,
 input:focus-visible,
-textarea:focus-visible {
+textarea:focus-visible,
+select:focus-visible {
   outline: 3px solid var(--niebieski);
   outline-offset: 3px;
 }
 
-/* ===== FLOATING BALLOONS ===== */
+/* Floating balloons */
 .balony {
   position: fixed;
   inset: 0;
@@ -81,39 +78,17 @@ textarea:focus-visible {
   transform: translateX(-50%);
 }
 
-.b1 {
-  background: var(--roz);
-  left: 5%;
-  top: 20%;
-}
-
-.b2 {
-  background: var(--niebieski);
-  left: 90%;
-  top: 15%;
-  animation-delay: 2s;
-}
-
-.b3 {
-  background: var(--zielony);
-  left: 15%;
-  top: 70%;
-  animation-delay: 4s;
-}
-
-.b4 {
-  background: var(--fiolet);
-  left: 80%;
-  top: 60%;
-  animation-delay: 6s;
-}
+.b1 { background: var(--roz); left: 5%; top: 20%; }
+.b2 { background: var(--niebieski); left: 90%; top: 15%; animation-delay: 2s; }
+.b3 { background: var(--zielony); left: 15%; top: 70%; animation-delay: 4s; }
+.b4 { background: var(--fiolet); left: 80%; top: 60%; animation-delay: 6s; }
 
 @keyframes unos {
   0%, 100% { transform: translateY(0) rotate(-3deg); }
   50% { transform: translateY(-30px) rotate(3deg); }
 }
 
-/* ===== HEADER ===== */
+/* Header */
 header {
   position: relative;
   z-index: 1;
@@ -125,7 +100,7 @@ header {
 .header-inner {
   background: white;
   border: 4px dashed var(--pomarancz);
-  border-radius: 40px 15px 40px 15px;
+  border-radius: 40px 15px;
   padding: 35px 25px;
   max-width: 700px;
   margin: 0 auto;
@@ -181,7 +156,7 @@ header h1 {
   50% { transform: rotate(10deg); }
 }
 
-/* ===== PAGE LAYOUT ===== */
+/* Main sections */
 main {
   max-width: 900px;
   margin: 0 auto;
@@ -195,7 +170,7 @@ section {
   padding: 30px;
   margin-bottom: 30px;
   box-shadow: 6px 6px 0 rgba(74,144,226,.25);
-  border: 3px solid #fff;
+  border: 3px solid white;
   position: relative;
 }
 
@@ -232,7 +207,7 @@ section h2 {
 }
 
 .hint {
-  color: #888;
+  color: #777;
   font-style: italic;
   margin-bottom: 20px;
   font-size: 1.1rem;
@@ -244,7 +219,7 @@ section h2 {
   padding: 10px 0;
 }
 
-/* ===== ADD NOTE / WORD FORMS ===== */
+/* Forms */
 .formularz {
   max-width: 650px;
   margin: 10px auto 28px;
@@ -279,7 +254,8 @@ section h2 {
 }
 
 .formularz input,
-.formularz textarea {
+.formularz textarea,
+.formularz select {
   display: block;
   width: 100%;
   min-width: 0;
@@ -287,20 +263,42 @@ section h2 {
   border: 2px solid #f0d5e3;
   border-radius: 12px;
   background: white;
-  color: var(--tekst);
+  color: #333;
   font-size: 1.05rem;
-  transition: border-color .2s, box-shadow .2s;
-}
-
-.formularz input:focus,
-.formularz textarea:focus {
-  border-color: var(--roz);
-  box-shadow: 0 0 0 3px rgba(255,107,157,.12);
 }
 
 .formularz textarea {
   min-height: 125px;
   resize: vertical;
+}
+
+.formularz input:focus,
+.formularz textarea:focus,
+.formularz select:focus {
+  border-color: var(--roz);
+}
+
+.emoji-picker {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.emoji-picker select {
+  flex: 1;
+  cursor: pointer;
+}
+
+#podglad-emoji {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 76px;
+  height: 76px;
+  border-radius: 18px;
+  background: #fff;
+  border: 2px dashed #a9d99a;
+  font-size: 3rem;
 }
 
 .formularz button {
@@ -347,11 +345,11 @@ section h2 {
   color: #b42342;
 }
 
-/* ===== NOTES ===== */
+/* Notes */
 .notatka {
   background: var(--kremowy);
   padding: 25px;
-  border-radius: 5px 20px 5px 20px;
+  border-radius: 5px 20px;
   margin: 25px 0 20px;
   position: relative;
   box-shadow: 4px 4px 0 rgba(255,184,77,.4);
@@ -378,9 +376,10 @@ section h2 {
 .notatka p {
   font-size: 1.15rem;
   line-height: 1.65;
+  white-space: pre-line;
 }
 
-/* ===== GALLERY ===== */
+/* Gallery placeholder */
 #galeria-zdjec {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -400,72 +399,85 @@ section h2 {
   transform: scale(1.05) rotate(2deg);
 }
 
-/* ===== WORD BOOK ===== */
-#lista-slowek {
+/* Picture word cards */
+.word-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: 16px;
 }
 
 .slowo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   min-width: 0;
+  min-height: 180px;
+  padding: 18px 12px;
   background: var(--kolor, #e6f4ff);
   border: 3px solid white;
-  border-radius: 20px 5px 20px 5px;
-  padding: 18px 12px;
-  text-align: center;
+  border-radius: 22px 8px 22px 8px;
+  box-shadow: 4px 5px 0 rgba(0,0,0,.09);
   cursor: pointer;
-  transition: transform .3s, box-shadow .3s;
-  user-select: none;
-  position: relative;
-  box-shadow: 4px 4px 0 rgba(0,0,0,.1);
+  color: #2c3e50;
+  transition: transform .25s, box-shadow .25s;
   overflow-wrap: anywhere;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .slowo:hover {
-  transform: translateY(-5px) rotate(-2deg);
-  box-shadow: 6px 8px 0 rgba(0,0,0,.15);
+  transform: translateY(-4px) rotate(-1deg);
+  box-shadow: 6px 8px 0 rgba(0,0,0,.12);
 }
 
 .slowo:active {
-  transform: translateY(0) scale(.97);
+  transform: scale(.97);
+}
+
+.word-picture {
+  display: block;
+  font-family: sans-serif;
+  font-size: 4rem;
+  line-height: 1.2;
+  filter: drop-shadow(0 3px 0 rgba(255,255,255,.65));
 }
 
 .slowo .ang {
   display: block;
-  padding: 0 12px;
   font-family: 'Fredoka', sans-serif;
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: #2c3e50;
-  text-shadow: 1px 1px 0 white;
+  text-align: center;
 }
 
 .slowo .zh {
   display: block;
-  margin-top: 8px;
-  font-size: 1.2rem;
-  color: #2c3e50;
+  font-size: 1.15rem;
+  text-align: center;
   opacity: 0;
-  transform: scale(.5);
-  transition: opacity .3s, transform .3s;
+  transform: translateY(5px);
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity .25s, transform .25s;
 }
 
 .slowo.odkryte .zh {
   opacity: 1;
-  transform: scale(1);
+  transform: translateY(0);
+  max-height: 100px;
 }
 
 .slowo .glosnik {
   position: absolute;
-  top: 5px;
-  right: 8px;
-  font-size: .9rem;
-  opacity: .65;
+  top: 7px;
+  right: 9px;
+  font-size: 1rem;
 }
 
-/* ===== CONFETTI ===== */
+/* Confetti */
 .konfetti {
   position: fixed;
   width: 10px;
@@ -487,7 +499,7 @@ section h2 {
   }
 }
 
-/* ===== FOOTER ===== */
+/* Footer */
 footer {
   text-align: center;
   padding: 30px;
@@ -497,7 +509,7 @@ footer {
   z-index: 1;
 }
 
-/* ===== MOBILE ===== */
+/* Mobile */
 @media (max-width: 600px) {
   body {
     padding: 12px;
@@ -528,13 +540,18 @@ footer {
     padding: 16px;
   }
 
-  #lista-slowek {
+  .word-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
   }
 
   .slowo {
-    padding: 16px 8px;
+    min-height: 155px;
+    padding: 15px 7px;
+  }
+
+  .word-picture {
+    font-size: 3.3rem;
   }
 
   #galeria-zdjec {
@@ -542,7 +559,6 @@ footer {
   }
 }
 
-/* Respect reduced-motion preferences */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
