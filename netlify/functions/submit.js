@@ -1,6 +1,20 @@
+const RAW_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = (process.env.SUPABASE_ANON_KEY || "").trim();
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
+// Czyści wartość z Netlify: spacje, cudzysłowy, końcowe "/", doklejone "/rest/v1"
+function normalizeSupabaseUrl(value) {
+  if (!value) return "";
+
+  let url = String(value).trim().replace(/^["']+|["']+$/g, "").trim();
+
+  url = url.replace(/\/+$/, "");
+  url = url.replace(/\/rest\/v1$/i, "");
+  url = url.replace(/\/+$/, "");
+
+  return url;
+}
+
+const SUPABASE_URL = normalizeSupabaseUrl(RAW_URL);
 
 const headers = {
   "Content-Type": "application/json; charset=utf-8",
@@ -22,6 +36,23 @@ async function supabaseRequest(path, options = {}) {
     );
   }
 
+  let parsed;
+  try {
+    parsed = new URL(SUPABASE_URL);
+  } catch {
+    throw new Error(
+      "SUPABASE_URL jest nieprawidłowy. Użyj samego adresu projektu, " +
+        "np. https://abcdefgh.supabase.co"
+    );
+  }
+
+  if (parsed.pathname !== "/" && parsed.pathname !== "") {
+    throw new Error(
+      "SUPABASE_URL nie może zawierać ścieżki. Użyj samego adresu projektu, " +
+        "np. https://abcdefgh.supabase.co"
+    );
+  }
+
   const requestHeaders = {
     apikey: SUPABASE_KEY,
     "Content-Type": "application/json",
@@ -32,10 +63,10 @@ async function supabaseRequest(path, options = {}) {
     requestHeaders.Authorization = `Bearer ${SUPABASE_KEY}`;
   }
 
-  return fetch(
-    `${SUPABASE_URL.replace(/\/$/, "")}/rest/v1/${path}`,
-    { ...options, headers: requestHeaders }
-  );
+  const url = `${parsed.origin}/rest/v1/${path}`;
+  console.log("Supabase request:", options.method || "GET", url);
+
+  return fetch(url, { ...options, headers: requestHeaders });
 }
 
 async function supabaseError(response) {
@@ -112,13 +143,16 @@ exports.handler = async (event) => {
 
     if (data.type === "word") {
       const word = typeof data.word === "string" ? data.word.trim() : "";
-      const emoji = typeof data.emoji === "string" ? data.emoji.trim() : "✨";
+      const emoji =
+        typeof data.emoji === "string" && data.emoji.trim()
+          ? data.emoji.trim()
+          : "✨";
 
       if (!word || word.length > 100) {
         return reply(400, { error: "Wpisz słowo (maks. 100 znaków)." });
       }
 
-      if (!emoji || emoji.length > 32) {
+      if (emoji.length > 32) {
         return reply(400, { error: "Wybierz emoji." });
       }
 
@@ -150,7 +184,7 @@ exports.handler = async (event) => {
       }
 
       if (!body || body.length > 10000) {
-        return reply(400, { error: "Wpisz treść notatki." });
+        return reply(400, { error: "Wpisz treść notatki (maks. 10000 znaków)." });
       }
 
       const response = await supabaseRequest("notes", {
