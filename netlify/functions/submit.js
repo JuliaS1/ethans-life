@@ -17,21 +17,48 @@ function reply(statusCode, data) {
 
 async function supabaseRequest(path, options = {}) {
   if (!SUPABASE_URL || !SUPABASE_KEY) {
-    throw new Error("Brakuje konfiguracji Supabase w Netlify.");
+    throw new Error(
+      "Brakuje SUPABASE_URL lub SUPABASE_ANON_KEY w ustawieniach Netlify."
+    );
+  }
+
+  const requestHeaders = {
+    apikey: SUPABASE_KEY,
+    "Content-Type": "application/json",
+    ...(options.headers || {})
+  };
+
+  // Stare klucze anon są JWT. Nowe sb_publishable_ nie są JWT.
+  if (SUPABASE_KEY.split(".").length === 3) {
+    requestHeaders.Authorization = `Bearer ${SUPABASE_KEY}`;
   }
 
   return fetch(
     `${SUPABASE_URL.replace(/\/$/, "")}/rest/v1/${path}`,
     {
       ...options,
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-        "Content-Type": "application/json",
-        ...(options.headers || {})
-      }
+      headers: requestHeaders
     }
   );
+}
+
+async function getError(response) {
+  const text = await response.text();
+
+  try {
+    const data = JSON.parse(text);
+    return {
+      error: "Supabase odrzucił żądanie.",
+      supabaseCode: data.code || null,
+      supabaseMessage: data.message || text
+    };
+  } catch {
+    return {
+      error: "Supabase odrzucił żądanie.",
+      supabaseCode: null,
+      supabaseMessage: text.slice(0, 500)
+    };
+  }
 }
 
 exports.handler = async (event) => {
@@ -50,12 +77,11 @@ exports.handler = async (event) => {
 
     if (event.httpMethod === "GET") {
       const type = event.queryStringParameters?.type;
-
       let path;
 
       if (type === "words") {
         path =
-          "words?select=word,translation,emoji,created_at" +
+          "words?select=word,emoji" +
           "&status=eq.approved&order=created_at.desc&limit=100";
       } else if (type === "notes") {
         path =
@@ -63,17 +89,14 @@ exports.handler = async (event) => {
           "&status=eq.approved&order=created_at.desc&limit=100";
       } else {
         return reply(400, {
-          error: "Podaj typ: ?type=words lub ?type=notes."
+          error: "Nieznany typ. Użyj ?type=words lub ?type=notes."
         });
       }
 
       const response = await supabaseRequest(path);
 
       if (!response.ok) {
-        console.error("Supabase GET:", await response.text());
-        return reply(502, {
-          error: "Nie udało się pobrać danych. Sprawdź konfigurację Supabase."
-        });
+        return reply(502, await getError(response));
       }
 
       return reply(200, await response.json());
@@ -100,56 +123,38 @@ exports.handler = async (event) => {
         ? data.word.trim()
         : "";
 
-      const translation = typeof data.translation === "string"
-        ? data.translation.trim()
-        : "";
-
       const emoji = typeof data.emoji === "string"
         ? data.emoji.trim()
         : "✨";
 
       if (!word || word.length > 100) {
         return reply(400, {
-          error: "Wpisz słówko (maksymalnie 100 znaków)."
-        });
-      }
-
-      if (!translation || translation.length > 200) {
-        return reply(400, {
-          error: "Wpisz tłumaczenie (maksymalnie 200 znaków)."
+          error: "Wpisz angielskie słowo (maks. 100 znaków)."
         });
       }
 
       if (!emoji || emoji.length > 32) {
         return reply(400, {
-          error: "Wybierz poprawne emoji."
+          error: "Wybierz emoji."
         });
       }
 
       const response = await supabaseRequest("words", {
         method: "POST",
-        headers: {
-          Prefer: "return=minimal"
-        },
+        headers: { Prefer: "return=minimal" },
         body: JSON.stringify({
           word,
-          translation,
           emoji,
           status: "pending"
         })
       });
 
       if (!response.ok) {
-        const details = await response.text();
-        console.error("Supabase words POST:", details);
-
-        return reply(502, {
-          error: "Nie udało się zapisać słówka. Sprawdź tabelę words w Supabase."
-        });
+        return reply(502, await getError(response));
       }
 
       return reply(201, {
-        message: "Słówko wysłane do zatwierdzenia."
+        message: "Word submitted for approval!"
       });
     }
 
@@ -164,21 +169,19 @@ exports.handler = async (event) => {
 
       if (!title || title.length > 150) {
         return reply(400, {
-          error: "Wpisz tytuł (maksymalnie 150 znaków)."
+          error: "Wpisz tytuł (maks. 150 znaków)."
         });
       }
 
       if (!body || body.length > 10000) {
         return reply(400, {
-          error: "Wpisz treść notatki (maksymalnie 10000 znaków)."
+          error: "Wpisz treść notatki (maks. 10000 znaków)."
         });
       }
 
       const response = await supabaseRequest("notes", {
         method: "POST",
-        headers: {
-          Prefer: "return=minimal"
-        },
+        headers: { Prefer: "return=minimal" },
         body: JSON.stringify({
           title,
           body,
@@ -187,27 +190,22 @@ exports.handler = async (event) => {
       });
 
       if (!response.ok) {
-        const details = await response.text();
-        console.error("Supabase notes POST:", details);
-
-        return reply(502, {
-          error: "Nie udało się zapisać notatki. Sprawdź tabelę notes w Supabase."
-        });
+        return reply(502, await getError(response));
       }
 
       return reply(201, {
-        message: "Notatka wysłana do zatwierdzenia."
+        message: "Note submitted for approval!"
       });
     }
 
     return reply(400, {
-      error: "Nieznany typ treści. Wymagany typ: word lub note."
+      error: "Nieznany typ treści. Użyj word lub note."
     });
   } catch (error) {
     console.error("Netlify function error:", error);
 
     return reply(500, {
-      error: "Błąd serwera. Sprawdź logi funkcji w Netlify."
+      error: error.message || "Nieoczekiwany błąd serwera."
     });
   }
 };
