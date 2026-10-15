@@ -68,25 +68,63 @@
     </section>
 
     <section class="slownik">
-      <h2>📚 My Word Book</h2>
-      <p class="hint">👆 Tap a word to hear it and reveal its meaning!</p>
+      <h2>📚 My Picture Word Book</h2>
+      <p class="hint">👆 Tap a picture to hear the English word!</p>
 
       <form id="formularz-slowka" class="formularz">
-        <h3>🌟 Add a new word</h3>
-        <label for="word-english">Word in English</label>
+        <h3>🌈 Add a picture word</h3>
+
+        <label for="word-emoji">Choose a picture</label>
+        <div class="emoji-picker">
+          <select id="word-emoji" name="emoji" aria-label="Choose a picture">
+            <option value="🐶">🐶 Dog</option>
+            <option value="🐱">🐱 Cat</option>
+            <option value="🐰">🐰 Rabbit</option>
+            <option value="🐻">🐻 Bear</option>
+            <option value="🦁">🦁 Lion</option>
+            <option value="🐸">🐸 Frog</option>
+            <option value="🐵">🐵 Monkey</option>
+            <option value="🐼">🐼 Panda</option>
+            <option value="🐦">🐦 Bird</option>
+            <option value="🐟">🐟 Fish</option>
+            <option value="🦋">🦋 Butterfly</option>
+            <option value="🐢">🐢 Turtle</option>
+            <option value="🍎">🍎 Apple</option>
+            <option value="🍌">🍌 Banana</option>
+            <option value="🍓">🍓 Strawberry</option>
+            <option value="🍕">🍕 Pizza</option>
+            <option value="🎂">🎂 Cake</option>
+            <option value="🚗">🚗 Car</option>
+            <option value="🚌">🚌 Bus</option>
+            <option value="🚂">🚂 Train</option>
+            <option value="✈️">✈️ Airplane</option>
+            <option value="⚽">⚽ Ball</option>
+            <option value="🏠">🏠 House</option>
+            <option value="🌞">🌞 Sun</option>
+            <option value="🌈">🌈 Rainbow</option>
+            <option value="⭐">⭐ Star</option>
+            <option value="🌳">🌳 Tree</option>
+            <option value="🌸">🌸 Flower</option>
+            <option value="❤️">❤️ Heart</option>
+            <option value="😊">😊 Happy</option>
+          </select>
+          <span id="podglad-emoji" aria-hidden="true">🐶</span>
+        </div>
+
+        <label for="word-english">English word</label>
         <input id="word-english" name="word" maxlength="100"
-          placeholder="e.g. butterfly" required>
+          placeholder="e.g. dog" required>
 
-        <label for="word-translation">Translation</label>
+        <label for="word-translation">Meaning in Polish</label>
         <input id="word-translation" name="translation" maxlength="200"
-          placeholder="e.g. motyl" required>
+          placeholder="e.g. pies" required>
 
-        <button type="submit">Send word 📚</button>
+        <button type="submit">Add my word 🌟</button>
         <p class="komunikat" aria-live="polite"></p>
       </form>
 
-      <div id="lista-slowek" aria-live="polite">
-        <p class="loading">Loading words...</p>
+      <div id="lista-slowek" class="word-grid" aria-live="polite">
+        <p class="loading">Loading picture words...</p>
       </div>
     </section>
   </main>
@@ -98,7 +136,12 @@
   <script>
     const API_URL = "/.netlify/functions/submit";
 
-    // Confetti animation
+    const palette = [
+      "#ffedba", "#fbdcf0", "#dcecff",
+      "#def4d5", "#e8ddff", "#ffe1d6"
+    ];
+
+    // Small confetti burst
     function konfetti(x, y) {
       const colors = [
         "#ff6b9d", "#ffb84d", "#4a90e2",
@@ -112,26 +155,20 @@
         el.style.top = y + "px";
         el.style.background =
           colors[Math.floor(Math.random() * colors.length)];
-        el.style.setProperty(
-          "--dx", (Math.random() * 200 - 100) + "px"
-        );
-        el.style.setProperty(
-          "--dy", (Math.random() * 200 - 50) + "px"
-        );
-
+        el.style.setProperty("--dx", (Math.random() * 180 - 90) + "px");
+        el.style.setProperty("--dy", (Math.random() * 180 - 40) + "px");
         document.body.appendChild(el);
         setTimeout(() => el.remove(), 1000);
       }
     }
 
-    // English pronunciation
-    function powiedzSlowo(slowo) {
+    // Speak English words aloud
+    function powiedzSlowo(word) {
       if (!("speechSynthesis" in window)) return;
 
-      const utterance = new SpeechSynthesisUtterance(slowo);
+      const utterance = new SpeechSynthesisUtterance(word);
       utterance.lang = "en-US";
-      utterance.rate = 0.85;
-
+      utterance.rate = 0.8;
       speechSynthesis.cancel();
       speechSynthesis.speak(utterance);
     }
@@ -142,9 +179,33 @@
       output.classList.toggle("blad", isError);
     }
 
-    // Send a note for moderation
+    async function sendData(data) {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result.error || "Something went wrong.");
+      }
+
+      return result;
+    }
+
+    // Emoji preview
+    const emojiSelect = document.getElementById("word-emoji");
+    const emojiPreview = document.getElementById("podglad-emoji");
+
+    emojiSelect.addEventListener("change", () => {
+      emojiPreview.textContent = emojiSelect.value;
+    });
+
+    // Submit notes
     document.getElementById("formularz-notatki")
-      .addEventListener("submit", async function(event) {
+      .addEventListener("submit", async event => {
         event.preventDefault();
 
         const form = event.currentTarget;
@@ -155,41 +216,24 @@
         showMessage(form, "Sending your note... ✨");
 
         try {
-          const response = await fetch(API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              type: "note",
-              title: String(data.get("title") || "").trim(),
-              body: String(data.get("body") || "").trim()
-            })
+          await sendData({
+            type: "note",
+            title: String(data.get("title") || "").trim(),
+            body: String(data.get("body") || "").trim()
           });
 
-          const result = await response.json();
-
-          if (!response.ok) {
-            throw new Error(result.error || "Could not send the note.");
-          }
-
           form.reset();
-          showMessage(
-            form,
-            "Thank you! Your note is waiting for approval 💗"
-          );
+          showMessage(form, "Thank you! Your note is waiting for approval 💗");
         } catch (error) {
-          showMessage(
-            form,
-            error.message || "Something went wrong. Please try again.",
-            true
-          );
+          showMessage(form, error.message, true);
         } finally {
           button.disabled = false;
         }
       });
 
-    // Send a word for moderation
+    // Submit picture words
     document.getElementById("formularz-slowka")
-      .addEventListener("submit", async function(event) {
+      .addEventListener("submit", async event => {
         event.preventDefault();
 
         const form = event.currentTarget;
@@ -197,36 +241,21 @@
         const data = new FormData(form);
 
         button.disabled = true;
-        showMessage(form, "Sending your word... ✨");
+        showMessage(form, "Sending your picture word... ✨");
 
         try {
-          const response = await fetch(API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              type: "word",
-              word: String(data.get("word") || "").trim(),
-              translation: String(data.get("translation") || "").trim()
-            })
+          await sendData({
+            type: "word",
+            emoji: String(data.get("emoji") || "✨"),
+            word: String(data.get("word") || "").trim(),
+            translation: String(data.get("translation") || "").trim()
           });
 
-          const result = await response.json();
-
-          if (!response.ok) {
-            throw new Error(result.error || "Could not send the word.");
-          }
-
           form.reset();
-          showMessage(
-            form,
-            "Thank you! Your word is waiting for approval 💗"
-          );
+          emojiPreview.textContent = emojiSelect.value;
+          showMessage(form, "Lovely! Your word is waiting for approval 💗");
         } catch (error) {
-          showMessage(
-            form,
-            error.message || "Something went wrong. Please try again.",
-            true
-          );
+          showMessage(form, error.message, true);
         } finally {
           button.disabled = false;
         }
@@ -244,8 +273,8 @@
         const notes = await response.json();
 
         if (!Array.isArray(notes) || notes.length === 0) {
-          container.innerHTML =
-            '<p class="loading">No approved notes yet. Be the first to share a memory! 💌</p>';
+          container.textContent =
+            "No approved notes yet. Share your first memory! 💌";
           return;
         }
 
@@ -258,19 +287,17 @@
 
           const body = document.createElement("p");
           body.textContent = note.body || "";
-          body.style.whiteSpace = "pre-line";
 
           card.append(title, body);
           container.appendChild(card);
         });
       } catch (error) {
-        console.error("Notes:", error);
-        container.textContent =
-          "Notes couldn't be loaded right now. Please try again later.";
+        console.error(error);
+        container.textContent = "Notes couldn't load. Please try again later.";
       }
     }
 
-    // Load approved vocabulary
+    // Load approved picture words
     async function loadWords() {
       const container = document.getElementById("lista-slowek");
       container.replaceChildren();
@@ -282,55 +309,57 @@
         const words = await response.json();
 
         if (!Array.isArray(words) || words.length === 0) {
-          container.innerHTML =
-            '<p class="loading">No approved words yet. Add the first one! 📚</p>';
+          container.textContent =
+            "Your picture book is waiting for its first words! 🌈";
           return;
         }
-
-        const colors = [
-          "#ffb84d", "#7ed957", "#4a90e2",
-          "#b07de8", "#ff6b9d"
-        ];
 
         words.forEach((word, index) => {
           const card = document.createElement("button");
           card.type = "button";
           card.className = "slowo";
           card.style.setProperty(
-            "--kolor", colors[index % colors.length]
+            "--kolor", palette[index % palette.length]
           );
-          card.setAttribute(
-            "aria-label",
-            `${word.word}. Tap to hear the pronunciation and reveal the translation.`
-          );
+
+          const picture = document.createElement("span");
+          picture.className = "word-picture";
+          picture.textContent = word.emoji || "✨";
+          picture.setAttribute("aria-hidden", "true");
 
           const english = document.createElement("span");
           english.className = "ang";
-          english.textContent = word.word;
+          english.textContent = word.word || "";
 
           const translation = document.createElement("span");
           translation.className = "zh";
-          translation.textContent = word.translation;
+          translation.textContent = word.translation || "";
+          translation.setAttribute("aria-hidden", "true");
 
           const speaker = document.createElement("span");
           speaker.className = "glosnik";
           speaker.textContent = "🔊";
           speaker.setAttribute("aria-hidden", "true");
 
-          card.append(english, translation, speaker);
+          card.setAttribute(
+            "aria-label",
+            `Picture word: ${word.word}. Tap to hear and reveal the meaning.`
+          );
+
+          card.append(picture, english, translation, speaker);
 
           card.addEventListener("click", event => {
-            card.classList.toggle("odkryte");
-            powiedzSlowo(word.word);
+            const revealed = card.classList.toggle("odkryte");
+            translation.setAttribute("aria-hidden", String(!revealed));
+            powiedzSlowo(word.word || "");
             konfetti(event.clientX, event.clientY);
           });
 
           container.appendChild(card);
         });
       } catch (error) {
-        console.error("Words:", error);
-        container.textContent =
-          "Words couldn't be loaded right now. Please try again later.";
+        console.error(error);
+        container.textContent = "Picture words couldn't load. Please try again later.";
       }
     }
 
