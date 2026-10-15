@@ -1,25 +1,75 @@
 
 exports.handler = async (event) => {
   const headers = {
-    "Content-Type": "application/json"
+    "Content-Type": "application/json",
+    "Cache-Control": "no-store"
   };
 
-  if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({ error: "Użyj metody POST." })
-    };
-  }
+  const reply = (statusCode, data) => ({
+    statusCode,
+    headers,
+    body: JSON.stringify(data)
+  });
 
   try {
-    const data = JSON.parse(event.body || "{}");
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = process.env;
 
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-      throw new Error("Brak konfiguracji Supabase.");
+      return reply(500, { error: "Missing server configuration." });
     }
 
+    const apiHeaders = {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type": "application/json"
+    };
+
+    // Pobieranie zatwierdzonych wpisów
+    if (event.httpMethod === "GET") {
+      const type = event.queryStringParameters?.type;
+
+      const config = {
+        notes: {
+          table: "notes",
+          columns: "id,title,body,created_at"
+        },
+        words: {
+          table: "words",
+          columns: "id,word,translation,created_at"
+        }
+      };
+
+      if (!config[type]) {
+        return reply(400, { error: "Unknown content type." });
+      }
+
+      const { table, columns } = config[type];
+      const url = new URL(
+        `${SUPABASE_URL}/rest/v1/${table}`
+      );
+
+      url.searchParams.set("select", columns);
+      url.searchParams.set("status", "eq.approved");
+      url.searchParams.set("order", "created_at.desc");
+      url.searchParams.set("limit", "100");
+
+      const response = await fetch(url, {
+        headers: apiHeaders
+      });
+
+      if (!response.ok) {
+        return reply(502, { error: "Could not load content." });
+      }
+
+      return reply(200, await response.json());
+    }
+
+    // Przyjmowanie nowych zgłoszeń
+    if (event.httpMethod !== "POST") {
+      return reply(405, { error: "Użyj metody POST." });
+    }
+
+    const data = JSON.parse(event.body || "{}");
     let table;
     let record;
 
@@ -32,11 +82,7 @@ exports.handler = async (event) => {
         data.body.trim().length < 1 ||
         data.body.trim().length > 10000
       ) {
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({ error: "Sprawdź tytuł i treść notatki." })
-        };
+        return reply(400, { error: "Sprawdź tytuł i treść notatki." });
       }
 
       table = "notes";
@@ -54,11 +100,7 @@ exports.handler = async (event) => {
         data.translation.trim().length < 1 ||
         data.translation.trim().length > 200
       ) {
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({ error: "Sprawdź słowo i tłumaczenie." })
-        };
+        return reply(400, { error: "Sprawdź słowo i tłumaczenie." });
       }
 
       table = "words";
@@ -68,11 +110,7 @@ exports.handler = async (event) => {
         status: "pending"
       };
     } else {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: "Nieznany typ zgłoszenia." })
-      };
+      return reply(400, { error: "Unknown submission type." });
     }
 
     const response = await fetch(
@@ -80,9 +118,7 @@ exports.handler = async (event) => {
       {
         method: "POST",
         headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
+          ...apiHeaders,
           Prefer: "return=minimal"
         },
         body: JSON.stringify(record)
@@ -90,29 +126,13 @@ exports.handler = async (event) => {
     );
 
     if (!response.ok) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({
-          error: "Nie udało się zapisać zgłoszenia."
-        })
-      };
+      return reply(400, { error: "Nie udało się wysłać zgłoszenia." });
     }
 
-    return {
-      statusCode: 201,
-      headers,
-      body: JSON.stringify({
-        message: "Zgłoszenie wysłane do zatwierdzenia!"
-      })
-    };
+    return reply(201, {
+      message: "Zgłoszenie czeka na zatwierdzenie!"
+    });
   } catch (error) {
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({
-        error: "Wystąpił błąd serwera."
-      })
-    };
+    return reply(500, { error: "Wystąpił błąd serwera." });
   }
 };
