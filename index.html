@@ -1,35 +1,434 @@
 
-<label for="word-emoji-search">Choose a picture</label>
-<input
-  id="word-emoji-search"
-  type="search"
-  placeholder="Search: dog, apple, car..."
-  autocomplete="off"
->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#fff5f8">
+  <title>Ethan's Life 💛</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="hero">
+    <div class="balloon balloon-one">🎈</div>
+    <div class="balloon balloon-two">🎈</div>
+    <div class="hero-content">
+      <span class="eyebrow">A little place full of love</span>
+      <h1>Ethan's Life <span>💛</span></h1>
+      <p>A happy little world for memories, pictures and new words!</p>
+      <nav class="navigation">
+        <a href="#wordbook">📚 Wordbook</a>
+        <a href="#notes">💌 Notes</a>
+      </nav>
+    </div>
+  </header>
 
-<div id="emoji-results" class="emoji-results" aria-label="Emoji choices"></div>
+  <main>
+    <section id="wordbook" class="section">
+      <div class="section-heading">
+        <span class="section-icon">🧸</span>
+        <div>
+          <h2>Ethan's Picture Wordbook</h2>
+          <p>Tap a picture to hear the English word. Tap again to see what it means!</p>
+        </div>
+      </div>
 
-<div class="emoji-preview">
-  <span id="podglad-emoji" aria-hidden="true">🐶</span>
-  <span>Your picture</span>
-</div>
+      <form id="word-form" class="form-card">
+        <h3>✨ Add a new word</h3>
 
-<input type="hidden" id="word-emoji" name="emoji" value="🐶">
+        <label for="word-english">English word</label>
+        <input id="word-english" name="word" maxlength="100"
+          placeholder="e.g. dog" required>
 
-<label for="word-english">English word</label>
-<input
-  id="word-english"
-  name="word"
-  maxlength="100"
-  placeholder="e.g. dog"
-  required
->
+        <label for="word-translation">Tłumaczenie</label>
+        <input id="word-translation" name="translation" maxlength="200"
+          placeholder="np. pies" required>
 
-<label for="word-translation">Tłumaczenie</label>
-<input
-  id="word-translation"
-  name="translation"
-  maxlength="200"
-  placeholder="np. pies"
-  required
->
+        <label for="word-emoji-search">Choose a picture</label>
+        <input id="word-emoji-search" type="search"
+          placeholder="Search: dog, apple, car..."
+          autocomplete="off">
+
+        <div id="emoji-results" class="emoji-results"
+          aria-label="Emoji choices"></div>
+
+        <div class="emoji-preview">
+          <span id="emoji-preview" aria-hidden="true">🐶</span>
+          <span>Your picture</span>
+        </div>
+
+        <input type="hidden" id="word-emoji" name="emoji" value="🐶">
+
+        <button type="submit" class="primary-button">Send word 💌</button>
+        <p id="word-message" class="form-message" role="status"></p>
+      </form>
+
+      <div class="content-heading">
+        <h3>🌈 Let's learn!</h3>
+        <p>Tap a card to hear the word. Tap again to reveal the translation.</p>
+      </div>
+      <div id="words-list" class="words-grid" aria-live="polite">
+        <p class="loading">Loading words... ✨</p>
+      </div>
+    </section>
+
+    <section id="notes" class="section notes-section">
+      <div class="section-heading">
+        <span class="section-icon">💌</span>
+        <div>
+          <h2>Little Notes</h2>
+          <p>Leave a lovely message for Ethan.</p>
+        </div>
+      </div>
+
+      <form id="note-form" class="form-card">
+        <h3>📝 Write a note</h3>
+
+        <label for="note-title">Title</label>
+        <input id="note-title" name="title" maxlength="150"
+          placeholder="A little message..." required>
+
+        <label for="note-body">Your note</label>
+        <textarea id="note-body" name="body" maxlength="10000"
+          rows="4" placeholder="Write something lovely..." required></textarea>
+
+        <button type="submit" class="primary-button">Send note 💛</button>
+        <p id="note-message" class="form-message" role="status"></p>
+      </form>
+
+      <div class="content-heading">
+        <h3>💖 Messages for Ethan</h3>
+      </div>
+      <div id="notes-list" class="notes-grid" aria-live="polite">
+        <p class="loading">Loading notes... ✨</p>
+      </div>
+    </section>
+
+    <footer>
+      <p>Made with lots of love for Ethan 💛🌈⭐</p>
+    </footer>
+  </main>
+
+  <script>
+    const API_URL = "/.netlify/functions/submit";
+
+    const emojiChoices = [
+      { emoji: "🐶", names: "dog puppy pies piesek" },
+      { emoji: "🐱", names: "cat kitten kot kotek" },
+      { emoji: "🐰", names: "rabbit bunny królik" },
+      { emoji: "🐻", names: "bear miś niedźwiedź" },
+      { emoji: "🦁", names: "lion lew" },
+      { emoji: "🐸", names: "frog żaba" },
+      { emoji: "🐵", names: "monkey małpa" },
+      { emoji: "🐮", names: "cow krowa" },
+      { emoji: "🐷", names: "pig świnia" },
+      { emoji: "🐔", names: "chicken kurczak kura" },
+      { emoji: "🐣", names: "chick piskle" },
+      { emoji: "🐴", names: "horse koń" },
+      { emoji: "🐑", names: "sheep owca" },
+      { emoji: "🐘", names: "elephant słoń" },
+      { emoji: "🦒", names: "giraffe żyrafa" },
+      { emoji: "🐢", names: "turtle żółw" },
+      { emoji: "🐟", names: "fish ryba" },
+      { emoji: "🐬", names: "dolphin delfin" },
+      { emoji: "🦋", names: "butterfly motyl" },
+      { emoji: "🐝", names: "bee pszczoła" },
+      { emoji: "🍎", names: "apple jabłko" },
+      { emoji: "🍌", names: "banana banan" },
+      { emoji: "🍓", names: "strawberry truskawka" },
+      { emoji: "🍉", names: "watermelon arbuz" },
+      { emoji: "🍇", names: "grapes winogrona" },
+      { emoji: "🍊", names: "orange pomarańcza" },
+      { emoji: "🍐", names: "pear gruszka" },
+      { emoji: "🍍", names: "pineapple ananas" },
+      { emoji: "🥕", names: "carrot marchewka" },
+      { emoji: "🍕", names: "pizza pizza" },
+      { emoji: "🍦", names: "ice cream lody" },
+      { emoji: "🎂", names: "cake ciasto tort" },
+      { emoji: "🚗", names: "car samochód auto" },
+      { emoji: "🚌", names: "bus autobus" },
+      { emoji: "🚂", names: "train pociąg" },
+      { emoji: "✈️", names: "plane airplane samolot" },
+      { emoji: "🚲", names: "bike bicycle rower" },
+      { emoji: "🚀", names: "rocket rakieta" },
+      { emoji: "⚽", names: "ball football piłka" },
+      { emoji: "🧸", names: "teddy bear toy miś zabawka" },
+      { emoji: "🏠", names: "house home dom" },
+      { emoji: "🛏️", names: "bed łóżko" },
+      { emoji: "👟", names: "shoe shoes buty" },
+      { emoji: "👒", names: "hat kapelusz" },
+      { emoji: "☀️", names: "sun słońce" },
+      { emoji: "🌙", names: "moon księżyc" },
+      { emoji: "⭐", names: "star gwiazda" },
+      { emoji: "🌈", names: "rainbow tęcza" },
+      { emoji: "🌧️", names: "rain deszcz" },
+      { emoji: "❄️", names: "snow śnieg" },
+      { emoji: "🌳", names: "tree drzewo" },
+      { emoji: "🌸", names: "flower kwiat" },
+      { emoji: "❤️", names: "heart serce" },
+      { emoji: "👶", names: "baby niemowlę dziecko" },
+      { emoji: "👋", names: "hello wave cześć" },
+      { emoji: "👏", names: "clap brawo klaskać" },
+      { emoji: "😊", names: "happy smile uśmiech szczęśliwy" },
+      { emoji: "😭", names: "cry sad płakać smutny" },
+      { emoji: "💧", names: "water woda" },
+      { emoji: "🪥", names: "toothbrush szczoteczka" }
+    ];
+
+    const wordForm = document.getElementById("word-form");
+    const noteForm = document.getElementById("note-form");
+    const wordInput = document.getElementById("word-english");
+    const translationInput = document.getElementById("word-translation");
+    const emojiSearch = document.getElementById("word-emoji-search");
+    const emojiResults = document.getElementById("emoji-results");
+    const emojiInput = document.getElementById("word-emoji");
+    const emojiPreview = document.getElementById("emoji-preview");
+
+    function showMessage(id, message, isError = false) {
+      const element = document.getElementById(id);
+      element.textContent = message;
+      element.classList.toggle("error", isError);
+    }
+
+    function selectEmoji(emoji) {
+      emojiInput.value = emoji;
+      emojiPreview.textContent = emoji;
+      renderEmojiChoices();
+    }
+
+    function renderEmojiChoices() {
+      const query = emojiSearch.value.trim().toLocaleLowerCase();
+      const matches = emojiChoices.filter(item =>
+        !query ||
+        item.names.toLocaleLowerCase().includes(query) ||
+        item.emoji.includes(query)
+      );
+
+      emojiResults.replaceChildren();
+
+      if (!matches.length) {
+        const empty = document.createElement("p");
+        empty.className = "empty-message";
+        empty.textContent = "No match yet. Try another word or choose a picture below later.";
+        emojiResults.appendChild(empty);
+        return;
+      }
+
+      matches.forEach(item => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "emoji-option";
+        button.textContent = item.emoji;
+        button.title = item.names.split(" ").slice(0, 3).join(", ");
+        button.setAttribute("aria-label", button.title);
+        button.setAttribute("aria-pressed", String(item.emoji === emojiInput.value));
+
+        if (item.emoji === emojiInput.value) {
+          button.classList.add("selected");
+        }
+
+        button.addEventListener("click", () => selectEmoji(item.emoji));
+        emojiResults.appendChild(button);
+      });
+    }
+
+    emojiSearch.addEventListener("input", renderEmojiChoices);
+
+    wordInput.addEventListener("input", () => {
+      const word = wordInput.value.trim().toLocaleLowerCase();
+      const match = emojiChoices.find(item =>
+        item.names.split(/\s+/).includes(word)
+      );
+      if (match) selectEmoji(match.emoji);
+    });
+
+    function speakWord(word) {
+      if (!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = "en-US";
+      utterance.rate = 0.8;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    async function requestJSON(url, options = {}) {
+      const response = await fetch(url, options);
+      const text = await response.text();
+      let data;
+
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch {
+        throw new Error("Server returned an unexpected response. Please try again.");
+      }
+
+      if (!response.ok) {
+        throw new Error(data?.error || "Something went wrong. Please try again.");
+      }
+
+      return data;
+    }
+
+    function createWordCard(item) {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "word-card";
+      card.setAttribute("aria-label", "Hear " + item.word + " and reveal its Polish translation");
+
+      const emoji = document.createElement("span");
+      emoji.className = "word-emoji";
+      emoji.textContent = item.emoji || "✨";
+
+      const word = document.createElement("span");
+      word.className = "word-english";
+      word.textContent = item.word;
+
+      const translation = document.createElement("span");
+      translation.className = "word-translation";
+      translation.textContent = item.translation;
+      translation.hidden = true;
+
+      const hint = document.createElement("span");
+      hint.className = "word-hint";
+      hint.textContent = "Tap to listen 🔊";
+
+      card.append(emoji, word, translation, hint);
+
+      card.addEventListener("click", () => {
+        if (translation.hidden) {
+          speakWord(item.word);
+          translation.hidden = false;
+          hint.textContent = "Tap again to hear 🔊";
+          card.classList.add("revealed");
+        } else {
+          speakWord(item.word);
+        }
+      });
+
+      return card;
+    }
+
+    function createNoteCard(item) {
+      const card = document.createElement("article");
+      card.className = "note-card";
+
+      const title = document.createElement("h3");
+      title.textContent = "💌 " + item.title;
+
+      const body = document.createElement("p");
+      body.textContent = item.body;
+
+      card.append(title, body);
+      return card;
+    }
+
+    async function loadWords() {
+      const container = document.getElementById("words-list");
+      try {
+        const words = await requestJSON(API_URL + "?type=words");
+        container.replaceChildren();
+
+        if (!Array.isArray(words) || words.length === 0) {
+          container.innerHTML = '<p class="empty-message">New words are coming soon! 🌈</p>';
+          return;
+        }
+
+        words.forEach(item => container.appendChild(createWordCard(item)));
+      } catch (error) {
+        container.replaceChildren();
+        const message = document.createElement("p");
+        message.className = "error";
+        message.textContent = "Couldn't load words: " + error.message;
+        container.appendChild(message);
+      }
+    }
+
+    async function loadNotes() {
+      const container = document.getElementById("notes-list");
+      try {
+        const notes = await requestJSON(API_URL + "?type=notes");
+        container.replaceChildren();
+
+        if (!Array.isArray(notes) || notes.length === 0) {
+          container.innerHTML = '<p class="empty-message">No notes yet. Leave the first one! 💛</p>';
+          return;
+        }
+
+        notes.forEach(item => container.appendChild(createNoteCard(item)));
+      } catch (error) {
+        container.replaceChildren();
+        const message = document.createElement("p");
+        message.className = "error";
+        message.textContent = "Couldn't load notes: " + error.message;
+        container.appendChild(message);
+      }
+    }
+
+    wordForm.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const submitButton = wordForm.querySelector('button[type="submit"]');
+      submitButton.disabled = true;
+      showMessage("word-message", "Sending your word... ✨");
+
+      try {
+        await requestJSON(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "word",
+            word: wordInput.value.trim(),
+            translation: translationInput.value.trim(),
+            emoji: emojiInput.value
+          })
+        });
+
+        wordForm.reset();
+        emojiInput.value = "🐶";
+        emojiPreview.textContent = "🐶";
+        emojiSearch.value = "";
+        renderEmojiChoices();
+        showMessage("word-message", "Sent! Your word is waiting for approval. 💛");
+      } catch (error) {
+        showMessage("word-message", error.message, true);
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+
+    noteForm.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const submitButton = noteForm.querySelector('button[type="submit"]');
+      submitButton.disabled = true;
+      showMessage("note-message", "Sending your note... ✨");
+
+      try {
+        await requestJSON(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "note",
+            title: document.getElementById("note-title").value.trim(),
+            body: document.getElementById("note-body").value.trim()
+          })
+        });
+
+        noteForm.reset();
+        showMessage("note-message", "Sent! Your note is waiting for approval. 💛");
+      } catch (error) {
+        showMessage("note-message", error.message, true);
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+
+    renderEmojiChoices();
+    loadWords();
+    loadNotes();
+  </script>
+</body>
+</html>
