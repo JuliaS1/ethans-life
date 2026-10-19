@@ -21,9 +21,14 @@ const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || "")
   .trim()
   .replace(/^["']+|["']+$/g, "")
   .trim();
-// AUTO_APPROVE=true w Netlify: nowe wpisy od razu pojawiają się na stronie
+// Nowe wpisy pojawiają się od razu. Moderację (zatwierdzanie ręczne) włączysz,
+// ustawiając w Netlify AUTO_APPROVE=false
 const AUTO_APPROVE =
-  String(process.env.AUTO_APPROVE || "").trim().toLowerCase() === "true";
+  String(process.env.AUTO_APPROVE || "")
+    .trim()
+    .replace(/^["']+|["']+$/g, "")
+    .trim()
+    .toLowerCase() !== "false";
 
 const headers = {
   "Content-Type": "application/json; charset=utf-8",
