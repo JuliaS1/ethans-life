@@ -237,7 +237,7 @@
           Remove picture ✖
         </button>
 
-        <button class="primary-button" type="submit">Safe 💌</button>
+        <button class="primary-button" type="submit">Send word 💌</button>
         <p id="word-message" class="form-message" role="status"></p>
       </form>
 
@@ -600,11 +600,19 @@
       return card;
     }
 
-    async function loadItems(type, containerId, makeCard, emptyText) {
+    const snapshots = {};
+
+    // silent = true: odświeżanie w tle (bez błędów i bez migania, gdy nic się nie zmieniło)
+    async function loadItems(type, containerId, makeCard, emptyText, silent = false) {
       const container = document.getElementById(containerId);
 
       try {
         const items = await requestJSON(API_URL + "?type=" + type);
+        const snapshot = JSON.stringify(items);
+
+        if (silent && snapshots[type] === snapshot) return;
+
+        snapshots[type] = snapshot;
         container.replaceChildren();
 
         if (!Array.isArray(items) || items.length === 0) {
@@ -617,6 +625,8 @@
 
         items.forEach(item => container.appendChild(makeCard(item)));
       } catch (error) {
+        if (silent) return;
+
         container.replaceChildren();
         const message = document.createElement("p");
         message.className = "error";
@@ -625,15 +635,15 @@
       }
     }
 
-    function loadWords() {
+    function loadWords(silent = false) {
       return loadItems(
-        "words", "words-list", makeWordCard, "New words are coming soon! 🌈"
+        "words", "words-list", makeWordCard, "New words are coming soon! 🌈", silent
       );
     }
 
-    function loadNotes() {
+    function loadNotes(silent = false) {
       return loadItems(
-        "notes", "notes-list", makeNoteCard, "No notes yet. Leave the first one! 💛"
+        "notes", "notes-list", makeNoteCard, "No notes yet. Leave the first one! 💛", silent
       );
     }
 
@@ -646,7 +656,7 @@
       showMessage("word-message", "Sending word... ✨");
 
       try {
-        await postJSON({
+        const result = await postJSON({
           type: "word",
           word: wordInput.value.trim(),
           emoji: emojiInput.value,
@@ -661,7 +671,12 @@
         document.getElementById("emoji-label").textContent = "No emoji chosen";
         togglePicker.textContent = "Choose emoji 😊";
         pickerPanel.hidden = true;
-        showMessage("word-message", "Sent! Your word is waiting for approval. 💛");
+        if (result?.approved) {
+          showMessage("word-message", "Added! 🎉");
+          loadWords();
+        } else {
+          showMessage("word-message", "Sent! Your word is waiting for approval. 💛");
+        }
       } catch (error) {
         showMessage("word-message", error.message, true);
       } finally {
@@ -676,14 +691,19 @@
       showMessage("note-message", "Sending note... ✨");
 
       try {
-        await postJSON({
+        const result = await postJSON({
           type: "note",
           title: document.getElementById("note-title").value.trim(),
           body: document.getElementById("note-body").value.trim()
         });
 
         noteForm.reset();
-        showMessage("note-message", "Sent! Your note is waiting for approval. 💛");
+        if (result?.approved) {
+          showMessage("note-message", "Added! 🎉");
+          loadNotes();
+        } else {
+          showMessage("note-message", "Sent! Your note is waiting for approval. 💛");
+        }
       } catch (error) {
         showMessage("note-message", error.message, true);
       } finally {
@@ -708,6 +728,16 @@
 
     loadWords();
     loadNotes();
+
+    // Nowe wpisy od innych osób pojawiają się same, bez odświeżania strony
+    function refreshInBackground() {
+      if (document.visibilityState !== "visible") return;
+      loadWords(true);
+      loadNotes(true);
+    }
+
+    setInterval(refreshInBackground, 20000);
+    document.addEventListener("visibilitychange", refreshInBackground);
   </script>
 </body>
 </html>
