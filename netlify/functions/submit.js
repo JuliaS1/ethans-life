@@ -17,6 +17,8 @@ const SUPABASE_URL = normalizeSupabaseUrl(process.env.SUPABASE_URL);
 const SUPABASE_KEY = (process.env.SUPABASE_ANON_KEY || "").trim();
 const SUPABASE_SERVICE_KEY = (process.env.SUPABASE_SERVICE_KEY || "").trim();
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
+// Kod rodzinny: jeśli ustawiony, dodawać słowa i notatki mogą tylko osoby, które go znają
+const FAMILY_CODE = process.env.FAMILY_CODE || "";
 // AUTO_APPROVE=true w Netlify: nowe wpisy od razu pojawiają się na stronie
 const AUTO_APPROVE =
   String(process.env.AUTO_APPROVE || "").trim().toLowerCase() === "true";
@@ -48,6 +50,16 @@ function passwordMatches(input) {
 
   const a = crypto.createHash("sha256").update(input).digest();
   const b = crypto.createHash("sha256").update(ADMIN_PASSWORD).digest();
+
+  return crypto.timingSafeEqual(a, b);
+}
+
+function familyCodeMatches(input) {
+  if (!FAMILY_CODE) return true;
+  if (typeof input !== "string") return false;
+
+  const a = crypto.createHash("sha256").update(input).digest();
+  const b = crypto.createHash("sha256").update(FAMILY_CODE).digest();
 
   return crypto.timingSafeEqual(a, b);
 }
@@ -239,6 +251,11 @@ exports.handler = async (event) => {
 
     if (event.httpMethod === "GET") {
       const type = event.queryStringParameters?.type;
+
+      if (type === "config") {
+        return reply(200, { familyCodeRequired: Boolean(FAMILY_CODE) });
+      }
+
       let path;
 
       if (type === "words") {
@@ -332,6 +349,25 @@ exports.handler = async (event) => {
       await removeImage(deleted[0].image_url);
 
       return reply(200, { message: "Usunięto." });
+    }
+
+    // --- Sprawdzenie kodu rodzinnego ---
+    if (data.type === "family-check") {
+      if (!familyCodeMatches(data.code)) {
+        await sleep(600);
+        return reply(401, { error: "Wrong family code." });
+      }
+
+      return reply(200, { ok: true });
+    }
+
+    // Dodawanie słów i notatek wymaga kodu rodzinnego (jeśli jest ustawiony)
+    if (
+      (data.type === "word" || data.type === "note") &&
+      !familyCodeMatches(data.familyCode)
+    ) {
+      await sleep(600);
+      return reply(401, { error: "Wrong family code." });
     }
 
     // --- Dodawanie słówka ---
