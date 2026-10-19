@@ -17,6 +17,9 @@ const SUPABASE_URL = normalizeSupabaseUrl(process.env.SUPABASE_URL);
 const SUPABASE_KEY = (process.env.SUPABASE_ANON_KEY || "").trim();
 const SUPABASE_SERVICE_KEY = (process.env.SUPABASE_SERVICE_KEY || "").trim();
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
+// AUTO_APPROVE=true w Netlify: nowe wpisy od razu pojawiają się na stronie
+const AUTO_APPROVE =
+  String(process.env.AUTO_APPROVE || "").trim().toLowerCase() === "true";
 
 const headers = {
   "Content-Type": "application/json; charset=utf-8",
@@ -47,6 +50,21 @@ function passwordMatches(input) {
   const b = crypto.createHash("sha256").update(ADMIN_PASSWORD).digest();
 
   return crypto.timingSafeEqual(a, b);
+}
+
+function newEntryStatus() {
+  return AUTO_APPROVE ? "approved" : "pending";
+}
+
+// Zatwierdzone wpisy zapisujemy kluczem serwisowym (RLS pozwala anonowi tylko na "pending")
+function insertKey() {
+  if (!AUTO_APPROVE) return SUPABASE_KEY;
+
+  if (!SUPABASE_SERVICE_KEY) {
+    throw new Error("Brakuje SUPABASE_SERVICE_KEY w zmiennych Netlify.");
+  }
+
+  return SUPABASE_SERVICE_KEY;
 }
 
 async function supabaseRequest(path, options = {}, apiKey = SUPABASE_KEY) {
@@ -363,16 +381,17 @@ exports.handler = async (event) => {
           emoji,
           description: description || null,
           image_url: imageUrl,
-          status: "pending"
+          status: newEntryStatus()
         })
-      });
+      }, insertKey());
 
       if (!response.ok) {
         return reply(502, await supabaseError(response));
       }
 
       return reply(201, {
-        message: "Słówko wysłane do zatwierdzenia."
+        message: AUTO_APPROVE ? "Słówko dodane." : "Słówko wysłane do zatwierdzenia.",
+        approved: AUTO_APPROVE
       });
     }
 
@@ -395,16 +414,17 @@ exports.handler = async (event) => {
         body: JSON.stringify({
           title,
           body,
-          status: "pending"
+          status: newEntryStatus()
         })
-      });
+      }, insertKey());
 
       if (!response.ok) {
         return reply(502, await supabaseError(response));
       }
 
       return reply(201, {
-        message: "Notatka wysłana do zatwierdzenia."
+        message: AUTO_APPROVE ? "Notatka dodana." : "Notatka wysłana do zatwierdzenia.",
+        approved: AUTO_APPROVE
       });
     }
 
