@@ -526,7 +526,7 @@
         return;
       }
 
-      const password = prompt("Admin password:");
+      const password = (prompt("Admin password:") || "").trim();
       if (!password) return;
 
       try {
