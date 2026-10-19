@@ -69,6 +69,9 @@
       outline-offset: 2px;
     }
 
+    /* Formularze widoczne dopiero po odblokowaniu kłódką 🔒 */
+    body:not(.admin) .form-card { display: none; }
+
     /* Animacja F1 zamiast baloników */
     .race-track {
       position: relative;
@@ -495,6 +498,16 @@
       return button;
     }
 
+    function lockAdmin() {
+      adminPassword = null;
+
+      try {
+        sessionStorage.removeItem("adminPassword");
+      } catch {}
+
+      setAdminMode(false);
+    }
+
     function setAdminMode(on) {
       document.body.classList.toggle("admin", on);
       adminToggle.textContent = on ? "🔓" : "🔒";
@@ -661,7 +674,8 @@
           word: wordInput.value.trim(),
           emoji: emojiInput.value,
           description: document.getElementById("word-description").value.trim(),
-          imageData: pickedImage
+          imageData: pickedImage,
+          password: adminPassword
         });
 
         wordForm.reset();
@@ -679,6 +693,7 @@
         }
       } catch (error) {
         showMessage("word-message", error.message, true);
+        if (/wrong password/i.test(error.message)) lockAdmin();
       } finally {
         button.disabled = false;
       }
@@ -694,7 +709,8 @@
         const result = await postJSON({
           type: "note",
           title: document.getElementById("note-title").value.trim(),
-          body: document.getElementById("note-body").value.trim()
+          body: document.getElementById("note-body").value.trim(),
+          password: adminPassword
         });
 
         noteForm.reset();
@@ -706,6 +722,7 @@
         }
       } catch (error) {
         showMessage("note-message", error.message, true);
+        if (/wrong password/i.test(error.message)) lockAdmin();
       } finally {
         button.disabled = false;
       }
