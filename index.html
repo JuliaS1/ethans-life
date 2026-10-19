@@ -30,6 +30,68 @@
 
     #image-preview { margin: 8px 0; }
 
+    /* Animacja F1 zamiast baloników */
+    .race-track {
+      position: relative;
+      height: 66px;
+      overflow: hidden;
+      background: #3b3b4f;
+      border-top: 4px solid #fff;
+      border-bottom: 4px solid #fff;
+    }
+
+    .race-track::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 4px;
+      margin-top: -2px;
+      background-image: linear-gradient(90deg, #fff 50%, transparent 50%);
+      background-size: 48px 4px;
+      background-repeat: repeat-x;
+      opacity: 0.8;
+      animation: road-move 0.5s linear infinite;
+    }
+
+    .race-car {
+      position: absolute;
+      left: 0;
+      line-height: 1;
+      transform: translateX(-90px) scaleX(-1);
+      animation: race-by 5s linear infinite;
+    }
+
+    .race-car.one { top: 3px; font-size: 32px; }
+    .race-car.two { top: 33px; font-size: 28px; animation-duration: 7s; animation-delay: -3s; }
+
+    .race-finish {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 28px;
+      z-index: 2;
+      background: repeating-conic-gradient(#111 0 25%, #fff 0 50%) 0 0 / 14px 14px;
+    }
+
+    @keyframes race-by {
+      from { transform: translateX(-90px) scaleX(-1); }
+      to { transform: translateX(100vw) scaleX(-1); }
+    }
+
+    @keyframes road-move {
+      from { background-position-x: 0; }
+      to { background-position-x: -48px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .race-track::before, .race-car { animation: none; }
+      .race-car.one { transform: translateX(20vw) scaleX(-1); }
+      .race-car.two { transform: translateX(55vw) scaleX(-1); }
+    }
+
     /* Tryb administratora: usuwanie wpisów */
     .item-wrap { position: relative; }
     .item-wrap .word-card { width: 100%; height: 100%; }
@@ -73,8 +135,6 @@
 </head>
 <body>
   <header class="hero">
-    <span class="floating balloon-one">🎈</span>
-    <span class="floating balloon-two">🎈</span>
     <div class="hero-inner">
       <p class="eyebrow">A little place full of love</p>
       <h1>Ethan's Life <span>💛</span></h1>
@@ -85,6 +145,12 @@
       </nav>
     </div>
   </header>
+
+  <div class="race-track" aria-hidden="true">
+    <span class="race-car one">🏎️</span>
+    <span class="race-car two">🏎️</span>
+    <span class="race-finish"></span>
+  </div>
 
   <main>
     <section id="wordbook" class="section">
@@ -102,18 +168,18 @@
         <input id="word-english" maxlength="100" placeholder="e.g. butterfly" required>
 
         <div class="picker-heading">
-          <label>Your picture</label>
+          <label>Emoji (optional)</label>
           <button id="toggle-picker" type="button" class="secondary-button">
             Choose emoji 😊
           </button>
         </div>
 
         <div class="selected-emoji" aria-live="polite">
-          <span id="emoji-preview">🐶</span>
-          <span id="emoji-label">Selected picture</span>
+          <span id="emoji-preview">➖</span>
+          <span id="emoji-label">No emoji chosen</span>
         </div>
 
-        <input type="hidden" id="word-emoji" value="🐶">
+        <input type="hidden" id="word-emoji" value="">
 
         <div id="picker-panel" class="picker-panel" hidden>
           <emoji-picker id="emoji-picker" locale="en"></emoji-picker>
@@ -123,7 +189,7 @@
         <input id="word-description" maxlength="300"
           placeholder="e.g. a small insect with colourful wings">
 
-        <label for="word-image">Or add a photo / GIF (optional)</label>
+        <label for="word-image">Or add a photo (optional)</label>
         <input id="word-image" type="file"
           accept="image/jpeg,image/png,image/gif,image/webp">
         <img id="image-preview" class="word-photo" alt="Selected picture preview" hidden>
@@ -215,6 +281,7 @@
       const emoji = event.detail.unicode;
       emojiInput.value = emoji;
       emojiPreview.textContent = emoji;
+      document.getElementById("emoji-label").textContent = "Selected emoji";
       pickerPanel.hidden = true;
       togglePicker.textContent = "Choose another emoji 😊";
     });
@@ -547,8 +614,9 @@
 
         wordForm.reset();
         clearImage();
-        emojiInput.value = "🐶";
-        emojiPreview.textContent = "🐶";
+        emojiInput.value = "";
+        emojiPreview.textContent = "➖";
+        document.getElementById("emoji-label").textContent = "No emoji chosen";
         togglePicker.textContent = "Choose emoji 😊";
         pickerPanel.hidden = true;
         showMessage("word-message", "Sent! Your word is waiting for approval. 💛");
