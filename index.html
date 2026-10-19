@@ -69,6 +69,68 @@
       outline-offset: 2px;
     }
 
+    /* Garaż: budowanie auta */
+    .garage-card {
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 8px 24px rgba(255, 143, 171, 0.25);
+    }
+
+    .car-stage {
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      height: 170px;
+      padding-bottom: 6px;
+      overflow: hidden;
+      border-radius: 18px;
+      background: linear-gradient(#bfe9ff 0 58%, #3b3b4f 58% 100%);
+    }
+
+    .car-wrap { width: min(78%, 340px); }
+    .car-wrap svg { display: block; width: 100%; height: auto; }
+
+    .garage-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .garage-label { min-width: 128px; font-weight: 700; }
+
+    .swatch {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 0 2px #ddd;
+      cursor: pointer;
+    }
+
+    .swatch.active { box-shadow: 0 0 0 4px #d6336c; }
+
+    .arrow-button {
+      width: 46px;
+      height: 46px;
+      border: 0;
+      border-radius: 50%;
+      background: #ff8fab;
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .arrow-button:active { transform: scale(0.92); }
+
+    .arrow-value { min-width: 36px; text-align: center; font-size: 22px; font-weight: 700; }
+
+    .garage-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
     /* Kategorie */
     .category-filter {
       display: flex;
@@ -194,19 +256,32 @@
     .delete-button:hover { background: #e63950; }
 
     .admin-toggle {
-      display: inline-block;
-      margin-left: 10px;
-      padding: 2px 8px;
-      border: 0;
-      border-radius: 12px;
-      background: transparent;
-      font-size: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      padding: 10px 18px;
+      border: 2px solid #ff8fab;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      color: #d6336c;
+      font: inherit;
+      font-weight: 600;
+      line-height: 1.3;
       cursor: pointer;
-      opacity: 0.45;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
     }
 
-    .admin-toggle:hover,
-    body.admin .admin-toggle { opacity: 1; }
+    .admin-toggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(255, 143, 171, 0.35);
+    }
+
+    body.admin .admin-toggle {
+      border-color: #2ecc71;
+      background: #2ecc71;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -218,7 +293,11 @@
       <nav>
         <a href="#wordbook">📚 Wordbook</a>
         <a href="#notes">💌 Notes</a>
+        <a href="#garage">🏎️ Garage</a>
       </nav>
+      <button id="admin-toggle" class="admin-toggle" type="button">
+        🔒 Password needed to add new words &amp; messages
+      </button>
     </div>
   </header>
 
@@ -327,12 +406,33 @@
         <p class="loading">Loading notes... ✨</p>
       </div>
     </section>
+    <section id="garage" class="section">
+      <div class="section-heading">
+        <span class="section-icon">🏎️</span>
+        <div>
+          <h2>Ethan's Garage</h2>
+          <p>Build your own race car and race it!</p>
+        </div>
+      </div>
+
+      <div class="garage-card">
+        <div class="car-stage" id="car-stage">
+          <div class="car-wrap" id="car-wrap"></div>
+        </div>
+
+        <div id="garage-controls"></div>
+
+        <div class="garage-actions">
+          <button id="race-button" type="button" class="primary-button">🏁 Race!</button>
+          <button id="random-car" type="button" class="secondary-button">🎲 Surprise me</button>
+        </div>
+        <p id="garage-message" class="form-message" role="status"></p>
+      </div>
+    </section>
   </main>
 
   <footer>
     Made with lots of love for Ethan 💛🌈⭐
-    <button id="admin-toggle" class="admin-toggle" type="button"
-      aria-label="Admin" title="Admin">🔒</button>
   </footer>
 
   <script>
@@ -554,8 +654,10 @@
 
     function setAdminMode(on) {
       document.body.classList.toggle("admin", on);
-      adminToggle.textContent = on ? "🔓" : "🔒";
-      adminToggle.title = on ? "Log out of admin mode" : "Admin";
+      adminToggle.textContent = on
+        ? "🔓 Unlocked - tap to lock"
+        : "🔒 Password needed to add new words & messages";
+      adminToggle.title = on ? "Lock again" : "Enter the password";
     }
 
     adminToggle.addEventListener("click", async () => {
@@ -658,6 +760,248 @@
     }
 
     const snapshots = {};
+
+    // --- Garaż: budowanie auta ---
+
+    const CAR_COLORS = ["#e63946", "#ff9f1c", "#ffd60a", "#2ecc71", "#3a86ff", "#9b5de5", "#ff8fab", "#222222"];
+    const FRONT_WINGS = [
+      c => `<rect x="250" y="80" width="46" height="5" rx="2" fill="${c}"/>`,
+      c => `<rect x="250" y="76" width="46" height="4" rx="2" fill="${c}"/><rect x="250" y="84" width="46" height="4" rx="2" fill="${c}"/>`,
+      c => `<rect x="250" y="80" width="46" height="5" rx="2" fill="${c}"/><rect x="290" y="70" width="5" height="18" rx="2" fill="${c}"/>`
+    ];
+    const REAR_WINGS = [
+      c => `<rect x="28" y="40" width="36" height="5" rx="2" fill="${c}"/><rect x="44" y="45" width="4" height="18" fill="${c}"/>`,
+      c => `<rect x="26" y="30" width="40" height="6" rx="2" fill="${c}"/><rect x="44" y="36" width="4" height="26" fill="${c}"/>`,
+      c => `<rect x="26" y="26" width="40" height="5" rx="2" fill="${c}"/><rect x="26" y="36" width="40" height="5" rx="2" fill="${c}"/><rect x="44" y="41" width="4" height="22" fill="${c}"/>`
+    ];
+    const WHEEL_SIZES = [14, 18, 22];
+    const CAR_NUMBERS = 20;
+
+    // number to numer 0-19 (na aucie pokazujemy 1-20)
+    const DEFAULT_CAR = { color: "#e63946", helmet: "#ffd60a", rim: "#ffd60a", front: 0, rear: 1, wheel: 1, number: 6 };
+    let car = { ...DEFAULT_CAR };
+
+    function cleanCar(saved) {
+      const pickColor = (value, fallback) => (CAR_COLORS.includes(value) ? value : fallback);
+      const pickIndex = (value, count, fallback) =>
+        Number.isInteger(value) && value >= 0 && value < count ? value : fallback;
+
+      return {
+        color: pickColor(saved.color, DEFAULT_CAR.color),
+        helmet: pickColor(saved.helmet, DEFAULT_CAR.helmet),
+        rim: pickColor(saved.rim, DEFAULT_CAR.rim),
+        front: pickIndex(saved.front, FRONT_WINGS.length, DEFAULT_CAR.front),
+        rear: pickIndex(saved.rear, REAR_WINGS.length, DEFAULT_CAR.rear),
+        wheel: pickIndex(saved.wheel, WHEEL_SIZES.length, DEFAULT_CAR.wheel),
+        number: pickIndex(saved.number, CAR_NUMBERS, DEFAULT_CAR.number)
+      };
+    }
+
+    try {
+      const saved = JSON.parse(localStorage.getItem("ethanCar") || "null");
+      if (saved && typeof saved === "object") car = cleanCar(saved);
+    } catch {}
+
+    function saveCar() {
+      try {
+        localStorage.setItem("ethanCar", JSON.stringify(car));
+      } catch {}
+    }
+
+    // Wszystkie wartości w SVG pochodzą z naszych list, nie od użytkownika
+    function carSvg(s) {
+      const r = WHEEL_SIZES[s.wheel];
+      const ground = 106;
+      const rearY = ground - r;
+      const frontY = ground - (r - 3);
+      const wheel = (cx, cy, rad) =>
+        `<circle cx="${cx}" cy="${cy}" r="${rad}" fill="#111"/>` +
+        `<circle cx="${cx}" cy="${cy}" r="${rad * 0.55}" fill="${s.rim}"/>` +
+        `<circle cx="${cx}" cy="${cy}" r="${rad * 0.15}" fill="#fff"/>`;
+
+      return `<svg viewBox="0 0 310 112" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Your race car">
+        ${REAR_WINGS[s.rear]("#222")}
+        <path d="M38 60 L120 50 L205 56 L276 70 L276 76 L38 80 Z" fill="${s.color}"/>
+        <path d="M58 62 L108 44 L140 54 L128 64 Z" fill="${s.color}"/>
+        <path d="M58 62 L108 44 L140 54 L128 64 Z" fill="#000" opacity=".15"/>
+        ${FRONT_WINGS[s.front]("#222")}
+        ${wheel(78, rearY, r)}
+        ${wheel(232, frontY, r - 3)}
+        <circle cx="150" cy="47" r="10" fill="${s.helmet}"/>
+        <rect x="151" y="43" width="10" height="5" rx="2" fill="#fff" opacity=".85"/>
+        <path d="M134 54 Q150 30 168 54" fill="none" stroke="#222" stroke-width="3"/>
+        <text x="186" y="72" font-size="14" font-weight="700" fill="#fff" font-family="Fredoka, sans-serif">${s.number + 1}</text>
+      </svg>`;
+    }
+
+    const carWrap = document.getElementById("car-wrap");
+    const controls = document.getElementById("garage-controls");
+
+    function drawCar() {
+      carWrap.innerHTML = carSvg(car);
+    }
+
+    function swatchRow(label, key) {
+      const row = document.createElement("div");
+      row.className = "garage-row";
+
+      const name = document.createElement("span");
+      name.className = "garage-label";
+      name.textContent = label;
+      row.appendChild(name);
+
+      CAR_COLORS.forEach(color => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "swatch" + (car[key] === color ? " active" : "");
+        button.style.background = color;
+        button.setAttribute("aria-label", label + " " + color);
+
+        button.addEventListener("click", () => {
+          car[key] = color;
+          saveCar();
+          drawCar();
+          row.querySelectorAll(".swatch").forEach(s => s.classList.remove("active"));
+          button.classList.add("active");
+        });
+
+        row.appendChild(button);
+      });
+
+      return row;
+    }
+
+    function arrowRow(label, key, count, display) {
+      const row = document.createElement("div");
+      row.className = "garage-row";
+
+      const name = document.createElement("span");
+      name.className = "garage-label";
+      name.textContent = label;
+
+      const value = document.createElement("span");
+      value.className = "arrow-value";
+
+      const show = () => (value.textContent = display(car[key]));
+
+      const makeArrow = (symbol, delta, description) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "arrow-button";
+        button.textContent = symbol;
+        button.setAttribute("aria-label", label + " " + description);
+
+        button.addEventListener("click", () => {
+          car[key] = (car[key] + delta + count) % count;
+          saveCar();
+          drawCar();
+          show();
+        });
+
+        return button;
+      };
+
+      show();
+      row.append(name, makeArrow("◀", -1, "previous"), value, makeArrow("▶", 1, "next"));
+      return row;
+    }
+
+    function buildGarage() {
+      controls.replaceChildren(
+        swatchRow("🎨 Car colour", "color"),
+        swatchRow("⛑️ Helmet", "helmet"),
+        swatchRow("🛞 Wheels", "rim"),
+        arrowRow("⭕ Wheel size", "wheel", WHEEL_SIZES.length, v => "●".repeat(v + 1)),
+        arrowRow("🔻 Front wing", "front", FRONT_WINGS.length, v => String(v + 1)),
+        arrowRow("🔺 Back wing", "rear", REAR_WINGS.length, v => String(v + 1)),
+        arrowRow("🔢 Number", "number", CAR_NUMBERS, v => String(v + 1))
+      );
+    }
+
+    function vroom() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const t = ctx.currentTime;
+
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(70, t);
+        osc.frequency.exponentialRampToValueAtTime(420, t + 1.4);
+        osc.frequency.exponentialRampToValueAtTime(110, t + 2.8);
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.linearRampToValueAtTime(0.1, t + 0.3);
+        gain.gain.linearRampToValueAtTime(0.0001, t + 2.8);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + 2.9);
+        osc.onended = () => ctx.close();
+      } catch {}
+    }
+
+    let racing = false;
+
+    function race() {
+      if (racing) return;
+      racing = true;
+
+      const raceButton = document.getElementById("race-button");
+      raceButton.disabled = true;
+      showMessage("garage-message", "3... 2... 1... GO! 🏁");
+      vroom();
+
+      const finish = () => {
+        racing = false;
+        raceButton.disabled = false;
+        showMessage("garage-message", "🏆 What a race!");
+      };
+
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      if (reduce || !carWrap.animate) {
+        setTimeout(finish, 800);
+        return;
+      }
+
+      carWrap
+        .animate(
+          [
+            { transform: "translateX(-165%)" },
+            { transform: "translateX(0)" },
+            { transform: "translateX(165%)" }
+          ],
+          { duration: 2800, easing: "cubic-bezier(.4, 0, .8, 1)" }
+        )
+        .addEventListener("finish", finish);
+    }
+
+    function randomCar() {
+      const pick = list => list[Math.floor(Math.random() * list.length)];
+      const index = count => Math.floor(Math.random() * count);
+
+      car = {
+        color: pick(CAR_COLORS),
+        helmet: pick(CAR_COLORS),
+        rim: pick(CAR_COLORS),
+        front: index(FRONT_WINGS.length),
+        rear: index(REAR_WINGS.length),
+        wheel: index(WHEEL_SIZES.length),
+        number: index(CAR_NUMBERS)
+      };
+
+      saveCar();
+      drawCar();
+      buildGarage();
+    }
+
+    document.getElementById("race-button").addEventListener("click", race);
+    document.getElementById("random-car").addEventListener("click", randomCar);
+
+    drawCar();
+    buildGarage();
 
     // --- Kategorie ---
 
