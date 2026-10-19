@@ -30,6 +30,45 @@
 
     #image-preview { margin: 8px 0; }
 
+    /* Własny przycisk wyboru pliku (natywny tekst zależy od języka przeglądarki) */
+    .file-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .file-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 6px 0;
+      padding: 12px 20px;
+      border: 2px dashed #ff8fab;
+      border-radius: 999px;
+      background: #fff;
+      color: #d6336c;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .file-button:hover {
+      background: #fff0f5;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(255, 143, 171, 0.35);
+    }
+
+    .file-button:active { transform: translateY(0); }
+
+    .file-input:focus-visible + .file-button {
+      outline: 3px solid #ff8fab;
+      outline-offset: 2px;
+    }
+
     /* Animacja F1 zamiast baloników */
     .race-track {
       position: relative;
@@ -190,14 +229,15 @@
           placeholder="e.g. a small insect with colourful wings">
 
         <label for="word-image">Or add a photo (optional)</label>
-        <input id="word-image" type="file"
+        <input id="word-image" class="file-input" type="file"
           accept="image/jpeg,image/png,image/gif,image/webp">
+        <label for="word-image" class="file-button">📷 Choose a file</label>
         <img id="image-preview" class="word-photo" alt="Selected picture preview" hidden>
         <button id="remove-image" type="button" class="secondary-button" hidden>
           Remove picture ✖
         </button>
 
-        <button class="primary-button" type="submit">Send word 💌</button>
+        <button class="primary-button" type="submit">Safe 💌</button>
         <p id="word-message" class="form-message" role="status"></p>
       </form>
 
@@ -380,6 +420,7 @@
     function clearImage() {
       pickedImage = null;
       imageInput.value = "";
+      document.querySelector(".file-button").textContent = "📷 Choose a file";
       imagePreview.hidden = true;
       imagePreview.removeAttribute("src");
       removeImageButton.hidden = true;
@@ -410,6 +451,7 @@
         imagePreview.src = URL.createObjectURL(blob);
         imagePreview.hidden = false;
         removeImageButton.hidden = false;
+        document.querySelector(".file-button").textContent = "📷 Choose another file";
         showMessage("word-message", "");
       } catch (error) {
         clearImage();
