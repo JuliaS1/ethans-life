@@ -16,7 +16,11 @@ function normalizeSupabaseUrl(value) {
 const SUPABASE_URL = normalizeSupabaseUrl(process.env.SUPABASE_URL);
 const SUPABASE_KEY = (process.env.SUPABASE_ANON_KEY || "").trim();
 const SUPABASE_SERVICE_KEY = (process.env.SUPABASE_SERVICE_KEY || "").trim();
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
+// Czyścimy hasło z Netlify: spacje i cudzysłowy wklejone przez pomyłkę
+const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || "")
+  .trim()
+  .replace(/^["']+|["']+$/g, "")
+  .trim();
 // AUTO_APPROVE=true w Netlify: nowe wpisy od razu pojawiają się na stronie
 const AUTO_APPROVE =
   String(process.env.AUTO_APPROVE || "").trim().toLowerCase() === "true";
@@ -46,7 +50,7 @@ function passwordMatches(input) {
 
   if (typeof input !== "string") return false;
 
-  const a = crypto.createHash("sha256").update(input).digest();
+  const a = crypto.createHash("sha256").update(input.trim()).digest();
   const b = crypto.createHash("sha256").update(ADMIN_PASSWORD).digest();
 
   return crypto.timingSafeEqual(a, b);
