@@ -69,6 +69,40 @@
       outline-offset: 2px;
     }
 
+    /* Kategorie */
+    .category-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 4px 0 16px;
+    }
+
+    .category-chip {
+      padding: 8px 16px;
+      border: 2px solid #ff8fab;
+      border-radius: 999px;
+      background: #fff;
+      color: #d6336c;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+
+    .category-chip:hover { background: #fff0f5; transform: translateY(-1px); }
+    .category-chip.active { background: #ff8fab; color: #fff; }
+
+    #word-category {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid #ffc2d1;
+      border-radius: 14px;
+      background: #fff;
+      font: inherit;
+    }
+
+    #word-category-new { margin-top: 8px; }
+
     /* Formularze widoczne dopiero po odblokowaniu kłódką 🔒 */
     body:not(.admin) .form-card { display: none; }
 
@@ -209,6 +243,14 @@
         <label for="word-english">English word</label>
         <input id="word-english" maxlength="100" placeholder="e.g. butterfly" required>
 
+        <label for="word-category">Category (optional)</label>
+        <select id="word-category">
+          <option value="">No category</option>
+          <option value="__new__">➕ New category...</option>
+        </select>
+        <input id="word-category-new" maxlength="40"
+          placeholder="New category, e.g. Toys 🧸" hidden>
+
         <div class="picker-heading">
           <label>Emoji (optional)</label>
           <button id="toggle-picker" type="button" class="secondary-button">
@@ -248,6 +290,8 @@
         <h3>🌈 Let's learn!</h3>
         <p>Tap a card to hear the word. Tap again to hear it again.</p>
       </div>
+      <div id="category-filter" class="category-filter" aria-label="Word categories"></div>
+
       <div id="words-list" class="words-grid" aria-live="polite">
         <p class="loading">Loading words... ✨</p>
       </div>
@@ -615,8 +659,145 @@
 
     const snapshots = {};
 
+    // --- Kategorie ---
+
+    const ALL = "__all__";
+    const NEW_CATEGORY = "__new__";
+    const DEFAULT_CATEGORIES = ["🍎 Food", "👕 Clothes", "🖐️ Body parts", "🐶 Animals"];
+
+    const categorySelect = document.getElementById("word-category");
+    const categoryNew = document.getElementById("word-category-new");
+    const categoryFilter = document.getElementById("category-filter");
+
+    let allWords = [];
+    let activeCategory = ALL;
+
+    function categoriesInUse() {
+      return [...new Set(allWords.map(w => w.category).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b));
+    }
+
+    // Gotowe kategorie + te, które zostały dodane przy słówkach
+    function allCategories() {
+      const extra = categoriesInUse().filter(
+        c => !DEFAULT_CATEGORIES.some(d => d.toLowerCase() === c.toLowerCase())
+      );
+      return [...DEFAULT_CATEGORIES, ...extra];
+    }
+
+    function renderCategoryOptions() {
+      const current = categorySelect.value;
+      categorySelect.replaceChildren();
+
+      const none = document.createElement("option");
+      none.value = "";
+      none.textContent = "No category";
+      categorySelect.appendChild(none);
+
+      allCategories().forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        categorySelect.appendChild(option);
+      });
+
+      const add = document.createElement("option");
+      add.value = NEW_CATEGORY;
+      add.textContent = "➕ New category...";
+      categorySelect.appendChild(add);
+
+      const stillThere = [...categorySelect.options].some(o => o.value === current);
+      categorySelect.value = stillThere ? current : "";
+    }
+
+    function renderCategoryChips() {
+      const used = categoriesInUse();
+      categoryFilter.replaceChildren();
+
+      if (used.length === 0) {
+        activeCategory = ALL;
+        return;
+      }
+
+      if (activeCategory !== ALL && !used.includes(activeCategory)) {
+        activeCategory = ALL;
+      }
+
+      [ALL, ...used].forEach(value => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "category-chip" + (value === activeCategory ? " active" : "");
+        chip.textContent = value === ALL ? "⭐ All" : value;
+
+        chip.addEventListener("click", () => {
+          activeCategory = value;
+          renderCategoryChips();
+          renderWords();
+        });
+
+        categoryFilter.appendChild(chip);
+      });
+    }
+
+    function renderWords() {
+      const visible =
+        activeCategory === ALL
+          ? allWords
+          : allWords.filter(w => w.category === activeCategory);
+
+      renderList(
+        "words-list",
+        visible,
+        makeWordCard,
+        activeCategory === ALL
+          ? "New words are coming soon! 🌈"
+          : "No words in this category yet. 🌈"
+      );
+    }
+
+    function onWordsLoaded(items) {
+      allWords = Array.isArray(items) ? items : [];
+      renderCategoryOptions();
+      renderCategoryChips();
+      renderWords();
+    }
+
+    categorySelect.addEventListener("change", () => {
+      const isNew = categorySelect.value === NEW_CATEGORY;
+      categoryNew.hidden = !isNew;
+      if (isNew) categoryNew.focus();
+    });
+
+    // Kategoria z formularza (nowa nazwa pasująca do istniejącej używa jej pisowni)
+    function chosenCategory() {
+      if (categorySelect.value !== NEW_CATEGORY) return categorySelect.value;
+
+      const typed = categoryNew.value.trim();
+      if (!typed) return "";
+
+      const match = allCategories().find(c => c.toLowerCase() === typed.toLowerCase());
+      return match || typed;
+    }
+
+    // --- Listy ---
+
+    function renderList(containerId, items, makeCard, emptyText) {
+      const container = document.getElementById(containerId);
+      container.replaceChildren();
+
+      if (!Array.isArray(items) || items.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "empty-message";
+        empty.textContent = emptyText;
+        container.appendChild(empty);
+        return;
+      }
+
+      items.forEach(item => container.appendChild(makeCard(item)));
+    }
+
     // silent = true: odświeżanie w tle (bez błędów i bez migania, gdy nic się nie zmieniło)
-    async function loadItems(type, containerId, makeCard, emptyText, silent = false) {
+    async function loadItems(type, containerId, makeCard, emptyText, silent = false, onData = null) {
       const container = document.getElementById(containerId);
 
       try {
@@ -626,17 +807,13 @@
         if (silent && snapshots[type] === snapshot) return;
 
         snapshots[type] = snapshot;
-        container.replaceChildren();
 
-        if (!Array.isArray(items) || items.length === 0) {
-          const empty = document.createElement("p");
-          empty.className = "empty-message";
-          empty.textContent = emptyText;
-          container.appendChild(empty);
+        if (onData) {
+          onData(items);
           return;
         }
 
-        items.forEach(item => container.appendChild(makeCard(item)));
+        renderList(containerId, items, makeCard, emptyText);
       } catch (error) {
         if (silent) return;
 
@@ -650,7 +827,7 @@
 
     function loadWords(silent = false) {
       return loadItems(
-        "words", "words-list", makeWordCard, "New words are coming soon! 🌈", silent
+        "words", "words-list", makeWordCard, "New words are coming soon! 🌈", silent, onWordsLoaded
       );
     }
 
@@ -675,11 +852,13 @@
           emoji: emojiInput.value,
           description: document.getElementById("word-description").value.trim(),
           imageData: pickedImage,
+          category: chosenCategory(),
           password: adminPassword
         });
 
         wordForm.reset();
         clearImage();
+        categoryNew.hidden = true;
         emojiInput.value = "";
         emojiPreview.textContent = "➖";
         document.getElementById("emoji-label").textContent = "No emoji chosen";
