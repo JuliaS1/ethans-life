@@ -253,7 +253,7 @@ exports.handler = async (event) => {
 
       if (type === "words") {
         path =
-          "words?select=id,word,emoji,description,image_url" +
+          "words?select=id,word,emoji,description,image_url,category" +
           "&status=eq.approved&order=created_at.desc&limit=100";
       } else if (type === "notes") {
         path =
@@ -376,6 +376,13 @@ exports.handler = async (event) => {
         return reply(400, { error: "Opis może mieć maks. 300 znaków." });
       }
 
+      const category =
+        typeof data.category === "string" ? data.category.trim() : "";
+
+      if (category.length > 40) {
+        return reply(400, { error: "Kategoria może mieć maks. 40 znaków." });
+      }
+
       let imageUrl = null;
 
       if (typeof data.imageData === "string" && data.imageData) {
@@ -399,6 +406,7 @@ exports.handler = async (event) => {
           word,
           emoji,
           description: description || null,
+          category: category || null,
           image_url: imageUrl,
           status: newEntryStatus()
         })
