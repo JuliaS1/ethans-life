@@ -131,6 +131,42 @@
 
     .garage-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
 
+    /* Własne okienko (przeglądarki w telefonach często blokują prompt/alert) */
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.45);
+    }
+
+    .modal-box {
+      width: min(100%, 360px);
+      padding: 22px;
+      border-radius: 22px;
+      background: #fff;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-box h3 { margin: 0 0 8px; }
+    .modal-box p { margin: 0 0 12px; }
+
+    .modal-box input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px 14px;
+      border: 2px solid #ffc2d1;
+      border-radius: 14px;
+      font: inherit;
+      font-size: 16px;
+    }
+
+    .modal-error { min-height: 1.2em; margin-top: 8px; color: #d6336c; font-weight: 600; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+
     /* Kategorie */
     .category-filter {
       display: flex;
@@ -435,6 +471,19 @@
     Made with lots of love for Ethan 💛🌈⭐
   </footer>
 
+  <div id="modal" class="modal" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <h3 id="modal-title"></h3>
+      <p id="modal-message"></p>
+      <input id="modal-input" type="password" autocomplete="off" hidden>
+      <p id="modal-error" class="modal-error" role="alert"></p>
+      <div class="modal-actions">
+        <button id="modal-cancel" type="button" class="secondary-button">Cancel</button>
+        <button id="modal-ok" type="button" class="primary-button">OK</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const API_URL = "/.netlify/functions/submit";
 
@@ -502,6 +551,78 @@
       }
 
       return data;
+    }
+
+    // Własne okienko zamiast prompt/confirm/alert (działa też w przeglądarkach w aplikacjach)
+    function openModal({
+      title,
+      message = "",
+      withInput = false,
+      okText = "OK",
+      showCancel = true,
+      onSubmit = null
+    }) {
+      const modal = document.getElementById("modal");
+      const input = document.getElementById("modal-input");
+      const error = document.getElementById("modal-error");
+      const ok = document.getElementById("modal-ok");
+      const cancel = document.getElementById("modal-cancel");
+
+      document.getElementById("modal-title").textContent = title;
+      document.getElementById("modal-message").textContent = message;
+      error.textContent = "";
+      input.value = "";
+      input.hidden = !withInput;
+      cancel.hidden = !showCancel;
+      ok.textContent = okText;
+      ok.disabled = false;
+      modal.hidden = false;
+
+      if (withInput) setTimeout(() => input.focus(), 50);
+      else ok.focus();
+
+      return new Promise(resolve => {
+        const close = result => {
+          modal.hidden = true;
+          input.value = "";
+          resolve(result);
+        };
+
+        ok.onclick = async () => {
+          const value = input.value.trim();
+
+          if (withInput && !value) {
+            input.focus();
+            return;
+          }
+
+          if (onSubmit) {
+            ok.disabled = true;
+
+            try {
+              await onSubmit(value);
+            } catch (err) {
+              error.textContent = err.message;
+              ok.disabled = false;
+              if (withInput) input.select();
+              return;
+            }
+          }
+
+          close(withInput ? value : true);
+        };
+
+        cancel.onclick = () => close(withInput ? null : false);
+
+        modal.onkeydown = event => {
+          if (event.key === "Enter" && withInput) {
+            event.preventDefault();
+            ok.click();
+          } else if (event.key === "Escape") {
+            close(withInput ? null : false);
+          }
+        };
+      });
     }
 
     function postJSON(payload) {
@@ -621,7 +742,13 @@
       button.addEventListener("click", async event => {
         event.stopPropagation();
 
-        if (!confirm('Delete "' + label + '"? This cannot be undone.')) return;
+        const confirmed = await openModal({
+          title: "Delete?",
+          message: 'Delete "' + label + '"? This cannot be undone.',
+          okText: "Delete"
+        });
+
+        if (!confirmed) return;
 
         button.disabled = true;
 
@@ -635,7 +762,11 @@
           reload();
         } catch (error) {
           button.disabled = false;
-          alert("Couldn't delete: " + error.message);
+          openModal({
+            title: "Couldn't delete",
+            message: error.message,
+            showCancel: false
+          });
         }
       });
 
@@ -672,21 +803,23 @@
         return;
       }
 
-      const password = (prompt("Admin password:") || "").trim();
+      const password = await openModal({
+        title: "🔒 Password",
+        message: "Enter the password to add words and messages.",
+        withInput: true,
+        okText: "Unlock",
+        onSubmit: value => postJSON({ type: "admin-check", password: value })
+      });
+
       if (!password) return;
 
+      adminPassword = password;
+
       try {
-        await postJSON({ type: "admin-check", password });
-        adminPassword = password;
+        sessionStorage.setItem("adminPassword", password);
+      } catch {}
 
-        try {
-          sessionStorage.setItem("adminPassword", password);
-        } catch {}
-
-        setAdminMode(true);
-      } catch (error) {
-        alert(error.message);
-      }
+      setAdminMode(true);
     });
 
     // --- Karty ---
