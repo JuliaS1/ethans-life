@@ -136,6 +136,30 @@
     .quiz-icon { font-size: 3rem; line-height: 1; }
     .quiz-result { text-align: center; }
     .quiz-big { font-size: 3.5rem; line-height: 1.2; }
+
+    .space-caption { flex-wrap: wrap; }
+    .caption-text { flex: 1; min-width: 210px; }
+    .caption-detail { margin: 6px 0 8px; }
+    .fact-badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+
+    .fact-badge {
+      padding: 4px 10px;
+      border: 2px solid #ffc2d1;
+      border-radius: 999px;
+      background: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .map-legend { margin: 8px 0 0; font-size: 0.9rem; opacity: 0.8; }
+
+    .table-wrap { overflow-x: auto; }
+    .facts-table { width: 100%; border-collapse: collapse; }
+    .facts-table th, .facts-table td { padding: 10px 8px; text-align: left; white-space: nowrap; }
+    .facts-table thead th { border-bottom: 2px solid #ffc2d1; color: #d6336c; }
+    .fact-row { cursor: pointer; }
+    .fact-row td { border-bottom: 1px solid #ffe0e8; }
+    .fact-row:hover { background: #fff0f5; }
   </style>
 </head>
 <body>
@@ -163,6 +187,7 @@
         <p class="lesson-hint">Tap the Sun, a planet or the Moon to hear its name!</p>
 
         <div id="space-map" class="space-map"></div>
+        <p class="map-legend">🪨 The 4 inner planets are small and rocky. 🌀 The 4 outer planets are giants. The little grey dots between Mars and Jupiter are the asteroid belt.</p>
 
         <div id="space-caption" class="space-caption" aria-live="polite">
           <span>Tap a planet! 👆</span>
@@ -176,6 +201,17 @@
             data-say="Eight planets go around the Sun. Earth is our home.">🔊 Listen</button>
         </div>
         <p id="lesson-message" class="form-message" role="status"></p>
+      </div>
+
+      <div class="lesson-card">
+        <h3>📋 Planet facts</h3>
+        <p class="lesson-hint">Tap a row to hear about the planet.</p>
+        <div class="table-wrap">
+          <table class="facts-table">
+            <thead><tr><th>Planet</th><th>Type</th><th>Where</th><th>Moons</th></tr></thead>
+            <tbody id="facts-body"></tbody>
+          </table>
+        </div>
       </div>
 
       <div class="mini-grid">
@@ -268,6 +304,46 @@
       moon: { name: "Moon", color: "#cfcfcf", text: "The Moon goes around the Earth." }
     };
 
+    // Rodzaj planety, położenie, księżyce i opis (liczba księżyców ciągle rośnie wraz z nowymi odkryciami)
+    const KINDS = {
+      rocky: { label: "🪨 Rocky planet", say: "It is a rocky planet." },
+      gas: { label: "🌀 Gas giant", say: "It is a gas giant. It has no ground to stand on." },
+      ice: { label: "🧊 Ice giant", say: "It is an ice giant." }
+    };
+
+    const ZONES = {
+      inner: { label: "☀️ Inner planet", say: "It is an inner planet, close to the Sun." },
+      outer: { label: "🌌 Outer planet", say: "It is an outer planet, far from the Sun." }
+    };
+
+    const FACTS = {
+      mercury: { kind: "rocky", zone: "inner", moons: "0", moonSay: "Mercury has no moons.",
+        detail: "It is the smallest planet and the closest to the Sun. It is very hot in the day and very cold at night." },
+      venus: { kind: "rocky", zone: "inner", moons: "0", moonSay: "Venus has no moons.",
+        detail: "Thick clouds trap the heat, so it is the hottest planet." },
+      earth: { kind: "rocky", zone: "inner", moons: "1", moonSay: "Earth has one moon.",
+        detail: "Earth has water, air and a lot of life. It is our home." },
+      mars: { kind: "rocky", zone: "inner", moons: "2", moonSay: "Mars has two small moons.",
+        detail: "It is dusty and cold. It has the biggest volcano in the solar system." },
+      jupiter: { kind: "gas", zone: "outer", moons: "100+", moonSay: "Jupiter has more than one hundred moons.",
+        detail: "It is the biggest planet. It has a giant storm called the Great Red Spot." },
+      saturn: { kind: "gas", zone: "outer", moons: "280+", moonSay: "Saturn has more than two hundred and eighty moons.",
+        detail: "Its rings are made of ice and rock. Its big moon Titan has thick air." },
+      uranus: { kind: "ice", zone: "outer", moons: "about 28", moonSay: "Uranus has about twenty-eight moons.",
+        detail: "It is cold and blue-green. It spins on its side." },
+      neptune: { kind: "ice", zone: "outer", moons: "16", moonSay: "Neptune has sixteen moons.",
+        detail: "It is the farthest planet. It is cold, dark and very windy." }
+    };
+
+    function moonsLabel(facts) {
+      return facts.moons === "0" ? "🌙 No moons" : "🌙 Moons: " + facts.moons;
+    }
+
+    function moreFactsText(key) {
+      const f = FACTS[key];
+      return f.detail + " " + KINDS[f.kind].say + " " + ZONES[f.zone].say + " " + f.moonSay;
+    }
+
     // klucz, promień orbity, wielkość, czas obiegu w sekundach (tylko dla animacji, nie w skali)
     const ORBITS = [
       ["mercury", 34, 4, 6], ["venus", 54, 6, 10], ["earth", 78, 7, 14], ["mars", 100, 5, 20],
@@ -288,6 +364,14 @@
       ORBITS.forEach(([, r]) => {
         s += `<circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="#fff" stroke-opacity=".22" stroke-dasharray="3 5"/>`;
       });
+
+      s += `<g class="orbit" style="animation-duration:90s">`;
+      for (let i = 0; i < 46; i++) {
+        const angle = rand() * Math.PI * 2;
+        const radius = 108 + rand() * 4;
+        s += `<circle cx="${(c + Math.cos(angle) * radius).toFixed(1)}" cy="${(c + Math.sin(angle) * radius).toFixed(1)}" r="${(rand() * 1.0 + 1.1).toFixed(1)}" fill="#c2c2d2"/>`;
+      }
+      s += `</g>`;
 
       s += `<g class="body" data-body="sun">
         <circle cx="${c}" cy="${c}" r="30" fill="#ffc300" opacity=".25"/>
@@ -325,6 +409,7 @@
 
     function showBody(key) {
       const body = BODIES[key];
+      const facts = FACTS[key];
       spaceCaption.replaceChildren();
 
       const dot = document.createElement("span");
@@ -332,11 +417,39 @@
       dot.style.background = body.color;
 
       const text = document.createElement("div");
+      text.className = "caption-text";
+
       const title = document.createElement("strong");
       title.textContent = body.name;
+
       const sentence = document.createElement("div");
       sentence.textContent = body.text;
+
       text.append(title, sentence);
+
+      if (facts) {
+        const badges = document.createElement("div");
+        badges.className = "fact-badges";
+
+        [KINDS[facts.kind].label, ZONES[facts.zone].label, moonsLabel(facts)].forEach(label => {
+          const badge = document.createElement("span");
+          badge.className = "fact-badge";
+          badge.textContent = label;
+          badges.appendChild(badge);
+        });
+
+        const detail = document.createElement("div");
+        detail.className = "caption-detail";
+        detail.textContent = facts.detail;
+
+        const more = document.createElement("button");
+        more.type = "button";
+        more.className = "secondary-button";
+        more.textContent = "🔊 More facts";
+        more.addEventListener("click", () => speak(body.name + ". " + moreFactsText(key)));
+
+        text.append(badges, detail, more);
+      }
 
       spaceCaption.append(dot, text);
     }
@@ -394,6 +507,32 @@
       findTarget = planets[Math.floor(Math.random() * planets.length)];
       showMessage("lesson-message", "🎯 Listen and tap the planet!");
       speak("Find " + BODIES[findTarget].name + "!");
+    });
+
+    const factsBody = document.getElementById("facts-body");
+
+    ORBITS.forEach(([key]) => {
+      const f = FACTS[key];
+      const row = document.createElement("tr");
+      row.className = "fact-row";
+
+      const nameCell = document.createElement("td");
+      const dot = document.createElement("span");
+      dot.className = "dot";
+      dot.style.background = BODIES[key].color;
+      nameCell.append(dot, " " + BODIES[key].name);
+
+      const cells = [KINDS[f.kind].label, ZONES[f.zone].label, f.moons];
+      row.appendChild(nameCell);
+
+      cells.forEach(value => {
+        const cell = document.createElement("td");
+        cell.textContent = value;
+        row.appendChild(cell);
+      });
+
+      row.addEventListener("click", () => selectBody(key));
+      factsBody.appendChild(row);
     });
 
     const SPACE_WORDS = [["☀️", "Sun"], ["🌍", "Earth"], ["🌙", "Moon"], ["⭐", "Star"], ["🪐", "Planet"], ["🚀", "Rocket"]];
@@ -492,7 +631,17 @@
       { say: "What goes around the Earth?", options: [
         { icon: "🌙", label: "Moon", correct: true }, { icon: "☀️", label: "Sun" }, { icon: "⭐", label: "Star" }] },
       { say: "The Earth turns away from the Sun. What time is it?", options: [
-        { icon: "🌙", label: "Night", correct: true }, { icon: "☀️", label: "Day" }] }
+        { icon: "🌙", label: "Night", correct: true }, { icon: "☀️", label: "Day" }] },
+      { say: "Which planet is the hottest?", options: [
+        { dot: BODIES.venus.color, size: 42, label: "Venus", correct: true },
+        { dot: BODIES.neptune.color, size: 42, label: "Neptune" },
+        { dot: BODIES.mars.color, size: 42, label: "Mars" }] },
+      { say: "Which planet has no moons?", options: [
+        { dot: BODIES.mercury.color, size: 30, label: "Mercury", correct: true },
+        { icon: "🌍", label: "Earth" },
+        { dot: BODIES.mars.color, size: 34, label: "Mars" }] },
+      { say: "Is Jupiter close to the Sun, or far from the Sun?", options: [
+        { icon: "🌌", label: "Far", correct: true }, { icon: "🔥", label: "Close" }] }
     ];
 
     const quizBox = document.getElementById("quiz-box");
