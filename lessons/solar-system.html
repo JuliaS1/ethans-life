@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff5f8">
+  <title>Lesson 1: Our Solar System ☀️ - Ethan's Life</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+  <style>
+    [hidden] { display: none !important; }
+
+    .garage-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
+    /* Lekcje */
+    .lesson-card {
+      margin: 16px 0;
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 8px 24px rgba(255, 143, 171, 0.25);
+    }
+
+    .lesson-card h3 { margin-top: 0; }
+    .lesson-hint { margin-top: -6px; opacity: 0.8; }
+
+    .space-map svg, .mini-svg { display: block; width: 100%; height: auto; }
+    .space-map { max-width: 460px; margin: 0 auto; }
+
+    .orbit, .moon-orbit, .spin {
+      animation-name: lesson-spin;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+
+    .orbit { transform-origin: 210px 210px; }
+    .body { cursor: pointer; }
+
+    @keyframes lesson-spin { to { transform: rotate(360deg); } }
+
+    .space-caption {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      margin: 12px 0;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: #fff0f5;
+      font-size: 1.05rem;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      box-shadow: inset -3px -3px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    .dot-big { width: 44px; height: 44px; flex: none; }
+
+    .planet-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+
+    .planet-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border: 2px solid #ff8fab;
+      border-radius: 999px;
+      background: #fff;
+      color: #d6336c;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .planet-chip:active { transform: scale(0.95); }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .orbit, .moon-orbit, .spin { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Lesson 1</p>
+      <h1>Our Solar System <span>☀️</span></h1>
+      <p>The Sun, the Earth, the Moon and the planets!</p>
+      <nav>
+        <a href="/">← Back to Ethan's Life</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section id="lessons" class="section">
+
+      <div class="lesson-card">
+        <h3>🪐 The planets go around the Sun</h3>
+        <p class="lesson-hint">Tap the Sun, a planet or the Moon to hear its name!</p>
+
+        <div id="space-map" class="space-map"></div>
+
+        <div id="space-caption" class="space-caption" aria-live="polite">
+          <span>Tap a planet! 👆</span>
+        </div>
+
+        <div id="planet-row" class="planet-row"></div>
+
+        <div class="garage-actions">
+          <button id="find-planet" type="button" class="primary-button">🎯 Find the planet!</button>
+          <button type="button" class="secondary-button"
+            data-say="Eight planets go around the Sun. Earth is our home.">🔊 Listen</button>
+        </div>
+        <p id="lesson-message" class="form-message" role="status"></p>
+      </div>
+
+      <div class="mini-grid">
+        <div class="lesson-card">
+          <h3>☀️ Day and night 🌙</h3>
+          <svg viewBox="0 0 300 160" class="mini-svg" role="img" aria-label="The Earth spins: day and night">
+            <rect width="300" height="160" rx="18" fill="#0b1030"/>
+            <circle cx="40" cy="80" r="26" fill="#ffc300"/>
+            <path d="M80 80H110M76 56L104 66M76 104L104 94" stroke="#ffc300" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <circle cx="200" cy="80" r="50" fill="#3a86ff"/>
+            <path d="M200 30A50 50 0 0 1 200 130Z" fill="#050a24" opacity=".7"/>
+            <text x="172" y="88" font-size="20" text-anchor="middle">☀️</text>
+            <text x="230" y="88" font-size="20" text-anchor="middle">🌙</text>
+            <g class="spin" style="transform-origin:200px 80px;animation-duration:8s">
+              <circle cx="200" cy="30" r="6" fill="#ff4d6d" stroke="#fff" stroke-width="2"/>
+            </g>
+          </svg>
+          <p>The Earth spins. The red dot has day, then night!</p>
+          <button type="button" class="secondary-button"
+            data-say="The Earth spins around. When our side faces the Sun, it is day. When it turns away, it is night.">🔊 Listen</button>
+        </div>
+
+        <div class="lesson-card">
+          <h3>🌙 The Moon goes around the Earth</h3>
+          <svg viewBox="0 0 300 160" class="mini-svg" role="img" aria-label="The Moon goes around the Earth">
+            <rect width="300" height="160" rx="18" fill="#0b1030"/>
+            <circle cx="150" cy="80" r="62" fill="none" stroke="#fff" stroke-opacity=".25" stroke-dasharray="3 5"/>
+            <circle cx="150" cy="80" r="26" fill="#3a86ff"/>
+            <g class="spin" style="transform-origin:150px 80px;animation-duration:9s">
+              <g class="body" data-body="moon">
+                <circle cx="212" cy="80" r="9" fill="#cfcfcf"/>
+                <circle cx="212" cy="80" r="16" fill="transparent"/>
+              </g>
+            </g>
+          </svg>
+          <p>One trip around the Earth takes about one month.</p>
+          <button type="button" class="secondary-button"
+            data-say="The Moon goes around the Earth.">🔊 Listen</button>
+        </div>
+      </div>
+
+      <div class="content-heading">
+        <h3>🚀 Space words</h3>
+        <p>Tap a card to hear the word.</p>
+      </div>
+      <div id="space-words" class="words-grid"></div>
+    </section>
+  </main>
+
+  <footer>Made with lots of love for Ethan 💛🌈⭐</footer>
+
+  <script>
+    function showMessage(id, message) {
+      document.getElementById(id).textContent = message;
+    }
+
+    function speak(text) {
+      if (!("speechSynthesis" in window)) {
+        showMessage("lesson-message", "Speech is not supported in this browser.");
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "en-US";
+      utterance.rate = 0.8;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // --- Lekcja 1: Układ Słoneczny ---
+
+    const BODIES = {
+      sun: { name: "Sun", color: "#ffc300", text: "The Sun is a star. It gives us light and heat." },
+      mercury: { name: "Mercury", color: "#9e9e9e", text: "Mercury is small and very hot." },
+      venus: { name: "Venus", color: "#e8b86d", text: "Venus is the hottest planet." },
+      earth: { name: "Earth", color: "#3a86ff", text: "Earth is our home. We live here." },
+      mars: { name: "Mars", color: "#e5533d", text: "Mars is the red planet." },
+      jupiter: { name: "Jupiter", color: "#d9a066", text: "Jupiter is the biggest planet." },
+      saturn: { name: "Saturn", color: "#e9d58b", text: "Saturn has beautiful rings." },
+      uranus: { name: "Uranus", color: "#7fd8e8", text: "Uranus is cold and blue-green." },
+      neptune: { name: "Neptune", color: "#4a6cf7", text: "Neptune is far away, cold and windy." },
+      moon: { name: "Moon", color: "#cfcfcf", text: "The Moon goes around the Earth." }
+    };
+
+    // klucz, promień orbity, wielkość, czas obiegu w sekundach (tylko dla animacji, nie w skali)
+    const ORBITS = [
+      ["mercury", 34, 4, 6], ["venus", 54, 6, 10], ["earth", 78, 7, 14], ["mars", 100, 5, 20],
+      ["jupiter", 126, 12, 30], ["saturn", 154, 10, 40], ["uranus", 176, 8, 52], ["neptune", 194, 8, 64]
+    ];
+
+    function solarSystemSvg() {
+      const c = 210;
+      let seed = 7;
+      const rand = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+      let s = `<svg viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The Solar System">
+        <rect width="420" height="420" rx="24" fill="#0b1030"/>`;
+
+      for (let i = 0; i < 40; i++) {
+        s += `<circle cx="${(rand() * 410 + 5).toFixed(0)}" cy="${(rand() * 410 + 5).toFixed(0)}" r="${(rand() * 1.2 + 0.4).toFixed(1)}" fill="#fff" opacity=".6"/>`;
+      }
+
+      ORBITS.forEach(([, r]) => {
+        s += `<circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="#fff" stroke-opacity=".22" stroke-dasharray="3 5"/>`;
+      });
+
+      s += `<g class="body" data-body="sun">
+        <circle cx="${c}" cy="${c}" r="30" fill="#ffc300" opacity=".25"/>
+        <circle cx="${c}" cy="${c}" r="22" fill="#ffc300"/>
+        <circle cx="${c}" cy="${c}" r="34" fill="transparent"/></g>`;
+
+      ORBITS.forEach(([key, r, size, secs], i) => {
+        const cx = c + r;
+        const delay = (secs * ((i * 0.37) % 1)).toFixed(1);
+        s += `<g class="orbit" style="animation-duration:${secs}s;animation-delay:-${delay}s">
+          <g class="body" data-body="${key}">
+            <circle cx="${cx}" cy="${c}" r="${size}" fill="${BODIES[key].color}"/>
+            ${key === "saturn" ? `<ellipse cx="${cx}" cy="${c}" rx="${size + 7}" ry="3.5" fill="none" stroke="#c9b26b" stroke-width="2"/>` : ""}
+            <circle cx="${cx}" cy="${c}" r="${size + 9}" fill="transparent"/>
+          </g>`;
+
+        if (key === "earth") {
+          s += `<g class="moon-orbit" style="transform-origin:${cx}px ${c}px;animation-duration:3s">
+            <g class="body" data-body="moon">
+              <circle cx="${cx + 15}" cy="${c}" r="3" fill="#dddddd"/>
+              <circle cx="${cx + 15}" cy="${c}" r="9" fill="transparent"/>
+            </g></g>`;
+        }
+
+        s += `</g>`;
+      });
+
+      return s + `</svg>`;
+    }
+
+    const spaceMap = document.getElementById("space-map");
+    const spaceCaption = document.getElementById("space-caption");
+    const planetRow = document.getElementById("planet-row");
+    let findTarget = null;
+
+    function showBody(key) {
+      const body = BODIES[key];
+      spaceCaption.replaceChildren();
+
+      const dot = document.createElement("span");
+      dot.className = "dot dot-big";
+      dot.style.background = body.color;
+
+      const text = document.createElement("div");
+      const title = document.createElement("strong");
+      title.textContent = body.name;
+      const sentence = document.createElement("div");
+      sentence.textContent = body.text;
+      text.append(title, sentence);
+
+      spaceCaption.append(dot, text);
+    }
+
+    function selectBody(key) {
+      const body = BODIES[key];
+
+      if (findTarget) {
+        if (key === findTarget) {
+          findTarget = null;
+          showBody(key);
+          showMessage("lesson-message", "🎉 Yes! " + body.name + "!");
+          speak("Great job! " + body.name);
+        } else {
+          showMessage("lesson-message", "Try again! 💫");
+          speak("Try again. Find " + BODIES[findTarget].name);
+        }
+        return;
+      }
+
+      showBody(key);
+      showMessage("lesson-message", "");
+      speak(body.name + ". " + body.text);
+    }
+
+    spaceMap.innerHTML = solarSystemSvg();
+
+    ["sun", "mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune", "moon"].forEach(key => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "planet-chip";
+      chip.dataset.body = key;
+
+      const dot = document.createElement("span");
+      dot.className = "dot";
+      dot.style.background = BODIES[key].color;
+
+      const label = document.createElement("span");
+      label.textContent = BODIES[key].name;
+
+      chip.append(dot, label);
+      planetRow.appendChild(chip);
+    });
+
+    document.querySelectorAll("#lessons [data-body]").forEach(element => {
+      element.addEventListener("click", () => selectBody(element.dataset.body));
+    });
+
+    document.querySelectorAll("#lessons [data-say]").forEach(button => {
+      button.addEventListener("click", () => speak(button.dataset.say));
+    });
+
+    document.getElementById("find-planet").addEventListener("click", () => {
+      const planets = ["mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune"];
+      findTarget = planets[Math.floor(Math.random() * planets.length)];
+      showMessage("lesson-message", "🎯 Listen and tap the planet!");
+      speak("Find " + BODIES[findTarget].name + "!");
+    });
+
+    const SPACE_WORDS = [["☀️", "Sun"], ["🌍", "Earth"], ["🌙", "Moon"], ["⭐", "Star"], ["🪐", "Planet"], ["🚀", "Rocket"]];
+    const spaceWords = document.getElementById("space-words");
+
+    SPACE_WORDS.forEach(([emoji, word]) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "word-card";
+      card.setAttribute("aria-label", "Hear " + word);
+
+      const icon = document.createElement("span");
+      icon.className = "word-emoji";
+      icon.textContent = emoji;
+
+      const name = document.createElement("span");
+      name.className = "word-english";
+      name.textContent = word;
+
+      const hint = document.createElement("span");
+      hint.className = "word-hint";
+      hint.textContent = "Tap to listen 🔊";
+
+      card.append(icon, name, hint);
+      card.addEventListener("click", () => speak(word));
+      spaceWords.appendChild(card);
+    });
+  </script>
+</body>
+</html>
