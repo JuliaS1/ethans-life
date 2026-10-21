@@ -197,6 +197,9 @@
     .lesson-sub { opacity: 0.75; }
     .lesson-go { margin-top: 6px; color: #d6336c; font-weight: 700; }
 
+    .lesson-link.done { border: 3px solid #2ecc71; }
+    .lesson-go.done { color: #1e9e55; }
+
     .lesson-link.soon {
       border: 2px dashed #ff8fab;
       background: rgba(255, 255, 255, 0.6);
@@ -517,7 +520,7 @@
           <span class="lesson-emoji">🪐</span>
           <span class="lesson-title">Our Solar System</span>
           <span class="lesson-sub">Lesson 1: the Sun, the Earth, the Moon and the planets</span>
-          <span class="lesson-go">▶ Start</span>
+          <span class="lesson-go" data-lesson="solar-system">▶ Start</span>
         </a>
 
         <div class="lesson-link soon">
@@ -1197,6 +1200,32 @@
 
     drawCar();
     buildGarage();
+
+    // --- Postęp lekcji (zapisany na tym urządzeniu przez stronę lekcji) ---
+    function refreshLessonProgress() {
+      let progress = {};
+
+      try {
+        progress = JSON.parse(localStorage.getItem("ethanLessons") || "{}") || {};
+      } catch {}
+
+      document.querySelectorAll("[data-lesson]").forEach(badge => {
+        const entry = progress[badge.dataset.lesson];
+        const done = Boolean(entry && entry.done);
+
+        badge.textContent = done
+          ? "✅ Done " + "⭐".repeat(Math.min(entry.stars || 0, 3))
+          : "▶ Start";
+        badge.classList.toggle("done", done);
+        badge.closest(".lesson-link").classList.toggle("done", done);
+      });
+    }
+
+    // Strona lekcji otwiera się w nowej karcie, więc odświeżamy po powrocie
+    window.addEventListener("storage", refreshLessonProgress);
+    window.addEventListener("focus", refreshLessonProgress);
+    document.addEventListener("visibilitychange", refreshLessonProgress);
+    refreshLessonProgress();
 
     // --- Kategorie ---
 
