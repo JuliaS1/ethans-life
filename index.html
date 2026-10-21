@@ -69,6 +69,71 @@
       outline-offset: 2px;
     }
 
+    /* Wystrój F1 */
+    .start-lights {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      width: fit-content;
+      margin: 14px auto;
+      padding: 10px 16px;
+      border-radius: 16px;
+      background: #1b1b22;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    }
+
+    .start-lights span {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #4a1111;
+      transition: background 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .start-lights span.on {
+      background: #ff2a2a;
+      box-shadow: 0 0 12px 3px rgba(255, 42, 42, 0.7);
+    }
+
+    .pit-board {
+      padding: 8px 12px;
+      background: #15151e;
+      color: #ffd60a;
+      font-family: "Courier New", monospace;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-align: center;
+    }
+
+    /* szachownica nad każdą sekcją i nad stopką */
+    .section::before,
+    footer::before {
+      content: "";
+      display: block;
+      height: 14px;
+      margin-bottom: 16px;
+      border-radius: 4px;
+      background: repeating-conic-gradient(#222 0 25%, #fff 0 50%) 0 0 / 14px 14px;
+      opacity: 0.85;
+    }
+
+    /* pasek w barwach bolidu pod nagłówkami sekcji */
+    .section-heading { position: relative; padding-bottom: 14px; }
+
+    .section-heading::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 130px;
+      height: 6px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, #e10600 0 45%, #fff 45% 58%, #222 58% 100%);
+    }
+
+    .race-car svg { display: block; width: 100%; height: auto; }
+
     /* Garaż: budowanie auta */
     .garage-card {
       padding: 18px;
@@ -273,12 +338,12 @@
       position: absolute;
       left: 0;
       line-height: 1;
-      transform: translateX(-90px) scaleX(-1);
+      transform: translateX(-120px);
       animation: race-by 5s linear infinite;
     }
 
-    .race-car.one { top: 3px; font-size: 32px; }
-    .race-car.two { top: 33px; font-size: 28px; animation-duration: 7s; animation-delay: -3s; }
+    .race-car.one { top: 4px; width: 96px; }
+    .race-car.two { top: 33px; width: 84px; animation-duration: 7s; animation-delay: -3s; }
 
     .race-finish {
       position: absolute;
@@ -291,8 +356,8 @@
     }
 
     @keyframes race-by {
-      from { transform: translateX(-90px) scaleX(-1); }
-      to { transform: translateX(100vw) scaleX(-1); }
+      from { transform: translateX(-120px); }
+      to { transform: translateX(100vw); }
     }
 
     @keyframes road-move {
@@ -302,8 +367,8 @@
 
     @media (prefers-reduced-motion: reduce) {
       .race-track::before, .race-car { animation: none; }
-      .race-car.one { transform: translateX(20vw) scaleX(-1); }
-      .race-car.two { transform: translateX(55vw) scaleX(-1); }
+      .race-car.one { transform: translateX(20vw); }
+      .race-car.two { transform: translateX(55vw); }
     }
 
     /* Tryb administratora: usuwanie wpisów */
@@ -366,6 +431,7 @@
       <p class="eyebrow">A little place full of love</p>
       <h1>Ethan's Life <span>💛</span></h1>
       <p>Memories, little pictures and big discoveries!</p>
+      <div class="start-lights" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
       <nav>
         <a href="#wordbook">📚 Wordbook</a>
         <a href="#notes">💌 Notes</a>
@@ -379,10 +445,11 @@
   </header>
 
   <div class="race-track" aria-hidden="true">
-    <span class="race-car one">🏎️</span>
-    <span class="race-car two">🏎️</span>
+    <span class="race-car one"></span>
+    <span class="race-car two"></span>
     <span class="race-finish"></span>
   </div>
+  <div id="pit-board" class="pit-board" role="status"></div>
 
   <main>
     <section id="wordbook" class="section">
@@ -533,7 +600,7 @@
   </main>
 
   <footer>
-    Made with lots of love for Ethan 💛🌈⭐
+    Made with lots of love for Ethan 💛🏎️🏁
   </footer>
 
   <div id="modal" class="modal" hidden>
@@ -1035,8 +1102,24 @@
     const carWrap = document.getElementById("car-wrap");
     const controls = document.getElementById("garage-controls");
 
+    // Auta na torze pod nagłówkiem: pierwsze to auto zbudowane w garażu, drugie to rywal
+    function renderTrackCars() {
+      const one = document.querySelector(".race-car.one");
+      const two = document.querySelector(".race-car.two");
+      if (!one || !two) return;
+
+      const rivalColor = car.color === "#3a86ff" ? "#e63946" : "#3a86ff";
+
+      one.innerHTML = carSvg(car);
+      two.innerHTML = carSvg({
+        color: rivalColor, helmet: "#ffffff", rim: "#ffffff",
+        front: 1, rear: 2, wheel: 1, number: 2
+      });
+    }
+
     function drawCar() {
       carWrap.innerHTML = carSvg(car);
+      renderTrackCars();
     }
 
     function swatchRow(label, key) {
@@ -1201,6 +1284,37 @@
     drawCar();
     buildGarage();
 
+    // --- Światła startowe w nagłówku ---
+    (function startLights() {
+      const lights = [...document.querySelectorAll(".start-lights span")];
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+      function run() {
+        lights.forEach((light, i) => setTimeout(() => light.classList.add("on"), 800 + i * 600));
+        setTimeout(() => lights.forEach(light => light.classList.remove("on")), 4600);
+        setTimeout(run, 8200);
+      }
+
+      run();
+    })();
+
+    // --- Tablica wyników pod torem ---
+    const boardCounts = { words: 0, notes: 0 };
+
+    function updatePitBoard() {
+      let lessonsDone = 0;
+
+      try {
+        const progress = JSON.parse(localStorage.getItem("ethanLessons") || "{}") || {};
+        lessonsDone = Object.values(progress).filter(entry => entry && entry.done).length;
+      } catch {}
+
+      document.getElementById("pit-board").textContent =
+        "🏁 WORDS " + boardCounts.words + "  •  NOTES " + boardCounts.notes + "  •  LESSONS " + lessonsDone;
+    }
+
+    updatePitBoard();
+
     // --- Postęp lekcji (zapisany na tym urządzeniu przez stronę lekcji) ---
     function refreshLessonProgress() {
       let progress = {};
@@ -1219,6 +1333,8 @@
         badge.classList.toggle("done", done);
         badge.closest(".lesson-link").classList.toggle("done", done);
       });
+
+      updatePitBoard();
     }
 
     // Strona lekcji otwiera się w nowej karcie, więc odświeżamy po powrocie
@@ -1325,6 +1441,8 @@
 
     function onWordsLoaded(items) {
       allWords = Array.isArray(items) ? items : [];
+      boardCounts.words = allWords.length;
+      updatePitBoard();
       renderCategoryOptions();
       renderCategoryChips();
       renderWords();
@@ -1401,7 +1519,12 @@
 
     function loadNotes(silent = false) {
       return loadItems(
-        "notes", "notes-list", makeNoteCard, "No notes yet. Leave the first one! 💛", silent
+        "notes", "notes-list", makeNoteCard, "No notes yet. Leave the first one! 💛", silent,
+        items => {
+          boardCounts.notes = Array.isArray(items) ? items.length : 0;
+          updatePitBoard();
+          renderList("notes-list", items, makeNoteCard, "No notes yet. Leave the first one! 💛");
+        }
       );
     }
 
