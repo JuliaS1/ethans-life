@@ -160,6 +160,7 @@
     .fact-row { cursor: pointer; }
     .fact-row td { border-bottom: 1px solid #ffe0e8; }
     .fact-row:hover { background: #fff0f5; }
+    .caption-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
   </style>
 </head>
 <body>
@@ -184,7 +185,7 @@
 
       <div class="lesson-card">
         <h3>🪐 The planets go around the Sun</h3>
-        <p class="lesson-hint">Tap the Sun, a planet or the Moon to hear its name!</p>
+        <p class="lesson-hint">Tap the Sun, a planet or the Moon to hear all about it!</p>
 
         <div id="space-map" class="space-map"></div>
         <p class="map-legend">🪨 The 4 inner planets are small and rocky. 🌀 The 4 outer planets are giants. The little grey dots between Mars and Jupiter are the asteroid belt.</p>
@@ -283,10 +284,23 @@
       }
 
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "en-US";
-      utterance.rate = 0.8;
-      window.speechSynthesis.speak(utterance);
+
+      // Długi tekst mówimy zdanie po zdaniu, bo część przeglądarek ucina zbyt długie wypowiedzi
+      const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+
+      sentences.forEach(sentence => {
+        const part = sentence.trim();
+        if (!part) return;
+
+        const utterance = new SpeechSynthesisUtterance(part);
+        utterance.lang = "en-US";
+        utterance.rate = 0.8;
+        window.speechSynthesis.speak(utterance);
+      });
+    }
+
+    function stopSpeaking() {
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     }
 
     // --- Lekcja 1: Układ Słoneczny ---
@@ -318,30 +332,55 @@
 
     const FACTS = {
       mercury: { kind: "rocky", zone: "inner", moons: "0", moonSay: "Mercury has no moons.",
-        detail: "It is the smallest planet and the closest to the Sun. It is very hot in the day and very cold at night." },
+        detail: "It is the smallest planet and the closest to the Sun. Days are hot and nights are freezing." },
       venus: { kind: "rocky", zone: "inner", moons: "0", moonSay: "Venus has no moons.",
-        detail: "Thick clouds trap the heat, so it is the hottest planet." },
+        detail: "Thick clouds trap the heat all around it." },
       earth: { kind: "rocky", zone: "inner", moons: "1", moonSay: "Earth has one moon.",
-        detail: "Earth has water, air and a lot of life. It is our home." },
+        detail: "It has water, air and a lot of life." },
       mars: { kind: "rocky", zone: "inner", moons: "2", moonSay: "Mars has two small moons.",
         detail: "It is dusty and cold. It has the biggest volcano in the solar system." },
       jupiter: { kind: "gas", zone: "outer", moons: "100+", moonSay: "Jupiter has more than one hundred moons.",
-        detail: "It is the biggest planet. It has a giant storm called the Great Red Spot." },
+        detail: "It has a giant storm called the Great Red Spot." },
       saturn: { kind: "gas", zone: "outer", moons: "280+", moonSay: "Saturn has more than two hundred and eighty moons.",
         detail: "Its rings are made of ice and rock. Its big moon Titan has thick air." },
       uranus: { kind: "ice", zone: "outer", moons: "about 28", moonSay: "Uranus has about twenty-eight moons.",
-        detail: "It is cold and blue-green. It spins on its side." },
+        detail: "It spins on its side, like a rolling ball." },
       neptune: { kind: "ice", zone: "outer", moons: "16", moonSay: "Neptune has sixteen moons.",
-        detail: "It is the farthest planet. It is cold, dark and very windy." }
+        detail: "It is the farthest planet from the Sun. It is dark out there." }
     };
 
     function moonsLabel(facts) {
       return facts.moons === "0" ? "🌙 No moons" : "🌙 Moons: " + facts.moons;
     }
 
-    function moreFactsText(key) {
+    // Ciekawostki czytane na głos
+    const FUN = {
+      mercury: "A year on Mercury is only eighty-eight days long.",
+      venus: "Venus spins backwards.",
+      earth: "The Earth goes around the Sun one time every year.",
+      mars: "Robots called rovers drive on Mars and take pictures.",
+      jupiter: "More than one thousand Earths could fit inside Jupiter.",
+      saturn: "Saturn is so light that it could float in a giant bathtub of water.",
+      uranus: "Uranus takes eighty-four years to go around the Sun.",
+      neptune: "Neptune takes about one hundred and sixty-five years to go around the Sun."
+    };
+
+    const EXTRA = {
+      sun: "It is a big ball of hot gas. More than one million Earths could fit inside the Sun.",
+      moon: "It is a rocky ball with no air. One trip around the Earth takes about one month. People have walked on the Moon."
+    };
+
+    // Cała opowieść: nazwa, krótkie zdanie, opis, ciekawostka, rodzaj, położenie i księżyce
+    function storyText(key) {
+      const body = BODIES[key];
       const f = FACTS[key];
-      return f.detail + " " + KINDS[f.kind].say + " " + ZONES[f.zone].say + " " + f.moonSay;
+
+      if (!f) return [body.name + ".", body.text, EXTRA[key]].join(" ");
+
+      return [
+        body.name + ".", body.text, f.detail, FUN[key],
+        KINDS[f.kind].say, ZONES[f.zone].say, f.moonSay
+      ].join(" ");
     }
 
     // klucz, promień orbity, wielkość, czas obiegu w sekundach (tylko dla animacji, nie w skali)
@@ -427,6 +466,9 @@
 
       text.append(title, sentence);
 
+      const detail = document.createElement("div");
+      detail.className = "caption-detail";
+
       if (facts) {
         const badges = document.createElement("div");
         badges.className = "fact-badges";
@@ -438,18 +480,37 @@
           badges.appendChild(badge);
         });
 
-        const detail = document.createElement("div");
-        detail.className = "caption-detail";
         detail.textContent = facts.detail;
-
-        const more = document.createElement("button");
-        more.type = "button";
-        more.className = "secondary-button";
-        more.textContent = "🔊 More facts";
-        more.addEventListener("click", () => speak(body.name + ". " + moreFactsText(key)));
-
-        text.append(badges, detail, more);
+        text.append(badges, detail);
+      } else {
+        detail.textContent = EXTRA[key];
+        text.appendChild(detail);
       }
+
+      if (FUN[key]) {
+        const fun = document.createElement("div");
+        fun.className = "caption-detail";
+        fun.textContent = "💡 " + FUN[key];
+        text.appendChild(fun);
+      }
+
+      const buttons = document.createElement("div");
+      buttons.className = "caption-buttons";
+
+      const again = document.createElement("button");
+      again.type = "button";
+      again.className = "secondary-button";
+      again.textContent = "🔊 Tell me again";
+      again.addEventListener("click", () => speak(storyText(key)));
+
+      const stop = document.createElement("button");
+      stop.type = "button";
+      stop.className = "secondary-button";
+      stop.textContent = "⏹ Stop";
+      stop.addEventListener("click", stopSpeaking);
+
+      buttons.append(again, stop);
+      text.appendChild(buttons);
 
       spaceCaption.append(dot, text);
     }
@@ -472,7 +533,7 @@
 
       showBody(key);
       showMessage("lesson-message", "");
-      speak(body.name + ". " + body.text);
+      speak(storyText(key));
     }
 
     spaceMap.innerHTML = solarSystemSvg();
