@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff5f8">
+  <title>Lesson 2: Weather, Seasons and Months 🌦️ - Ethan's Life</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+  <style>
+    [hidden] { display: none !important; }
+
+    .garage-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
+    /* Lekcje */
+    .lesson-card {
+      margin: 16px 0;
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 8px 24px rgba(255, 143, 171, 0.25);
+    }
+
+    .lesson-card h3 { margin-top: 0; }
+    .lesson-hint { margin-top: -6px; opacity: 0.8; }
+
+    .space-map svg, .mini-svg { display: block; width: 100%; height: auto; }
+    .space-map { max-width: 460px; margin: 0 auto; }
+
+    .orbit, .moon-orbit, .spin {
+      animation-name: lesson-spin;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+
+    .orbit { transform-origin: 210px 210px; }
+    .body { cursor: pointer; }
+
+    @keyframes lesson-spin { to { transform: rotate(360deg); } }
+
+    .space-caption {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      margin: 12px 0;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: #fff0f5;
+      font-size: 1.05rem;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      box-shadow: inset -3px -3px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    .dot-big { width: 44px; height: 44px; flex: none; }
+
+    .planet-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+
+    .planet-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border: 2px solid #ff8fab;
+      border-radius: 999px;
+      background: #fff;
+      color: #d6336c;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .planet-chip:active { transform: scale(0.95); }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .orbit, .moon-orbit, .spin { animation: none; }
+    }
+
+    .lesson-status {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .lesson-status.done { border: 3px solid #2ecc71; }
+    .status-text { font-size: 1.15rem; font-weight: 700; }
+
+    .quiz-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .quiz-options { display: flex; flex-wrap: wrap; gap: 12px; }
+
+    .quiz-option {
+      flex: 1 1 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      min-height: 120px;
+      padding: 12px;
+      border: 3px solid #ffc2d1;
+      border-radius: 20px;
+      background: #fff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .quiz-option:active { transform: scale(0.96); }
+    .quiz-option.right { border-color: #2ecc71; background: #eafff1; }
+    .quiz-option.wrong { border-color: #ff6b81; background: #fff0f2; opacity: 0.6; }
+    .quiz-icon { font-size: 3rem; line-height: 1; }
+    .quiz-result { text-align: center; }
+    .quiz-big { font-size: 3.5rem; line-height: 1.2; }
+
+    .space-caption { flex-wrap: wrap; }
+    .caption-text { flex: 1; min-width: 210px; }
+    .caption-detail { margin: 6px 0 8px; }
+    .fact-badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+
+    .fact-badge {
+      padding: 4px 10px;
+      border: 2px solid #ffc2d1;
+      border-radius: 999px;
+      background: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .map-legend { margin: 8px 0 0; font-size: 0.9rem; opacity: 0.8; }
+
+    .table-wrap { overflow-x: auto; }
+    .facts-table { width: 100%; border-collapse: collapse; }
+    .facts-table th, .facts-table td { padding: 10px 8px; text-align: left; white-space: nowrap; }
+    .facts-table thead th { border-bottom: 2px solid #ffc2d1; color: #d6336c; }
+    .fact-row { cursor: pointer; }
+    .fact-row td { border-bottom: 1px solid #ffe0e8; }
+    .fact-row:hover { background: #fff0f5; }
+    .caption-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
+    /* Lekcja 2: pogoda, pory roku, miesiące */
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border: 2px solid #ff8fab;
+      border-radius: 999px;
+      background: #fff;
+      color: #d6336c;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .chip:active { transform: scale(0.95); }
+    .chip.active { background: #ff8fab; color: #fff; }
+
+    .weather-scene {
+      position: relative;
+      height: 220px;
+      overflow: hidden;
+      border-radius: 20px;
+      background: linear-gradient(#7fd0ff, #d9f2ff);
+    }
+
+    .weather-scene::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 28px;
+      background: #6bbf59;
+    }
+
+    .weather-scene.cloudy { background: linear-gradient(#a9b5c4, #d7dde6); }
+    .weather-scene.rainy { background: linear-gradient(#6f7f95, #a9b7c8); }
+    .weather-scene.snowy { background: linear-gradient(#b8c8dc, #eef4fb); }
+    .weather-scene.snowy::after { background: #fff; }
+    .weather-scene.windy { background: linear-gradient(#9fd3e8, #e5f4f9); }
+    .weather-scene.stormy { background: linear-gradient(#3b4252, #6b7488); }
+    .weather-scene.stormy::after { background: #3d5a3a; }
+
+    .sun-disc {
+      position: absolute;
+      top: 26px;
+      right: 44px;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #ffd60a;
+      box-shadow: 0 0 0 10px rgba(255, 214, 10, 0.35), 0 0 40px 20px rgba(255, 214, 10, 0.4);
+      animation: wx-pulse 2.4s ease-in-out infinite;
+    }
+
+    .wx-cloud { position: absolute; left: -25%; line-height: 1; animation: wx-drift 18s linear infinite; }
+    .wx-cloud.dark { filter: brightness(0.45); }
+    .drop { position: absolute; top: 0; width: 2px; height: 14px; border-radius: 2px; background: #bfe3ff; animation: wx-fall 1s linear infinite; }
+    .flake { position: absolute; top: 0; line-height: 1; animation: wx-fall 6s linear infinite; }
+    .leaf { position: absolute; left: -10%; line-height: 1; animation: wx-blow 5s linear infinite; }
+    .wind-line { position: absolute; left: -10%; font-size: 28px; line-height: 1; animation: wx-blow 3.5s linear infinite; }
+    .bolt { position: absolute; top: 40px; left: 46%; font-size: 64px; line-height: 1; opacity: 0; animation: wx-bolt 3s linear infinite; }
+    .flash { position: absolute; inset: 0; background: #fff; opacity: 0; animation: wx-flash 3s linear infinite; }
+
+    @keyframes wx-pulse { 50% { transform: scale(1.08); } }
+    @keyframes wx-drift { from { left: -25%; } to { left: 110%; } }
+    @keyframes wx-fall { from { transform: translateY(-20px); } to { transform: translateY(250px); } }
+    @keyframes wx-blow { from { left: -10%; transform: rotate(0deg); } to { left: 110%; transform: rotate(540deg); } }
+    @keyframes wx-bolt { 0%, 86%, 100% { opacity: 0; } 88%, 92% { opacity: 1; } 90% { opacity: 0.2; } }
+    @keyframes wx-flash { 0%, 86%, 100% { opacity: 0; } 88% { opacity: 0.55; } 90% { opacity: 0; } 92% { opacity: 0.4; } }
+
+    .info-box {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      margin: 12px 0;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: #fff0f5;
+      font-size: 1.05rem;
+    }
+
+    .info-icon { font-size: 2.6rem; line-height: 1; }
+    .info-text { flex: 1; min-width: 200px; }
+    .wear-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+
+    .wear-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border: 2px solid #ffc2d1;
+      border-radius: 999px;
+      background: #fff;
+      font-weight: 600;
+    }
+
+    .season-stage svg { display: block; width: 100%; height: auto; max-width: 460px; margin: 0 auto; }
+    .fall { animation: season-fall 5s linear infinite; }
+    @keyframes season-fall { from { transform: translateY(0); } to { transform: translateY(165px); } }
+
+    .month-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin: 12px 0; }
+
+    .month-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 12px 6px;
+      border: 3px solid #ffc2d1;
+      border-radius: 18px;
+      background: #fff;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .month-card .month-name { font-size: 1.1rem; font-weight: 700; }
+    .month-card .month-days { font-size: 0.8rem; opacity: 0.7; }
+    .month-card.winter { border-color: #8ab6ef; }
+    .month-card.spring { border-color: #ff8fab; }
+    .month-card.summer { border-color: #ffc300; }
+    .month-card.autumn { border-color: #e8832a; }
+    .month-card.now { background: #fff7cc; box-shadow: 0 0 0 3px #ffd60a; }
+    .month-card.speaking { background: #ffe3ec; transform: scale(1.06); }
+    .month-card:active { transform: scale(0.95); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .sun-disc, .wx-cloud, .drop, .flake, .leaf, .wind-line, .bolt, .flash, .fall { animation: none; }
+      .wx-cloud { left: 30%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Lesson 2</p>
+      <h1>Weather, Seasons &amp; Months <span>🌦️</span></h1>
+      <p>Sun, rain, snow, the four seasons and the twelve months!</p>
+      <nav>
+        <a href="/">← Back to Ethan's Life</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="lesson-card lesson-status" id="lesson-status">
+      <span id="status-text" class="status-text"></span>
+      <button id="status-toggle" type="button" class="secondary-button"></button>
+    </div>
+
+    <section id="lesson" class="section">
+      <div class="lesson-card">
+        <h3>🌤️ What is the weather like?</h3>
+        <p class="lesson-hint">Tap a weather to watch it and hear all about it!</p>
+        <div id="weather-scene" class="weather-scene" role="img" aria-label="Weather scene"></div>
+        <div id="weather-chips" class="chip-row"></div>
+        <div id="weather-info" class="info-box" aria-live="polite">Tap a weather! 👆</div>
+        <p id="lesson-message" class="form-message" role="status"></p>
+      </div>
+
+      <div class="lesson-card">
+        <h3>🌳 The four seasons</h3>
+        <p class="lesson-hint">Watch the tree change through the year!</p>
+        <div id="season-stage" class="season-stage"></div>
+        <div id="season-chips" class="chip-row"></div>
+        <div id="season-info" class="info-box" aria-live="polite"></div>
+        <div class="garage-actions">
+          <button id="play-year" type="button" class="primary-button">▶ Watch the year</button>
+        </div>
+      </div>
+
+      <div class="lesson-card">
+        <h3>📅 The twelve months</h3>
+        <p class="lesson-hint">Tap a month to hear about it. This is for the northern hemisphere (Europe).</p>
+        <div class="info-box">
+          <span id="month-now" class="info-text"></span>
+          <button id="say-now" type="button" class="secondary-button">🔊 What month is it?</button>
+        </div>
+        <div id="month-grid" class="month-grid"></div>
+        <div class="garage-actions">
+          <button id="say-months" type="button" class="primary-button">🔊 Say all the months</button>
+        </div>
+      </div>
+
+      <div class="content-heading">
+        <h3>🧢 Weather words</h3>
+        <p>Tap a card to hear the word.</p>
+      </div>
+      <div id="weather-words" class="words-grid"></div>
+
+      <div class="lesson-card" id="quiz-card">
+        <h3>🧠 Quiz time!</h3>
+        <p class="lesson-hint">Listen and tap the right picture. You can do it! 💪</p>
+        <div id="quiz-box" class="quiz-box">
+          <button id="quiz-start" type="button" class="primary-button">▶ Start the quiz</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>Made with lots of love for Ethan 💛🌈⭐</footer>
+
+  <script>
+    function showMessage(id, message) {
+      document.getElementById(id).textContent = message;
+    }
+
+    function speak(text) {
+      if (!("speechSynthesis" in window)) {
+        showMessage("lesson-message", "Speech is not supported in this browser.");
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+
+      // Długi tekst mówimy zdanie po zdaniu, bo część przeglądarek ucina zbyt długie wypowiedzi
+      const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+
+      sentences.forEach(sentence => {
+        const part = sentence.trim();
+        if (!part) return;
+
+        const utterance = new SpeechSynthesisUtterance(part);
+        utterance.lang = "en-US";
+        utterance.rate = 0.8;
+        window.speechSynthesis.speak(utterance);
+      });
+    }
+
+    function stopSpeaking() {
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    }
+
+    // --- Postęp lekcji (zapisany na tym urządzeniu) ---
+
+    const LESSON_ID = "weather-seasons";
+    const PROGRESS_KEY = "ethanLessons";
+
+    function readProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(PROGRESS_KEY) || "{}") || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function setProgress(update) {
+      const all = readProgress();
+      all[LESSON_ID] = { ...(all[LESSON_ID] || {}), ...update };
+
+      try {
+        localStorage.setItem(PROGRESS_KEY, JSON.stringify(all));
+      } catch {}
+    }
+
+    const statusCard = document.getElementById("lesson-status");
+    const statusText = document.getElementById("status-text");
+    const statusToggle = document.getElementById("status-toggle");
+
+    function renderStatus() {
+      const progress = readProgress()[LESSON_ID] || {};
+      const done = Boolean(progress.done);
+
+      statusText.textContent = done
+        ? "✅ Lesson done! " + "⭐".repeat(Math.min(progress.stars || 0, 3))
+        : "🔲 Not done yet";
+      statusToggle.textContent = done ? "↩ Mark as not done" : "✅ Mark as done";
+      statusCard.classList.toggle("done", done);
+    }
+
+    statusToggle.addEventListener("click", () => {
+      const progress = readProgress()[LESSON_ID] || {};
+      setProgress({ done: !progress.done });
+      renderStatus();
+    });
+
+    renderStatus();
+
+    // --- Lekcja 2: pogoda, pory roku, miesiące ---
+
+    const SEASONS = {
+      spring: { name: "Spring", icon: "🌸", color: "#ff8fab", short: "Flowers grow.",
+        say: "In spring, flowers grow and baby animals are born. It is warm and rainy. The months are March, April and May." },
+      summer: { name: "Summer", icon: "☀️", color: "#ffc300", short: "It is hot and sunny.",
+        say: "In summer, it is hot and sunny. We go swimming and eat ice cream. The months are June, July and August." },
+      autumn: { name: "Autumn", icon: "🍂", color: "#e8832a", short: "Leaves fall down.",
+        say: "In autumn, the leaves turn orange and fall down. It is windy and cool. The months are September, October and November." },
+      winter: { name: "Winter", icon: "❄️", color: "#8ab6ef", short: "It is cold and snowy.",
+        say: "In winter, it is cold. Sometimes it snows. We wear coats and gloves. The months are December, January and February." }
+    };
+
+    const WEATHER = {
+      sunny: { name: "Sunny", icon: "☀️", say: "It is sunny. The sun is shining and it is warm.",
+        wear: [["🕶️", "sunglasses"], ["🧢", "hat"]], wearSay: "We wear sunglasses and a hat." },
+      cloudy: { name: "Cloudy", icon: "☁️", say: "It is cloudy. The sky is grey and full of clouds.",
+        wear: [["🧥", "jacket"]], wearSay: "We wear a jacket." },
+      rainy: { name: "Rainy", icon: "🌧️", say: "It is rainy. Water drops fall from the clouds.",
+        wear: [["☂️", "umbrella"], ["🥾", "boots"]], wearSay: "We use an umbrella and wear boots." },
+      snowy: { name: "Snowy", icon: "❄️", say: "It is snowy. White snow falls from the sky. It is very cold.",
+        wear: [["🧥", "coat"], ["🧣", "scarf"], ["🧤", "gloves"]], wearSay: "We wear a coat, a scarf and gloves." },
+      windy: { name: "Windy", icon: "💨", say: "It is windy. The wind blows the leaves and the clouds.",
+        wear: [["🧥", "jacket"]], wearSay: "We wear a jacket." },
+      stormy: { name: "Stormy", icon: "⛈️", say: "It is stormy. There is thunder and lightning.",
+        wear: [["🏠", "stay inside"]], wearSay: "We stay inside, safe and warm." }
+    };
+
+    // --- Pogoda ---
+
+    const scene = document.getElementById("weather-scene");
+    const weatherInfo = document.getElementById("weather-info");
+    const weatherChips = document.getElementById("weather-chips");
+
+    function layer(tag, className, text, style) {
+      const element = document.createElement(tag);
+      element.className = className;
+      if (text) element.textContent = text;
+      Object.assign(element.style, style || {});
+      scene.appendChild(element);
+    }
+
+    function buildScene(key) {
+      let seed = 5;
+      const rand = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+      const clouds = (count, dark) => {
+        for (let i = 0; i < count; i++) {
+          layer("span", "wx-cloud" + (dark ? " dark" : ""), "☁️", {
+            top: (4 + i * 18) + "px",
+            fontSize: (54 + rand() * 30).toFixed(0) + "px",
+            animationDuration: (14 + rand() * 10).toFixed(1) + "s",
+            animationDelay: "-" + (rand() * 14).toFixed(1) + "s"
+          });
+        }
+      };
+      const drops = count => {
+        for (let i = 0; i < count; i++) {
+          layer("span", "drop", "", {
+            left: (rand() * 98).toFixed(0) + "%",
+            animationDuration: (0.7 + rand() * 0.6).toFixed(2) + "s",
+            animationDelay: "-" + (rand() * 1.3).toFixed(2) + "s"
+          });
+        }
+      };
+
+      scene.className = "weather-scene " + key;
+      scene.replaceChildren();
+
+      if (key === "sunny") {
+        layer("div", "sun-disc");
+      } else if (key === "cloudy") {
+        clouds(4, false);
+      } else if (key === "rainy") {
+        clouds(3, true);
+        drops(30);
+      } else if (key === "snowy") {
+        clouds(2, false);
+        for (let i = 0; i < 24; i++) {
+          layer("span", "flake", "❄️", {
+            left: (rand() * 95).toFixed(0) + "%",
+            fontSize: (12 + rand() * 12).toFixed(0) + "px",
+            animationDuration: (4 + rand() * 4).toFixed(1) + "s",
+            animationDelay: "-" + (rand() * 8).toFixed(1) + "s"
+          });
+        }
+      } else if (key === "windy") {
+        clouds(3, false);
+        for (let i = 0; i < 6; i++) {
+          layer("span", "leaf", "🍃", {
+            top: (60 + rand() * 120).toFixed(0) + "px",
+            fontSize: "26px",
+            animationDuration: (3 + rand() * 3).toFixed(1) + "s",
+            animationDelay: "-" + (rand() * 5).toFixed(1) + "s"
+          });
+        }
+        for (let i = 0; i < 4; i++) {
+          layer("span", "wind-line", "💨", {
+            top: (30 + i * 44) + "px",
+            animationDelay: "-" + (i * 0.9).toFixed(1) + "s"
+          });
+        }
+      } else if (key === "stormy") {
+        clouds(3, true);
+        drops(26);
+        layer("span", "bolt", "⚡");
+        layer("div", "flash");
+      }
+    }
+
+    function showWeather(key, speakIt = true) {
+      const weather = WEATHER[key];
+      buildScene(key);
+
+      weatherChips.querySelectorAll(".chip").forEach(chip => {
+        chip.classList.toggle("active", chip.dataset.key === key);
+      });
+
+      weatherInfo.replaceChildren();
+
+      const icon = document.createElement("span");
+      icon.className = "info-icon";
+      icon.textContent = weather.icon;
+
+      const text = document.createElement("div");
+      text.className = "info-text";
+
+      const title = document.createElement("strong");
+      title.textContent = weather.name;
+
+      const sentence = document.createElement("div");
+      sentence.textContent = weather.say;
+
+      const wear = document.createElement("div");
+      wear.className = "wear-row";
+
+      weather.wear.forEach(([emoji, word]) => {
+        const item = document.createElement("span");
+        item.className = "wear-item";
+        item.textContent = emoji + " " + word;
+        wear.appendChild(item);
+      });
+
+      const buttons = document.createElement("div");
+      buttons.className = "caption-buttons";
+
+      const again = document.createElement("button");
+      again.type = "button";
+      again.className = "secondary-button";
+      again.textContent = "🔊 Tell me again";
+      again.addEventListener("click", () => speak(weatherText(key)));
+
+      const stop = document.createElement("button");
+      stop.type = "button";
+      stop.className = "secondary-button";
+      stop.textContent = "⏹ Stop";
+      stop.addEventListener("click", stopSpeaking);
+
+      buttons.append(again, stop);
+      text.append(title, sentence, wear, buttons);
+      weatherInfo.append(icon, text);
+
+      if (speakIt) speak(weatherText(key));
+    }
+
+    function weatherText(key) {
+      const weather = WEATHER[key];
+      return weather.name + ". " + weather.say + " " + weather.wearSay;
+    }
+
+    Object.entries(WEATHER).forEach(([key, weather]) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip";
+      chip.dataset.key = key;
+      chip.textContent = weather.icon + " " + weather.name;
+      chip.addEventListener("click", () => showWeather(key));
+      weatherChips.appendChild(chip);
+    });
+
+    showWeather("sunny", false);
+
+    // --- Pory roku (drzewo zmienia się razem z porą roku) ---
+
+    const seasonStage = document.getElementById("season-stage");
+    const seasonInfo = document.getElementById("season-info");
+    const seasonChips = document.getElementById("season-chips");
+    let yearTimer = null;
+
+    function seasonSvg(season) {
+      let seed = 11;
+      const rand = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+      const look = {
+        spring: { sky: "#d9f2ff", ground: "#8bd36b", crown: "#9be37a" },
+        summer: { sky: "#bfe9ff", ground: "#5fbf4f", crown: "#3fa34d" },
+        autumn: { sky: "#ffe8c7", ground: "#c9a14a", crown: "#e8832a" },
+        winter: { sky: "#dfe9f5", ground: "#f6f9ff", crown: null }
+      }[season];
+
+      const inCrown = () => {
+        const angle = rand() * Math.PI * 2;
+        const radius = Math.sqrt(rand());
+        return [150 + Math.cos(angle) * radius * 62, 78 + Math.sin(angle) * radius * 38];
+      };
+
+      let s = `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A tree in ${season}">
+        <rect width="300" height="200" rx="18" fill="${look.sky}"/>`;
+
+      if (season === "summer") s += `<circle cx="252" cy="38" r="22" fill="#ffd60a"/>`;
+      if (season === "spring") s += `<circle cx="252" cy="38" r="14" fill="#ffe680"/>`;
+      if (season === "autumn") s += `<circle cx="252" cy="38" r="14" fill="#ffb347"/>`;
+
+      s += `<ellipse cx="150" cy="198" rx="190" ry="44" fill="${look.ground}"/>
+        <rect x="140" y="95" width="20" height="88" rx="6" fill="#7a4a21"/>`;
+
+      if (season === "winter") {
+        s += `<path d="M150 112 L108 70 M150 106 L194 66 M150 132 L116 104 M150 128 L188 100" stroke="#7a4a21" stroke-width="7" stroke-linecap="round" fill="none"/>
+          <ellipse cx="108" cy="68" rx="9" ry="4" fill="#fff"/><ellipse cx="194" cy="64" rx="9" ry="4" fill="#fff"/>
+          <ellipse cx="150" cy="186" rx="60" ry="10" fill="#fff"/>`;
+
+        for (let i = 0; i < 16; i++) {
+          s += `<circle class="fall" cx="${(rand() * 280 + 10).toFixed(0)}" cy="${(rand() * 40 + 5).toFixed(0)}" r="${(rand() * 2 + 2).toFixed(1)}" fill="#fff" style="animation-duration:${(4 + rand() * 3).toFixed(1)}s;animation-delay:-${(rand() * 6).toFixed(1)}s"/>`;
+        }
+      } else {
+        s += `<circle cx="150" cy="70" r="50" fill="${look.crown}"/>
+          <circle cx="110" cy="92" r="36" fill="${look.crown}"/>
+          <circle cx="190" cy="92" r="36" fill="${look.crown}"/>`;
+
+        if (season === "spring") {
+          for (let i = 0; i < 18; i++) {
+            const [x, y] = inCrown();
+            s += `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="4.5" fill="#ffb3c6"/>`;
+          }
+
+          ["#ff8fab", "#ffd60a", "#fff", "#b388ff", "#ff8fab", "#ffd60a"].forEach((color, i) => {
+            s += `<circle cx="${30 + i * 48}" cy="${178 + (i % 2) * 8}" r="5" fill="${color}"/>`;
+          });
+        }
+
+        if (season === "summer") {
+          for (let i = 0; i < 7; i++) {
+            const [x, y] = inCrown();
+            s += `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="5.5" fill="#e63946"/>`;
+          }
+        }
+
+        if (season === "autumn") {
+          for (let i = 0; i < 12; i++) {
+            const [x, y] = inCrown();
+            s += `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="9" fill="${i % 2 ? "#d9582b" : "#ffc300"}" opacity=".8"/>`;
+          }
+
+          const colors = ["#e8832a", "#d9582b", "#ffc300"];
+
+          for (let i = 0; i < 10; i++) {
+            s += `<ellipse class="fall" cx="${(rand() * 280 + 10).toFixed(0)}" cy="${(rand() * 40 + 10).toFixed(0)}" rx="6" ry="3.5" fill="${colors[i % 3]}" style="animation-duration:${(4 + rand() * 3).toFixed(1)}s;animation-delay:-${(rand() * 6).toFixed(1)}s"/>`;
+          }
+        }
+      }
+
+      return s + `</svg>`;
+    }
+
+    function showSeason(key, brief = false) {
+      const season = SEASONS[key];
+      seasonStage.innerHTML = seasonSvg(key);
+
+      seasonChips.querySelectorAll(".chip").forEach(chip => {
+        chip.classList.toggle("active", chip.dataset.key === key);
+      });
+
+      seasonInfo.replaceChildren();
+
+      const icon = document.createElement("span");
+      icon.className = "info-icon";
+      icon.textContent = season.icon;
+
+      const text = document.createElement("div");
+      text.className = "info-text";
+
+      const title = document.createElement("strong");
+      title.textContent = season.name;
+
+      const sentence = document.createElement("div");
+      sentence.textContent = season.say;
+
+      const buttons = document.createElement("div");
+      buttons.className = "caption-buttons";
+
+      const again = document.createElement("button");
+      again.type = "button";
+      again.className = "secondary-button";
+      again.textContent = "🔊 Tell me again";
+      again.addEventListener("click", () => speak(season.name + ". " + season.say));
+
+      const stop = document.createElement("button");
+      stop.type = "button";
+      stop.className = "secondary-button";
+      stop.textContent = "⏹ Stop";
+      stop.addEventListener("click", () => { stopYear(); stopSpeaking(); });
+
+      buttons.append(again, stop);
+      text.append(title, sentence, buttons);
+      seasonInfo.append(icon, text);
+
+      speak(brief ? season.name + ". " + season.short : season.name + ". " + season.say);
+    }
+
+    function stopYear() {
+      clearTimeout(yearTimer);
+      yearTimer = null;
+    }
+
+    function playYear() {
+      stopYear();
+      const order = ["spring", "summer", "autumn", "winter"];
+      let index = 0;
+
+      const step = () => {
+        showSeason(order[index], true);
+        index++;
+        if (index < order.length) yearTimer = setTimeout(step, 5500);
+      };
+
+      step();
+    }
+
+    Object.entries(SEASONS).forEach(([key, season]) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip";
+      chip.dataset.key = key;
+      chip.textContent = season.icon + " " + season.name;
+      chip.addEventListener("click", () => { stopYear(); showSeason(key); });
+      seasonChips.appendChild(chip);
+    });
+
+    document.getElementById("play-year").addEventListener("click", playYear);
+
+    seasonStage.innerHTML = seasonSvg("spring");
+    seasonChips.querySelector(".chip").classList.add("active");
+    seasonInfo.textContent = "Tap a season, or watch the whole year! 👆";
+
+    // --- Miesiące ---
+
+    const MONTHS = [
+      ["January", "first", 31], ["February", "second", 28], ["March", "third", 31],
+      ["April", "fourth", 30], ["May", "fifth", 31], ["June", "sixth", 30],
+      ["July", "seventh", 31], ["August", "eighth", 31], ["September", "ninth", 30],
+      ["October", "tenth", 31], ["November", "eleventh", 30], ["December", "twelfth", 31]
+    ];
+
+    const DAY_WORDS = { 28: "twenty-eight", 30: "thirty", 31: "thirty-one" };
+
+    function seasonOfMonth(index) {
+      if (index === 11 || index <= 1) return "winter";
+      if (index <= 4) return "spring";
+      if (index <= 7) return "summer";
+      return "autumn";
+    }
+
+    function monthText(index) {
+      const [name, ordinal, days] = MONTHS[index];
+      const season = SEASONS[seasonOfMonth(index)].name.toLowerCase();
+      const length = index === 1
+        ? "It has twenty-eight days, or twenty-nine in a leap year."
+        : "It has " + DAY_WORDS[days] + " days.";
+
+      return name + ". " + name + " is the " + ordinal + " month of the year. It is in " + season + ". " + length;
+    }
+
+    const monthGrid = document.getElementById("month-grid");
+    const nowIndex = new Date().getMonth();
+
+    MONTHS.forEach(([name, , days], index) => {
+      const season = seasonOfMonth(index);
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "month-card " + season + (index === nowIndex ? " now" : "");
+      card.setAttribute("aria-label", name);
+
+      const title = document.createElement("span");
+      title.className = "month-name";
+      title.textContent = SEASONS[season].icon + " " + name;
+
+      const length = document.createElement("span");
+      length.className = "month-days";
+      length.textContent = (index === 1 ? "28-29" : days) + " days";
+
+      card.append(title, length);
+      card.addEventListener("click", () => speak(monthText(index)));
+      monthGrid.appendChild(card);
+    });
+
+    const nowSeason = SEASONS[seasonOfMonth(nowIndex)];
+    document.getElementById("month-now").textContent =
+      "📍 Now it is " + MONTHS[nowIndex][0] + " - " + nowSeason.name.toLowerCase() + " " + nowSeason.icon;
+
+    document.getElementById("say-now").addEventListener("click", () => {
+      speak("It is " + MONTHS[nowIndex][0] + ". It is " + nowSeason.name.toLowerCase() + ".");
+    });
+
+    document.getElementById("say-months").addEventListener("click", () => {
+      if (!("speechSynthesis" in window)) return;
+
+      window.speechSynthesis.cancel();
+      const cards = [...monthGrid.children];
+
+      MONTHS.forEach(([name], index) => {
+        const utterance = new SpeechSynthesisUtterance(name);
+        utterance.lang = "en-US";
+        utterance.rate = 0.75;
+
+        utterance.onstart = () => {
+          cards.forEach(card => card.classList.remove("speaking"));
+          cards[index].classList.add("speaking");
+        };
+
+        if (index === MONTHS.length - 1) {
+          utterance.onend = () => cards[index].classList.remove("speaking");
+        }
+
+        window.speechSynthesis.speak(utterance);
+      });
+    });
+
+    // --- Słowa ---
+
+    const WEATHER_WORDS = [
+      ["☀️", "Sun"], ["🌧️", "Rain"], ["❄️", "Snow"], ["💨", "Wind"], ["☁️", "Cloud"],
+      ["☂️", "Umbrella"], ["🧢", "Hat"], ["🧤", "Gloves"], ["🥾", "Boots"], ["🧣", "Scarf"]
+    ];
+    const weatherWords = document.getElementById("weather-words");
+
+    WEATHER_WORDS.forEach(([emoji, word]) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "word-card";
+      card.setAttribute("aria-label", "Hear " + word);
+
+      const icon = document.createElement("span");
+      icon.className = "word-emoji";
+      icon.textContent = emoji;
+
+      const name = document.createElement("span");
+      name.className = "word-english";
+      name.textContent = word;
+
+      const hint = document.createElement("span");
+      hint.className = "word-hint";
+      hint.textContent = "Tap to listen 🔊";
+
+      card.append(icon, name, hint);
+      card.addEventListener("click", () => speak(word));
+      weatherWords.appendChild(card);
+    });
+
+    // --- Pytania do quizu ---
+
+    const QUIZ_LENGTH = 5;
+    const QUIZ_POOL = [
+      { say: "Which one is rain?", options: [
+        { icon: "🌧️", label: "Rain", correct: true }, { icon: "☀️", label: "Sun" }, { icon: "❄️", label: "Snow" }] },
+      { say: "Which one is snow?", options: [
+        { icon: "❄️", label: "Snow", correct: true }, { icon: "🌧️", label: "Rain" }, { icon: "☀️", label: "Sun" }] },
+      { say: "Which weather is sunny?", options: [
+        { icon: "☀️", label: "Sunny", correct: true }, { icon: "☁️", label: "Cloudy" }, { icon: "🌧️", label: "Rainy" }] },
+      { say: "What do we use when it rains?", options: [
+        { icon: "☂️", label: "Umbrella", correct: true }, { icon: "🧤", label: "Gloves" }, { icon: "🕶️", label: "Sunglasses" }] },
+      { say: "What do we wear when it is snowy?", options: [
+        { icon: "🧤", label: "Gloves", correct: true }, { icon: "🩳", label: "Shorts" }, { icon: "🕶️", label: "Sunglasses" }] },
+      { say: "What do we wear when it is sunny?", options: [
+        { icon: "🕶️", label: "Sunglasses", correct: true }, { icon: "🧣", label: "Scarf" }, { icon: "🧤", label: "Gloves" }] },
+      { say: "In which season do flowers grow?", options: [
+        { icon: "🌸", label: "Spring", correct: true }, { icon: "❄️", label: "Winter" }, { icon: "🍂", label: "Autumn" }] },
+      { say: "In which season is it very hot?", options: [
+        { icon: "☀️", label: "Summer", correct: true }, { icon: "❄️", label: "Winter" }, { icon: "🌸", label: "Spring" }] },
+      { say: "In which season do the leaves fall down?", options: [
+        { icon: "🍂", label: "Autumn", correct: true }, { icon: "🌸", label: "Spring" }, { icon: "☀️", label: "Summer" }] },
+      { say: "In which season does it snow?", options: [
+        { icon: "❄️", label: "Winter", correct: true }, { icon: "☀️", label: "Summer" }, { icon: "🌸", label: "Spring" }] },
+      { say: "July is in which season?", options: [
+        { icon: "☀️", label: "Summer", correct: true }, { icon: "❄️", label: "Winter" }, { icon: "🍂", label: "Autumn" }] },
+      { say: "December is in which season?", options: [
+        { icon: "❄️", label: "Winter", correct: true }, { icon: "☀️", label: "Summer" }, { icon: "🌸", label: "Spring" }] },
+      { say: "April is in which season?", options: [
+        { icon: "🌸", label: "Spring", correct: true }, { icon: "🍂", label: "Autumn" }, { icon: "❄️", label: "Winter" }] },
+      { say: "October is in which season?", options: [
+        { icon: "🍂", label: "Autumn", correct: true }, { icon: "☀️", label: "Summer" }, { icon: "🌸", label: "Spring" }] }
+    ];
+
+    const quizBox = document.getElementById("quiz-box");
+    let quiz = null;
+
+    function shuffle(list) {
+      const copy = [...list];
+
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+
+      return copy;
+    }
+
+    function optionButton(option, onPick) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "quiz-option";
+
+      const icon = document.createElement("span");
+      icon.className = "quiz-icon";
+
+      if (option.dot) {
+        icon.classList.add("dot");
+        icon.style.background = option.dot;
+        icon.style.width = icon.style.height = option.size + "px";
+      } else {
+        icon.textContent = option.icon;
+      }
+
+      const label = document.createElement("span");
+      label.textContent = option.label;
+
+      button.append(icon, label);
+      button.addEventListener("click", () => onPick(button));
+      return button;
+    }
+
+    function startQuiz() {
+      quiz = {
+        questions: shuffle(QUIZ_POOL).slice(0, QUIZ_LENGTH),
+        index: 0,
+        firstTry: 0,
+        missed: false,
+        locked: false
+      };
+
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const question = quiz.questions[quiz.index];
+      quiz.missed = false;
+      quiz.locked = false;
+
+      const head = document.createElement("div");
+      head.className = "quiz-head";
+
+      const counter = document.createElement("span");
+      counter.textContent = "Question " + (quiz.index + 1) + " of " + quiz.questions.length;
+
+      const replay = document.createElement("button");
+      replay.type = "button";
+      replay.className = "secondary-button";
+      replay.textContent = "🔊 Listen again";
+      replay.addEventListener("click", () => speak(question.say));
+
+      head.append(counter, replay);
+
+      const options = document.createElement("div");
+      options.className = "quiz-options";
+
+      const feedback = document.createElement("p");
+      feedback.id = "quiz-feedback";
+      feedback.className = "form-message";
+      feedback.setAttribute("role", "status");
+
+      shuffle(question.options).forEach(option => {
+        options.appendChild(optionButton(option, button => answer(option, button, question, feedback)));
+      });
+
+      quizBox.replaceChildren(head, options, feedback);
+      speak(question.say);
+    }
+
+    function answer(option, button, question, feedback) {
+      if (quiz.locked) return;
+
+      if (option.correct) {
+        quiz.locked = true;
+        if (!quiz.missed) quiz.firstTry++;
+
+        button.classList.add("right");
+        feedback.textContent = "🎉 Yes!";
+        speak("Yes! Great job!");
+
+        setTimeout(() => {
+          quiz.index++;
+
+          if (quiz.index < quiz.questions.length) showQuestion();
+          else finishQuiz();
+        }, 1500);
+
+        return;
+      }
+
+      quiz.missed = true;
+      button.classList.add("wrong");
+      button.disabled = true;
+      feedback.textContent = "Try again! 💫";
+      speak("Try again. " + question.say);
+    }
+
+    function finishQuiz() {
+      const total = quiz.questions.length;
+      const stars = quiz.firstTry >= total - 1 ? 3 : quiz.firstTry >= total - 2 ? 2 : 1;
+      const best = Math.max((readProgress()[LESSON_ID] || {}).stars || 0, stars);
+
+      setProgress({ done: true, stars: best });
+      renderStatus();
+
+      const result = document.createElement("div");
+      result.className = "quiz-result";
+
+      const big = document.createElement("div");
+      big.className = "quiz-big";
+      big.textContent = "🏆";
+
+      const title = document.createElement("h3");
+      title.textContent = "You did it! " + "⭐".repeat(stars);
+
+      const score = document.createElement("p");
+      score.textContent = quiz.firstTry + " of " + total + " right on the first try";
+
+      const again = document.createElement("button");
+      again.type = "button";
+      again.className = "primary-button";
+      again.textContent = "🔁 Play again";
+      again.addEventListener("click", startQuiz);
+
+      result.append(big, title, score, again);
+      quizBox.replaceChildren(result);
+      speak("Wow! You did it! Great job!");
+    }
+
+    document.getElementById("quiz-start").addEventListener("click", startQuiz);
+  </script>
+</body>
+</html>
