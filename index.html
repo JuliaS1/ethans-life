@@ -11,6 +11,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
   <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"></script>
   <style>
+    /* Strona nigdy nie przesuwa się na boki (żeby po prawej nie było białego tła) */
+    html, body { max-width: 100%; overflow-x: hidden; }
+    @supports (overflow: clip) { html, body { overflow-x: clip; } }
+    img, svg, video, canvas { max-width: 100%; }
+    input, select, textarea, button { max-width: 100%; box-sizing: border-box; }
+    emoji-picker { width: 100%; max-width: 100%; }
+    .picker-panel { max-width: 100%; overflow-x: auto; }
+
     [hidden] { display: none !important; }
 
     .word-photo {
@@ -31,12 +39,19 @@
     #image-preview { margin: 8px 0; }
 
     /* Własny przycisk wyboru pliku (natywny tekst zależy od języka przeglądarki) */
+    /* Selektor jest celowo mocny: style.css nadaje polom w formularzu pełną szerokość */
+    .form-card input.file-input:not([type="hidden"]),
     .file-input {
       position: absolute;
       width: 1px;
       height: 1px;
+      min-height: 0;
+      padding: 0;
+      margin: 0;
+      border: 0;
       opacity: 0;
       overflow: hidden;
+      clip: rect(0 0 0 0);
       pointer-events: none;
     }
 
