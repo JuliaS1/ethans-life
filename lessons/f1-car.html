@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff5f8">
+  <title>Lesson 3: My Race Car 🏎️ - Ethan's Life</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+  <style>
+    /* Strona nigdy nie przesuwa się na boki (żeby po prawej nie było białego tła) */
+    html, body { max-width: 100%; overflow-x: hidden; }
+    @supports (overflow: clip) { html, body { overflow-x: clip; } }
+    img, svg, video, canvas { max-width: 100%; }
+    input, select, textarea, button { max-width: 100%; box-sizing: border-box; }
+    emoji-picker { width: 100%; max-width: 100%; }
+    .picker-panel { max-width: 100%; overflow-x: auto; }
+
+    [hidden] { display: none !important; }
+
+    .garage-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
+    /* Lekcje */
+    .lesson-card {
+      margin: 16px 0;
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 8px 24px rgba(255, 143, 171, 0.25);
+    }
+
+    .lesson-card h3 { margin-top: 0; }
+    .lesson-hint { margin-top: -6px; opacity: 0.8; }
+
+    .space-map svg, .mini-svg { display: block; width: 100%; height: auto; }
+    .space-map { max-width: 460px; margin: 0 auto; }
+
+    .orbit, .moon-orbit, .spin {
+      animation-name: lesson-spin;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+
+    .orbit { transform-origin: 210px 210px; }
+    .body { cursor: pointer; }
+
+    @keyframes lesson-spin { to { transform: rotate(360deg); } }
+
+    .space-caption {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      margin: 12px 0;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: #fff0f5;
+      font-size: 1.05rem;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      box-shadow: inset -3px -3px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    .dot-big { width: 44px; height: 44px; flex: none; }
+
+    .planet-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+
+    .planet-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border: 2px solid #ff8fab;
+      border-radius: 999px;
+      background: #fff;
+      color: #d6336c;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .planet-chip:active { transform: scale(0.95); }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .orbit, .moon-orbit, .spin { animation: none; }
+    }
+
+    .lesson-status {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .lesson-status.done { border: 3px solid #2ecc71; }
+    .status-text { font-size: 1.15rem; font-weight: 700; }
+
+    .quiz-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .quiz-options { display: flex; flex-wrap: wrap; gap: 12px; }
+
+    .quiz-option {
+      flex: 1 1 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      min-height: 120px;
+      padding: 12px;
+      border: 3px solid #ffc2d1;
+      border-radius: 20px;
+      background: #fff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .quiz-option:active { transform: scale(0.96); }
+    .quiz-option.right { border-color: #2ecc71; background: #eafff1; }
+    .quiz-option.wrong { border-color: #ff6b81; background: #fff0f2; opacity: 0.6; }
+    .quiz-icon { font-size: 3rem; line-height: 1; }
+    .quiz-result { text-align: center; }
+    .quiz-big { font-size: 3.5rem; line-height: 1.2; }
+
+    .space-caption { flex-wrap: wrap; }
+    .caption-text { flex: 1; min-width: 210px; }
+    .caption-detail { margin: 6px 0 8px; }
+    .fact-badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+
+    .fact-badge {
+      padding: 4px 10px;
+      border: 2px solid #ffc2d1;
+      border-radius: 999px;
+      background: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .map-legend { margin: 8px 0 0; font-size: 0.9rem; opacity: 0.8; }
+
+    .table-wrap { overflow-x: auto; }
+    .facts-table { width: 100%; border-collapse: collapse; }
+    .facts-table th, .facts-table td { padding: 10px 8px; text-align: left; white-space: nowrap; }
+    .facts-table thead th { border-bottom: 2px solid #ffc2d1; color: #d6336c; }
+    .fact-row { cursor: pointer; }
+    .fact-row td { border-bottom: 1px solid #ffe0e8; }
+    .fact-row:hover { background: #fff0f5; }
+    .caption-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
+    /* Lekcja 3: bolid F1 */
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border: 2px solid #ff8fab;
+      border-radius: 999px;
+      background: #fff;
+      color: #d6336c;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .chip:active { transform: scale(0.95); }
+    .chip.active { background: #ff8fab; color: #fff; }
+
+    .info-box {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      margin: 12px 0;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: #fff0f5;
+      font-size: 1.05rem;
+    }
+
+    .info-icon { font-size: 2.6rem; line-height: 1; }
+    .info-text { flex: 1; min-width: 200px; }
+
+    .car-view svg {
+      display: block;
+      width: 100%;
+      max-width: 520px;
+      height: auto;
+      margin: 0 auto;
+      border-radius: 18px;
+      background: linear-gradient(#bfe9ff 0 62%, #3b3b4f 62% 100%);
+    }
+
+    .car-part { cursor: pointer; }
+    .car-part.active { filter: drop-shadow(0 0 4px #ff2a6d) drop-shadow(0 0 6px #ff2a6d); }
+    .wheel-spin { animation: wheel-turn 1.1s linear infinite; }
+    @keyframes wheel-turn { to { transform: rotate(360deg); } }
+
+    .flag-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+
+    .flag-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 10px;
+      border: 3px solid #ffc2d1;
+      border-radius: 20px;
+      background: #fff;
+      font: inherit;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .flag-card svg { width: 100%; max-width: 150px; height: auto; }
+    .flag-card .flag-name { font-weight: 700; }
+    .flag-card .flag-meaning { font-size: 0.9rem; opacity: 0.8; }
+    .flag-cloth { animation: flag-wave 1.6s ease-in-out infinite; }
+    .flag-card.waving .flag-cloth { animation-duration: 0.45s; }
+    .flag-card:active { transform: scale(0.97); }
+
+    @keyframes flag-wave {
+      0%, 100% { transform: skewY(-5deg) scaleX(1); }
+      50% { transform: skewY(5deg) scaleX(0.95); }
+    }
+
+    .start-board {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      width: fit-content;
+      margin: 10px auto;
+      padding: 14px 18px;
+      border-radius: 18px;
+      background: #1b1b22;
+    }
+
+    .start-board span {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #4a1111;
+      transition: background 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .start-board span.on { background: #ff2a2a; box-shadow: 0 0 14px 4px rgba(255, 42, 42, 0.7); }
+
+    .start-track {
+      position: relative;
+      height: 56px;
+      overflow: hidden;
+      border-radius: 14px;
+      background: #3b3b4f;
+    }
+
+    .start-car { position: absolute; top: 6px; left: 6px; width: 96px; }
+    .start-car svg { display: block; width: 100%; height: auto; }
+    .start-text { margin: 10px 0 0; min-height: 1.4em; font-weight: 700; text-align: center; }
+
+    .pit-view svg { display: block; width: 100%; max-width: 300px; height: auto; margin: 0 auto; border-radius: 18px; }
+    #pit-car { transition: transform 1s ease; }
+    .pit-wheel { transition: fill 0.25s ease; }
+    .mechanic { opacity: 0; transition: opacity 0.3s ease; }
+    .mechanic.show { opacity: 1; }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .wheel-spin, .flag-cloth { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Lesson 3</p>
+      <h1>My Race Car <span>🏎️</span></h1>
+      <p>The parts of a race car, the racing flags and a pit stop!</p>
+      <nav>
+        <a href="/">← Back to Ethan's Life</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="lesson-card lesson-status" id="lesson-status">
+      <span id="status-text" class="status-text"></span>
+      <button id="status-toggle" type="button" class="secondary-button"></button>
+    </div>
+
+    <section id="lesson" class="section">
+      <div class="lesson-card">
+        <h3>🏎️ Meet the race car</h3>
+        <p class="lesson-hint">Tap a part of the car to hear what it does!</p>
+        <div id="car-view" class="car-view"></div>
+        <div id="part-chips" class="chip-row"></div>
+        <div id="part-info" class="info-box" aria-live="polite"></div>
+        <p id="lesson-message" class="form-message" role="status"></p>
+      </div>
+
+      <div class="lesson-card">
+        <h3>🏁 The racing flags</h3>
+        <p class="lesson-hint">Tap a flag to see it wave and hear what it means.</p>
+        <div id="flag-grid" class="flag-grid"></div>
+      </div>
+
+      <div class="mini-grid">
+        <div class="lesson-card">
+          <h3>🚦 The race start</h3>
+          <div id="start-board" class="start-board" aria-hidden="true"></div>
+          <div id="start-track" class="start-track" aria-hidden="true">
+            <div id="start-car" class="start-car"></div>
+          </div>
+          <p id="start-text" class="start-text" role="status"></p>
+          <button id="start-button" type="button" class="primary-button">▶ Start the race!</button>
+        </div>
+
+        <div class="lesson-card">
+          <h3>🔧 The pit stop</h3>
+          <div id="pit-view" class="pit-view"></div>
+          <p id="pit-text" class="start-text" role="status"></p>
+          <button id="pit-button" type="button" class="primary-button">▶ Pit stop!</button>
+        </div>
+      </div>
+
+      <div class="content-heading">
+        <h3>🏆 Race words</h3>
+        <p>Tap a card to hear the word.</p>
+      </div>
+      <div id="f1-words" class="words-grid"></div>
+
+      <div class="lesson-card" id="quiz-card">
+        <h3>🧠 Quiz time!</h3>
+        <p class="lesson-hint">Listen and tap the right picture. You can do it! 💪</p>
+        <div id="quiz-box" class="quiz-box">
+          <button id="quiz-start" type="button" class="primary-button">▶ Start the quiz</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>Made with lots of love for Ethan 💛🏎️🏁</footer>
+
+  <script>
+    function showMessage(id, message) {
+      document.getElementById(id).textContent = message;
+    }
+
+    function speak(text) {
+      if (!("speechSynthesis" in window)) {
+        showMessage("lesson-message", "Speech is not supported in this browser.");
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+
+      // Długi tekst mówimy zdanie po zdaniu, bo część przeglądarek ucina zbyt długie wypowiedzi
+      const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+
+      sentences.forEach(sentence => {
+        const part = sentence.trim();
+        if (!part) return;
+
+        const utterance = new SpeechSynthesisUtterance(part);
+        utterance.lang = "en-US";
+        utterance.rate = 0.8;
+        window.speechSynthesis.speak(utterance);
+      });
+    }
+
+    function stopSpeaking() {
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    }
+
+    // --- Postęp lekcji (zapisany na tym urządzeniu) ---
+
+    const LESSON_ID = "f1-car";
+    const PROGRESS_KEY = "ethanLessons";
+
+    function readProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(PROGRESS_KEY) || "{}") || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function setProgress(update) {
+      const all = readProgress();
+      all[LESSON_ID] = { ...(all[LESSON_ID] || {}), ...update };
+
+      try {
+        localStorage.setItem(PROGRESS_KEY, JSON.stringify(all));
+      } catch {}
+    }
+
+    const statusCard = document.getElementById("lesson-status");
+    const statusText = document.getElementById("status-text");
+    const statusToggle = document.getElementById("status-toggle");
+
+    function renderStatus() {
+      const progress = readProgress()[LESSON_ID] || {};
+      const done = Boolean(progress.done);
+
+      statusText.textContent = done
+        ? "✅ Lesson done! " + "⭐".repeat(Math.min(progress.stars || 0, 3))
+        : "🔲 Not done yet";
+      statusToggle.textContent = done ? "↩ Mark as not done" : "✅ Mark as done";
+      statusCard.classList.toggle("done", done);
+    }
+
+    statusToggle.addEventListener("click", () => {
+      const progress = readProgress()[LESSON_ID] || {};
+      setProgress({ done: !progress.done });
+      renderStatus();
+    });
+
+    renderStatus();
+
+    // --- Lekcja 3: bolid F1 ---
+
+    const PARTS = {
+      frontWing: { name: "Front wing", icon: "🔻",
+        say: "The front wing is at the front of the car. It helps the car turn fast in the corners.",
+        fun: "It is low and wide, close to the ground." },
+      rearWing: { name: "Rear wing", icon: "🔺",
+        say: "The rear wing is at the back of the car. It pushes the car down, so the car grips the road.",
+        fun: "Without it, the car could slide in the corners." },
+      wheels: { name: "Wheels", icon: "🛞",
+        say: "An F1 car has four wheels. The tyres are made of rubber, and they grip the road.",
+        fun: "The wheels turn very, very fast." },
+      helmet: { name: "Helmet", icon: "⛑️",
+        say: "The driver wears a helmet to stay safe. Every driver has a colourful helmet.",
+        fun: "Drivers also wear a fireproof suit and gloves." },
+      halo: { name: "Halo", icon: "⭕",
+        say: "The halo is a strong bar over the driver's head. It keeps the driver safe.",
+        fun: "It looks like a little arch above the helmet." },
+      engine: { name: "Engine", icon: "⚙️",
+        say: "The engine is behind the driver. It makes the car go very fast.",
+        fun: "An F1 car can go more than three hundred kilometres per hour." }
+    };
+
+    function wheelSvg(cx, cy, r) {
+      return `<g class="wheel-spin" style="transform-origin:${cx}px ${cy}px">
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="#111"/>
+        <circle cx="${cx}" cy="${cy}" r="${r * 0.55}" fill="#ffd60a"/>
+        <path d="M${cx - r * 0.55} ${cy}H${cx + r * 0.55}M${cx} ${cy - r * 0.55}V${cy + r * 0.55}" stroke="#111" stroke-width="2"/>
+        <circle cx="${cx}" cy="${cy}" r="${r * 0.14}" fill="#fff"/></g>`;
+    }
+
+    // Auto z boku; części są osobnymi grupami, które można dotknąć
+    function carSvg() {
+      return `<svg viewBox="0 0 310 112" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A Formula 1 car">
+        <g class="car-part" data-part="rearWing">
+          <rect x="26" y="30" width="40" height="6" rx="2" fill="#222"/><rect x="44" y="36" width="4" height="26" fill="#222"/>
+          <rect x="18" y="22" width="54" height="46" fill="transparent"/></g>
+        <path d="M38 60 L120 50 L205 56 L276 70 L276 76 L38 80 Z" fill="#e63946"/>
+        <g class="car-part" data-part="engine">
+          <path d="M58 62 L108 44 L140 54 L128 64 Z" fill="#e63946"/>
+          <path d="M58 62 L108 44 L140 54 L128 64 Z" fill="#000" opacity=".15"/>
+          <rect x="56" y="40" width="88" height="30" fill="transparent"/></g>
+        <g class="car-part" data-part="frontWing">
+          <rect x="250" y="76" width="46" height="4" rx="2" fill="#222"/><rect x="250" y="84" width="46" height="4" rx="2" fill="#222"/>
+          <rect x="244" y="68" width="58" height="26" fill="transparent"/></g>
+        <g class="car-part" data-part="wheels">${wheelSvg(78, 88, 18)}${wheelSvg(232, 91, 15)}
+          <circle cx="78" cy="88" r="22" fill="transparent"/><circle cx="232" cy="91" r="19" fill="transparent"/></g>
+        <g class="car-part" data-part="helmet">
+          <circle cx="150" cy="47" r="10" fill="#ffd60a"/><rect x="151" y="43" width="10" height="5" rx="2" fill="#fff" opacity=".85"/>
+          <circle cx="150" cy="47" r="12" fill="transparent"/></g>
+        <g class="car-part" data-part="halo">
+          <path d="M134 54 Q150 30 168 54" fill="none" stroke="#222" stroke-width="3"/>
+          <path d="M134 54 Q150 30 168 54" fill="none" stroke="transparent" stroke-width="12"/></g>
+        <text x="186" y="72" font-size="14" font-weight="700" fill="#fff" font-family="Fredoka, sans-serif">7</text>
+      </svg>`;
+    }
+
+    const carView = document.getElementById("car-view");
+    const partChips = document.getElementById("part-chips");
+    const partInfo = document.getElementById("part-info");
+
+    carView.innerHTML = carSvg();
+
+    function showPart(key) {
+      const part = PARTS[key];
+
+      carView.querySelectorAll(".car-part").forEach(el => {
+        el.classList.toggle("active", el.dataset.part === key);
+      });
+
+      partChips.querySelectorAll(".chip").forEach(chip => {
+        chip.classList.toggle("active", chip.dataset.key === key);
+      });
+
+      partInfo.replaceChildren();
+
+      const icon = document.createElement("span");
+      icon.className = "info-icon";
+      icon.textContent = part.icon;
+
+      const text = document.createElement("div");
+      text.className = "info-text";
+
+      const title = document.createElement("strong");
+      title.textContent = part.name;
+
+      const sentence = document.createElement("div");
+      sentence.textContent = part.say;
+
+      const fun = document.createElement("div");
+      fun.textContent = "💡 " + part.fun;
+
+      const buttons = document.createElement("div");
+      buttons.className = "caption-buttons";
+
+      const again = document.createElement("button");
+      again.type = "button";
+      again.className = "secondary-button";
+      again.textContent = "🔊 Tell me again";
+      again.addEventListener("click", () => speak(partText(key)));
+
+      const stop = document.createElement("button");
+      stop.type = "button";
+      stop.className = "secondary-button";
+      stop.textContent = "⏹ Stop";
+      stop.addEventListener("click", stopSpeaking);
+
+      buttons.append(again, stop);
+      text.append(title, sentence, fun, buttons);
+      partInfo.append(icon, text);
+
+      speak(partText(key));
+    }
+
+    function partText(key) {
+      const part = PARTS[key];
+      return part.name + ". " + part.say + " " + part.fun;
+    }
+
+    Object.entries(PARTS).forEach(([key, part]) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip";
+      chip.dataset.key = key;
+      chip.textContent = part.icon + " " + part.name;
+      chip.addEventListener("click", () => showPart(key));
+      partChips.appendChild(chip);
+    });
+
+    carView.querySelectorAll(".car-part").forEach(el => {
+      el.addEventListener("click", () => showPart(el.dataset.part));
+    });
+
+    partInfo.textContent = "Tap a part of the car! 👆";
+
+    // --- Flagi ---
+
+    const FLAGS = [
+      { key: "green", name: "Green flag", color: "#2ecc71", meaning: "Go!",
+        say: "Green flag. Go! The track is clear and the race can start." },
+      { key: "yellow", name: "Yellow flag", color: "#ffd60a", meaning: "Be careful!",
+        say: "Yellow flag. Be careful! There is danger on the track. Slow down." },
+      { key: "red", name: "Red flag", color: "#e63946", meaning: "Stop!",
+        say: "Red flag. Stop! The race is stopped." },
+      { key: "checkered", name: "Checkered flag", color: null, meaning: "The race is over!",
+        say: "Checkered flag. The race is over! The first car to cross the line is the winner." }
+    ];
+
+    function flagSvg(flag) {
+      const fill = flag.color || "url(#checks)";
+      const pattern = flag.color ? "" : `<defs><pattern id="checks" width="20" height="20" patternUnits="userSpaceOnUse">
+        <rect width="20" height="20" fill="#fff"/><rect width="10" height="10" fill="#111"/><rect x="10" y="10" width="10" height="10" fill="#111"/></pattern></defs>`;
+
+      return `<svg viewBox="0 0 150 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${pattern}
+        <rect x="10" y="6" width="6" height="92" rx="3" fill="#6b5b73"/>
+        <g class="flag-cloth" style="transform-origin:16px 36px">
+          <path d="M16 10 Q48 0 80 10 T144 10 L144 62 Q112 72 80 62 T16 62 Z" fill="${fill}" stroke="#51445d" stroke-width="1.5"/>
+        </g></svg>`;
+    }
+
+    const flagGrid = document.getElementById("flag-grid");
+
+    FLAGS.forEach(flag => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "flag-card";
+      card.setAttribute("aria-label", flag.name);
+      card.innerHTML = flagSvg(flag);
+
+      const name = document.createElement("span");
+      name.className = "flag-name";
+      name.textContent = flag.name;
+
+      const meaning = document.createElement("span");
+      meaning.className = "flag-meaning";
+      meaning.textContent = flag.meaning;
+
+      card.append(name, meaning);
+
+      card.addEventListener("click", () => {
+        card.classList.add("waving");
+        setTimeout(() => card.classList.remove("waving"), 2500);
+        speak(flag.say);
+      });
+
+      flagGrid.appendChild(card);
+    });
+
+    // --- Start wyścigu ---
+
+    const startBoard = document.getElementById("start-board");
+    const startTrack = document.getElementById("start-track");
+    const startCar = document.getElementById("start-car");
+    const startText = document.getElementById("start-text");
+    const startButton = document.getElementById("start-button");
+    const NUMBERS = ["One", "Two", "Three", "Four", "Five"];
+    let startBusy = false;
+
+    for (let i = 0; i < 5; i++) startBoard.appendChild(document.createElement("span"));
+    startCar.innerHTML = carSvg();
+
+    startButton.addEventListener("click", () => {
+      if (startBusy) return;
+      startBusy = true;
+      startButton.disabled = true;
+
+      const lights = [...startBoard.children];
+      lights.forEach(light => light.classList.remove("on"));
+      startText.textContent = "Get ready... 🚦";
+
+      lights.forEach((light, index) => {
+        setTimeout(() => {
+          light.classList.add("on");
+          speak(NUMBERS[index]);
+        }, 900 * (index + 1));
+      });
+
+      setTimeout(() => {
+        lights.forEach(light => light.classList.remove("on"));
+        startText.textContent = "🟢 Lights out! GO GO GO!";
+        speak("Lights out! Go, go, go!");
+
+        const distance = startTrack.clientWidth;
+
+        if (startCar.animate) {
+          startCar.animate(
+            [{ transform: "translateX(0)" }, { transform: "translateX(" + distance + "px)" }],
+            { duration: 2400, easing: "cubic-bezier(.5, 0, .9, .6)" }
+          );
+        }
+      }, 900 * 6 + 600);
+
+      setTimeout(() => {
+        startText.textContent = "Press the button to race again!";
+        startButton.disabled = false;
+        startBusy = false;
+      }, 900 * 6 + 3600);
+    });
+
+    // --- Pit stop (widok z góry) ---
+
+    const pitView = document.getElementById("pit-view");
+    const pitButton = document.getElementById("pit-button");
+    const pitText = document.getElementById("pit-text");
+    let pitBusy = false;
+
+    pitView.innerHTML = `<svg viewBox="0 0 240 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A pit stop seen from above">
+      <rect width="240" height="320" fill="#4a4a58"/>
+      <rect x="36" y="70" width="168" height="196" fill="none" stroke="#ffd60a" stroke-width="3" stroke-dasharray="10 8"/>
+      <g id="pit-car" style="transform: translateY(340px)">
+        <rect x="70" y="30" width="100" height="12" rx="3" fill="#222"/>
+        <rect x="75" y="236" width="90" height="12" rx="3" fill="#222"/>
+        <path d="M98 40 Q120 20 142 40 L146 230 L94 230 Z" fill="#e63946"/>
+        <circle cx="120" cy="130" r="11" fill="#ffd60a"/>
+        <rect class="pit-wheel" id="pw0" x="62" y="62" width="26" height="46" rx="6" fill="#555" stroke="#111" stroke-width="2"/>
+        <rect class="pit-wheel" id="pw1" x="152" y="62" width="26" height="46" rx="6" fill="#555" stroke="#111" stroke-width="2"/>
+        <rect class="pit-wheel" id="pw2" x="58" y="168" width="30" height="50" rx="6" fill="#555" stroke="#111" stroke-width="2"/>
+        <rect class="pit-wheel" id="pw3" x="152" y="168" width="30" height="50" rx="6" fill="#555" stroke="#111" stroke-width="2"/>
+      </g>
+      <text class="mechanic" x="14" y="100" font-size="30">🧑‍🔧</text>
+      <text class="mechanic" x="196" y="100" font-size="30">🧑‍🔧</text>
+      <text class="mechanic" x="10" y="208" font-size="30">🧑‍🔧</text>
+      <text class="mechanic" x="198" y="208" font-size="30">🧑‍🔧</text>
+    </svg>`;
+
+    const pitCar = document.getElementById("pit-car");
+    const pitWheels = [0, 1, 2, 3].map(i => document.getElementById("pw" + i));
+    const mechanics = [...pitView.querySelectorAll(".mechanic")];
+
+    function resetPit() {
+      pitCar.style.transition = "none";
+      pitCar.style.transform = "translateY(340px)";
+      pitWheels.forEach(wheel => wheel.setAttribute("fill", "#555"));
+      mechanics.forEach(m => m.classList.remove("show"));
+      void pitCar.getBoundingClientRect();
+      pitCar.style.transition = "";
+    }
+
+    pitButton.addEventListener("click", () => {
+      if (pitBusy) return;
+      pitBusy = true;
+      pitButton.disabled = true;
+      resetPit();
+
+      pitText.textContent = "🔧 Pit stop!";
+      speak("A pit stop! The car comes in. The mechanics change the four tyres. It only takes about two or three seconds. Go, go, go!");
+
+      setTimeout(() => { pitCar.style.transform = "translateY(0)"; }, 100);
+      setTimeout(() => mechanics.forEach(m => m.classList.add("show")), 1300);
+
+      pitWheels.forEach((wheel, index) => {
+        setTimeout(() => wheel.setAttribute("fill", "#ffd60a"), 1900 + index * 500);
+      });
+
+      setTimeout(() => {
+        pitText.textContent = "🟢 GO! New tyres in about 2 seconds!";
+        mechanics.forEach(m => m.classList.remove("show"));
+        pitCar.style.transform = "translateY(-340px)";
+      }, 4100);
+
+      setTimeout(() => {
+        resetPit();
+        pitText.textContent = "Press the button for another pit stop!";
+        pitButton.disabled = false;
+        pitBusy = false;
+      }, 5600);
+    });
+
+    pitText.textContent = "Press the button to watch a pit stop!";
+
+    // --- Słowa ---
+
+    const F1_WORDS = [
+      ["🏎️", "Car"], ["🛞", "Wheel"], ["⛑️", "Helmet"], ["🏁", "Flag"],
+      ["🧑‍🔧", "Mechanic"], ["🏆", "Trophy"], ["🚦", "Lights"], ["⚡", "Fast"]
+    ];
+    const f1Words = document.getElementById("f1-words");
+
+    F1_WORDS.forEach(([emoji, word]) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "word-card";
+      card.setAttribute("aria-label", "Hear " + word);
+
+      const icon = document.createElement("span");
+      icon.className = "word-emoji";
+      icon.textContent = emoji;
+
+      const name = document.createElement("span");
+      name.className = "word-english";
+      name.textContent = word;
+
+      const hint = document.createElement("span");
+      hint.className = "word-hint";
+      hint.textContent = "Tap to listen 🔊";
+
+      card.append(icon, name, hint);
+      card.addEventListener("click", () => speak(word));
+      f1Words.appendChild(card);
+    });
+
+    // --- Pytania do quizu ---
+
+    const QUIZ_LENGTH = 5;
+    const QUIZ_POOL = [
+      { say: "Which one is the wheel?", options: [
+        { icon: "🛞", label: "Wheel", correct: true }, { icon: "⛑️", label: "Helmet" }, { icon: "🏆", label: "Trophy" }] },
+      { say: "Which one is the helmet?", options: [
+        { icon: "⛑️", label: "Helmet", correct: true }, { icon: "🛞", label: "Wheel" }, { icon: "🏁", label: "Flag" }] },
+      { say: "Which flag means go?", options: [
+        { dot: "#2ecc71", size: 46, label: "Green", correct: true },
+        { dot: "#ffd60a", size: 46, label: "Yellow" }, { dot: "#e63946", size: 46, label: "Red" }] },
+      { say: "Which flag means stop? The race is stopped.", options: [
+        { dot: "#e63946", size: 46, label: "Red", correct: true },
+        { dot: "#2ecc71", size: 46, label: "Green" }, { dot: "#ffd60a", size: 46, label: "Yellow" }] },
+      { say: "Which flag means be careful?", options: [
+        { dot: "#ffd60a", size: 46, label: "Yellow", correct: true },
+        { dot: "#e63946", size: 46, label: "Red" }, { dot: "#2ecc71", size: 46, label: "Green" }] },
+      { say: "Which flag means the race is over?", options: [
+        { icon: "🏁", label: "Checkered", correct: true },
+        { dot: "#2ecc71", size: 46, label: "Green" }, { dot: "#e63946", size: 46, label: "Red" }] },
+      { say: "What does the driver wear on his head?", options: [
+        { icon: "⛑️", label: "Helmet", correct: true }, { icon: "🧢", label: "Hat" }, { icon: "🕶️", label: "Sunglasses" }] },
+      { say: "How many wheels does the race car have?", options: [
+        { icon: "4️⃣", label: "Four", correct: true }, { icon: "2️⃣", label: "Two" }, { icon: "6️⃣", label: "Six" }] },
+      { say: "What do the mechanics change in a pit stop?", options: [
+        { icon: "🛞", label: "Tyres", correct: true }, { icon: "⛑️", label: "Helmet" }, { icon: "🏆", label: "Trophy" }] },
+      { say: "The lights go out. What do the cars do?", options: [
+        { icon: "🏎️", label: "Go!", correct: true }, { icon: "🛑", label: "Stop" }] }
+    ];
+
+    const quizBox = document.getElementById("quiz-box");
+    let quiz = null;
+
+    function shuffle(list) {
+      const copy = [...list];
+
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+
+      return copy;
+    }
+
+    function optionButton(option, onPick) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "quiz-option";
+
+      const icon = document.createElement("span");
+      icon.className = "quiz-icon";
+
+      if (option.dot) {
+        icon.classList.add("dot");
+        icon.style.background = option.dot;
+        icon.style.width = icon.style.height = option.size + "px";
+      } else {
+        icon.textContent = option.icon;
+      }
+
+      const label = document.createElement("span");
+      label.textContent = option.label;
+
+      button.append(icon, label);
+      button.addEventListener("click", () => onPick(button));
+      return button;
+    }
+
+    function startQuiz() {
+      quiz = {
+        questions: shuffle(QUIZ_POOL).slice(0, QUIZ_LENGTH),
+        index: 0,
+        firstTry: 0,
+        missed: false,
+        locked: false
+      };
+
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const question = quiz.questions[quiz.index];
+      quiz.missed = false;
+      quiz.locked = false;
+
+      const head = document.createElement("div");
+      head.className = "quiz-head";
+
+      const counter = document.createElement("span");
+      counter.textContent = "Question " + (quiz.index + 1) + " of " + quiz.questions.length;
+
+      const replay = document.createElement("button");
+      replay.type = "button";
+      replay.className = "secondary-button";
+      replay.textContent = "🔊 Listen again";
+      replay.addEventListener("click", () => speak(question.say));
+
+      head.append(counter, replay);
+
+      const options = document.createElement("div");
+      options.className = "quiz-options";
+
+      const feedback = document.createElement("p");
+      feedback.id = "quiz-feedback";
+      feedback.className = "form-message";
+      feedback.setAttribute("role", "status");
+
+      shuffle(question.options).forEach(option => {
+        options.appendChild(optionButton(option, button => answer(option, button, question, feedback)));
+      });
+
+      quizBox.replaceChildren(head, options, feedback);
+      speak(question.say);
+    }
+
+    function answer(option, button, question, feedback) {
+      if (quiz.locked) return;
+
+      if (option.correct) {
+        quiz.locked = true;
+        if (!quiz.missed) quiz.firstTry++;
+
+        button.classList.add("right");
+        feedback.textContent = "🎉 Yes!";
+        speak("Yes! Great job!");
+
+        setTimeout(() => {
+          quiz.index++;
+
+          if (quiz.index < quiz.questions.length) showQuestion();
+          else finishQuiz();
+        }, 1500);
+
+        return;
+      }
+
+      quiz.missed = true;
+      button.classList.add("wrong");
+      button.disabled = true;
+      feedback.textContent = "Try again! 💫";
+      speak("Try again. " + question.say);
+    }
+
+    function finishQuiz() {
+      const total = quiz.questions.length;
+      const stars = quiz.firstTry >= total - 1 ? 3 : quiz.firstTry >= total - 2 ? 2 : 1;
+      const best = Math.max((readProgress()[LESSON_ID] || {}).stars || 0, stars);
+
+      setProgress({ done: true, stars: best });
+      renderStatus();
+
+      const result = document.createElement("div");
+      result.className = "quiz-result";
+
+      const big = document.createElement("div");
+      big.className = "quiz-big";
+      big.textContent = "🏆";
+
+      const title = document.createElement("h3");
+      title.textContent = "You did it! " + "⭐".repeat(stars);
+
+      const score = document.createElement("p");
+      score.textContent = quiz.firstTry + " of " + total + " right on the first try";
+
+      const again = document.createElement("button");
+      again.type = "button";
+      again.className = "primary-button";
+      again.textContent = "🔁 Play again";
+      again.addEventListener("click", startQuiz);
+
+      result.append(big, title, score, again);
+      quizBox.replaceChildren(result);
+      speak("Wow! You did it! Great job!");
+    }
+
+    document.getElementById("quiz-start").addEventListener("click", startQuiz);
+  </script>
+</body>
+</html>
