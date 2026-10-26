@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff5f8">
+  <title>Lesson 5: Continents and Oceans 🗺️ - Ethan's Life</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+  <style>
+    /* Strona nigdy nie przesuwa się na boki (żeby po prawej nie było białego tła) */
+    html, body { max-width: 100%; overflow-x: hidden; }
+    @supports (overflow: clip) { html, body { overflow-x: clip; } }
+    img, svg, video, canvas { max-width: 100%; }
+    input, select, textarea, button { max-width: 100%; box-sizing: border-box; }
+    emoji-picker { width: 100%; max-width: 100%; }
+    .picker-panel { max-width: 100%; overflow-x: auto; }
+
+    [hidden] { display: none !important; }
+
+    .garage-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
+    /* Lekcje */
+    .lesson-card {
+      margin: 16px 0;
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 8px 24px rgba(255, 143, 171, 0.25);
+    }
+
+    .lesson-card h3 { margin-top: 0; }
+    .lesson-hint { margin-top: -6px; opacity: 0.8; }
+
+    .space-map svg, .mini-svg { display: block; width: 100%; height: auto; }
+    .space-map { max-width: 460px; margin: 0 auto; }
+
+    .orbit, .moon-orbit, .spin {
+      animation-name: lesson-spin;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+
+    .orbit { transform-origin: 210px 210px; }
+    .body { cursor: pointer; }
+
+    @keyframes lesson-spin { to { transform: rotate(360deg); } }
+
+    .space-caption {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      margin: 12px 0;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: #fff0f5;
+      font-size: 1.05rem;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      box-shadow: inset -3px -3px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    .dot-big { width: 44px; height: 44px; flex: none; }
+
+    .planet-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+
+    .planet-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border: 2px solid #ff8fab;
+      border-radius: 999px;
+      background: #fff;
+      color: #d6336c;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .planet-chip:active { transform: scale(0.95); }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .orbit, .moon-orbit, .spin { animation: none; }
+    }
+
+    .lesson-status {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .lesson-status.done { border: 3px solid #2ecc71; }
+    .status-text { font-size: 1.15rem; font-weight: 700; }
+
+    .quiz-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .quiz-options { display: flex; flex-wrap: wrap; gap: 12px; }
+
+    .quiz-option {
+      flex: 1 1 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      min-height: 120px;
+      padding: 12px;
+      border: 3px solid #ffc2d1;
+      border-radius: 20px;
+      background: #fff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .quiz-option:active { transform: scale(0.96); }
+    .quiz-option.right { border-color: #2ecc71; background: #eafff1; }
+    .quiz-option.wrong { border-color: #ff6b81; background: #fff0f2; opacity: 0.6; }
+    .quiz-icon { font-size: 3rem; line-height: 1; }
+    .quiz-result { text-align: center; }
+    .quiz-big { font-size: 3.5rem; line-height: 1.2; }
+
+    .space-caption { flex-wrap: wrap; }
+    .caption-text { flex: 1; min-width: 210px; }
+    .caption-detail { margin: 6px 0 8px; }
+    .fact-badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+
+    .fact-badge {
+      padding: 4px 10px;
+      border: 2px solid #ffc2d1;
+      border-radius: 999px;
+      background: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .map-legend { margin: 8px 0 0; font-size: 0.9rem; opacity: 0.8; }
+
+    .table-wrap { overflow-x: auto; }
+    .facts-table { width: 100%; border-collapse: collapse; }
+    .facts-table th, .facts-table td { padding: 10px 8px; text-align: left; white-space: nowrap; }
+    .facts-table thead th { border-bottom: 2px solid #ffc2d1; color: #d6336c; }
+    .fact-row { cursor: pointer; }
+    .fact-row td { border-bottom: 1px solid #ffe0e8; }
+    .fact-row:hover { background: #fff0f5; }
+    .caption-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
+    /* Lekcja 5: mapa świata, kontynenty i oceany */
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border: 2px solid #ff8fab;
+      border-radius: 999px;
+      background: #fff;
+      color: #d6336c;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .chip:active { transform: scale(0.95); }
+    .chip.active { background: #ff8fab; color: #fff; }
+
+    .info-box {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      margin: 12px 0;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: #fff0f5;
+      font-size: 1.05rem;
+    }
+
+    .info-icon { font-size: 2.6rem; line-height: 1; }
+    .info-text { flex: 1; min-width: 200px; }
+
+    .globe {
+      width: 190px;
+      height: 190px;
+      margin: 8px auto 14px;
+      border-radius: 50%;
+      background-repeat: repeat-x;
+      background-size: 330px 190px;
+      box-shadow: inset -24px -12px 40px rgba(0, 0, 0, 0.4), 0 0 0 4px #fff, 0 6px 18px rgba(0, 0, 0, 0.2);
+      animation: globe-spin 16s linear infinite;
+    }
+
+    @keyframes globe-spin { to { background-position-x: -330px; } }
+
+    .share-bar {
+      display: flex;
+      overflow: hidden;
+      border-radius: 14px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .share-bar span {
+      padding: 14px 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: width 1.6s ease;
+    }
+
+    .share-bar .water { background: #6cc3e8; color: #fff; }
+    .share-bar .land { background: #b5e48c; color: #355c1f; }
+
+    .atlas-map svg {
+      display: block;
+      width: 100%;
+      max-width: 560px;
+      height: auto;
+      margin: 0 auto;
+      border-radius: 18px;
+    }
+
+    .continent, .ocean-area { cursor: pointer; }
+    .continent path { stroke: #fff; stroke-width: 2; stroke-linejoin: round; transition: filter 0.2s ease; }
+    .continent:hover path { filter: brightness(1.06); }
+    .continent.active path { stroke: #d6336c; stroke-width: 4; }
+    .ocean-area { stroke: none; transition: filter 0.2s ease; }
+    .ocean-area:hover { filter: brightness(1.06); }
+    .ocean-area.active { stroke: #d6336c; stroke-width: 4; }
+    .mascot { font-size: 22px; animation: mascot-bob 2.4s ease-in-out infinite; pointer-events: none; }
+    .active .mascot, .mascot.on { animation-duration: 0.9s; }
+    @keyframes mascot-bob { 50% { transform: translateY(-4px); } }
+
+    .atlas-message { min-height: 1.4em; font-weight: 700; text-align: center; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .globe, .mascot { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Lesson 5</p>
+      <h1>Continents &amp; Oceans <span>🗺️</span></h1>
+      <p>Our planet Earth: land, water and the big map of the world!</p>
+      <nav>
+        <a href="/">← Back to Ethan's Life</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="lesson-card lesson-status" id="lesson-status">
+      <span id="status-text" class="status-text"></span>
+      <button id="status-toggle" type="button" class="secondary-button"></button>
+    </div>
+
+    <section id="lesson" class="section">
+      <div class="lesson-card">
+        <h3>🌍 Our planet Earth</h3>
+        <p class="lesson-hint">The Earth is spinning! How much of it is water, and how much is land?</p>
+        <div id="globe" class="globe" role="img" aria-label="The spinning Earth"></div>
+        <div id="share-bar" class="share-bar" role="img" aria-label="About 71 percent water and 29 percent land">
+          <span class="water">🌊 Water 71%</span>
+          <span class="land">🌍 Land 29%</span>
+        </div>
+        <div class="garage-actions">
+          <button id="earth-tell" type="button" class="primary-button">🔊 Tell me about the Earth</button>
+          <button type="button" class="secondary-button" onclick="stopSpeaking()">⏹ Stop</button>
+        </div>
+        <p id="lesson-message" class="form-message" role="status"></p>
+      </div>
+
+      <div class="lesson-card">
+        <h3>🗺️ Seven continents</h3>
+        <p class="lesson-hint">A continent is a very big piece of land. Tap a continent!</p>
+        <div id="continent-map" class="atlas-map"></div>
+        <div id="continent-chips" class="chip-row"></div>
+        <div id="continent-info" class="info-box" aria-live="polite"></div>
+        <p id="continent-message" class="atlas-message" role="status"></p>
+        <div class="garage-actions">
+          <button id="continent-count" type="button" class="primary-button">🔢 Count the continents</button>
+          <button id="continent-find" type="button" class="secondary-button">🎯 Find it!</button>
+        </div>
+      </div>
+
+      <div class="lesson-card">
+        <h3>🌊 Five oceans</h3>
+        <p class="lesson-hint">An ocean is a very big area of salty water. Tap an ocean!</p>
+        <div id="ocean-map" class="atlas-map"></div>
+        <div id="ocean-chips" class="chip-row"></div>
+        <div id="ocean-info" class="info-box" aria-live="polite"></div>
+        <p id="ocean-message" class="atlas-message" role="status"></p>
+        <div class="garage-actions">
+          <button id="ocean-count" type="button" class="primary-button">🔢 Count the oceans</button>
+          <button id="ocean-find" type="button" class="secondary-button">🎯 Find it!</button>
+        </div>
+      </div>
+
+      <div class="content-heading">
+        <h3>❓ What is it?</h3>
+        <p>Tap a card to hear what it is.</p>
+      </div>
+      <div id="geo-words" class="words-grid"></div>
+
+      <div class="lesson-card" id="quiz-card">
+        <h3>🧠 Quiz time!</h3>
+        <p class="lesson-hint">Listen and tap the right picture. You can do it! 💪</p>
+        <div id="quiz-box" class="quiz-box">
+          <button id="quiz-start" type="button" class="primary-button">▶ Start the quiz</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>Made with lots of love for Ethan 💛🌍🌊</footer>
+
+  <script>
+    function showMessage(id, message) {
+      document.getElementById(id).textContent = message;
+    }
+
+    function speak(text) {
+      if (!("speechSynthesis" in window)) {
+        showMessage("lesson-message", "Speech is not supported in this browser.");
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+
+      // Długi tekst mówimy zdanie po zdaniu, bo część przeglądarek ucina zbyt długie wypowiedzi
+      const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+
+      sentences.forEach(sentence => {
+        const part = sentence.trim();
+        if (!part) return;
+
+        const utterance = new SpeechSynthesisUtterance(part);
+        utterance.lang = "en-US";
+        utterance.rate = 0.8;
+        window.speechSynthesis.speak(utterance);
+      });
+    }
+
+    function stopSpeaking() {
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    }
+
+    // --- Postęp lekcji (zapisany na tym urządzeniu) ---
+
+    const LESSON_ID = "world-map";
+    const PROGRESS_KEY = "ethanLessons";
+
+    function readProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(PROGRESS_KEY) || "{}") || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function setProgress(update) {
+      const all = readProgress();
+      all[LESSON_ID] = { ...(all[LESSON_ID] || {}), ...update };
+
+      try {
+        localStorage.setItem(PROGRESS_KEY, JSON.stringify(all));
+      } catch {}
+    }
+
+    const statusCard = document.getElementById("lesson-status");
+    const statusText = document.getElementById("status-text");
+    const statusToggle = document.getElementById("status-toggle");
+
+    function renderStatus() {
+      const progress = readProgress()[LESSON_ID] || {};
+      const done = Boolean(progress.done);
+
+      statusText.textContent = done
+        ? "✅ Lesson done! " + "⭐".repeat(Math.min(progress.stars || 0, 3))
+        : "🔲 Not done yet";
+      statusToggle.textContent = done ? "↩ Mark as not done" : "✅ Mark as done";
+      statusCard.classList.toggle("done", done);
+    }
+
+    statusToggle.addEventListener("click", () => {
+      const progress = readProgress()[LESSON_ID] || {};
+      setProgress({ done: !progress.done });
+      renderStatus();
+    });
+
+    renderStatus();
+
+    // --- Lekcja 5: mapa świata ---
+
+    const SHAPES = {
+      northAmerica: "M30 40 L60 25 L110 22 L150 35 L165 55 L145 72 L130 85 L120 105 L105 110 L92 98 L75 85 L55 70 L35 58 Z",
+      southAmerica: "M110 118 L135 114 L152 130 L150 155 L138 185 L122 212 L112 185 L105 150 Z",
+      europe: "M190 38 L215 30 L240 36 L245 52 L228 64 L205 66 L192 55 Z",
+      africa: "M190 78 L232 74 L252 92 L250 125 L236 160 L216 185 L204 160 L194 125 L184 98 Z",
+      asia: "M248 32 L300 22 L355 32 L372 60 L350 92 L318 108 L290 100 L262 92 L250 62 Z",
+      australia: "M312 148 L346 142 L366 158 L358 180 L330 188 L310 172 Z",
+      antarctica: "M70 203 Q200 192 330 203 L330 224 L70 224 Z"
+    };
+
+    const CONTINENTS = {
+      northAmerica: { name: "North America", color: "#ffb5a7", mascot: "🦅", at: [95, 60],
+        say: "North America is the third biggest continent. It has Canada, the United States and Mexico." },
+      southAmerica: { name: "South America", color: "#b5e48c", mascot: "🦜", at: [128, 160],
+        say: "South America has the Amazon rainforest and very tall mountains called the Andes." },
+      europe: { name: "Europe", color: "#a2d2ff", mascot: "🦊", at: [217, 52],
+        say: "Europe is where we live! It is a small continent with many countries." },
+      africa: { name: "Africa", color: "#ffd166", mascot: "🦁", at: [218, 128],
+        say: "Africa is the second biggest continent. It is very hot and has a huge desert called the Sahara." },
+      asia: { name: "Asia", color: "#cdb4db", mascot: "🐼", at: [310, 64],
+        say: "Asia is the biggest continent. More people live in Asia than on any other continent." },
+      australia: { name: "Australia", color: "#ffafcc", mascot: "🦘", at: [338, 168],
+        say: "Australia is the smallest continent. It has water all around it." },
+      antarctica: { name: "Antarctica", color: "#e9f5ff", mascot: "🐧", at: [200, 218],
+        say: "Antarctica is the coldest continent. It is covered with ice, and only scientists visit it." }
+    };
+
+    const OCEANS = {
+      pacific: { name: "Pacific Ocean", color: "#6cc3e8", mascot: "🐙", at: [24, 112],
+        say: "It is the biggest and deepest ocean. It is bigger than all the land on Earth put together." },
+      atlantic: { name: "Atlantic Ocean", color: "#4aa3df", mascot: "🐬", at: [170, 122],
+        say: "It is between America, Europe and Africa. It is the second biggest ocean." },
+      indian: { name: "Indian Ocean", color: "#58c4c4", mascot: "🐠", at: [285, 152],
+        say: "It is warm. It is between Africa, Asia and Australia. It is the third biggest ocean." },
+      arctic: { name: "Arctic Ocean", color: "#cfeaff", mascot: "🐻‍❄️", at: [200, 25],
+        say: "It is at the top of the world. It is the smallest ocean, and it is cold and icy. Polar bears live near it." },
+      southern: { name: "Southern Ocean", color: "#9ad0ee", mascot: "🐋", at: [200, 200],
+        say: "It is around Antarctica. It is cold and stormy, with big waves and icebergs." }
+    };
+
+    function mascotSvg(item) {
+      return `<text class="mascot" x="${item.at[0]}" y="${item.at[1]}" text-anchor="middle">${item.mascot}</text>`;
+    }
+
+    function continentMapSvg() {
+      let s = `<svg viewBox="0 0 400 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A map with the seven continents">
+        <rect width="400" height="230" rx="18" fill="#bfe3ff"/>`;
+
+      Object.entries(CONTINENTS).forEach(([key, c]) => {
+        s += `<g class="continent" data-key="${key}"><path d="${SHAPES[key]}" fill="${c.color}"/>${mascotSvg(c)}</g>`;
+      });
+
+      return s + `</svg>`;
+    }
+
+    function oceanMapSvg() {
+      let s = `<svg viewBox="0 0 400 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A map with the five oceans">
+        <rect class="ocean-area" data-key="pacific" width="400" height="230" rx="18" fill="${OCEANS.pacific.color}"/>`;
+
+      [["atlantic", 170, 108, 30, 100], ["indian", 285, 150, 44, 44], ["arctic", 200, 8, 195, 26], ["southern", 200, 203, 200, 16]]
+        .forEach(([key, cx, cy, rx, ry]) => {
+          s += `<ellipse class="ocean-area" data-key="${key}" cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${OCEANS[key].color}"/>`;
+        });
+
+      Object.values(SHAPES).forEach(d => {
+        s += `<path d="${d}" fill="#f1e6c8" stroke="#fff" stroke-width="2" stroke-linejoin="round" pointer-events="none"/>`;
+      });
+
+      Object.values(OCEANS).forEach(o => { s += mascotSvg(o); });
+      return s + `</svg>`;
+    }
+
+    function listNames(names) {
+      return names.length > 1 ? names.slice(0, -1).join(", ") + " and " + names[names.length - 1] : names[0];
+    }
+
+    function buttonsFor(speakText) {
+      const buttons = document.createElement("div");
+      buttons.className = "caption-buttons";
+
+      const again = document.createElement("button");
+      again.type = "button";
+      again.className = "secondary-button";
+      again.textContent = "🔊 Tell me again";
+      again.addEventListener("click", () => speak(speakText));
+
+      const stop = document.createElement("button");
+      stop.type = "button";
+      stop.className = "secondary-button";
+      stop.textContent = "⏹ Stop";
+      stop.addEventListener("click", stopSpeaking);
+
+      buttons.append(again, stop);
+      return buttons;
+    }
+
+    function fillInfo(box, icon, title, lines, speakText) {
+      box.replaceChildren();
+
+      const iconEl = document.createElement("span");
+      iconEl.className = "info-icon";
+      iconEl.textContent = icon;
+
+      const text = document.createElement("div");
+      text.className = "info-text";
+
+      const titleEl = document.createElement("strong");
+      titleEl.textContent = title;
+      text.appendChild(titleEl);
+
+      lines.forEach(line => {
+        const div = document.createElement("div");
+        div.textContent = line;
+        text.appendChild(div);
+      });
+
+      text.appendChild(buttonsFor(speakText));
+      box.append(iconEl, text);
+    }
+
+    // Wspólna obsługa mapy: dotykanie, liczenie i gra "znajdź"
+    function makeAtlas({ prefix, items, svg, total, totalWord, noun }) {
+      const $ = id => document.getElementById(prefix + "-" + id);
+      const map = $("map");
+      const chips = $("chips");
+      const info = $("info");
+      const message = $("message");
+      let target = null;
+      let timers = [];
+
+      map.innerHTML = svg();
+
+      const storyOf = key => items[key].name + ". " + items[key].say + " It is one of the " + totalWord + " " + noun + "s.";
+
+      function highlight(key) {
+        map.querySelectorAll("[data-key]").forEach(el => el.classList.toggle("active", el.dataset.key === key));
+        chips.querySelectorAll(".chip").forEach(chip => chip.classList.toggle("active", chip.dataset.key === key));
+        fillInfo(info, items[key].mascot, items[key].name, [items[key].say], storyOf(key));
+      }
+
+      function pick(key) {
+        timers.forEach(clearTimeout);
+        timers = [];
+
+        if (target) {
+          if (key === target) {
+            highlight(key);
+            message.textContent = "🎉 Yes! " + items[key].name + "!";
+            speak("Great job! " + items[key].name);
+            target = null;
+          } else {
+            message.textContent = "Try again! 💫";
+            speak("Try again. Find the " + items[target].name);
+          }
+          return;
+        }
+
+        message.textContent = "";
+        highlight(key);
+        speak(storyOf(key));
+      }
+
+      Object.entries(items).forEach(([key, item]) => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "chip";
+        chip.dataset.key = key;
+        chip.textContent = item.mascot + " " + item.name;
+        chip.addEventListener("click", () => pick(key));
+        chips.appendChild(chip);
+      });
+
+      map.querySelectorAll("[data-key]").forEach(el => {
+        el.addEventListener("click", () => pick(el.dataset.key));
+      });
+
+      $("count").addEventListener("click", () => {
+        timers.forEach(clearTimeout);
+        timers = [];
+        target = null;
+        const keys = Object.keys(items);
+
+        keys.forEach((key, index) => {
+          timers.push(setTimeout(() => {
+            highlight(key);
+            message.textContent = (index + 1) + " - " + items[key].name;
+            speak((index + 1) + ". " + items[key].name + ".");
+          }, index * 2600));
+        });
+
+        timers.push(setTimeout(() => {
+          message.textContent = "🔢 " + total + " " + noun + "s!";
+          speak("There are " + totalWord + " " + noun + "s!");
+        }, keys.length * 2600));
+      });
+
+      $("find").addEventListener("click", () => {
+        timers.forEach(clearTimeout);
+        timers = [];
+        const keys = Object.keys(items);
+        target = keys[Math.floor(Math.random() * keys.length)];
+        message.textContent = "🎯 Listen and tap it on the map!";
+        speak("Find the " + items[target].name + "!");
+      });
+
+      info.textContent = "Tap the map! 👆";
+    }
+
+    makeAtlas({ prefix: "continent", items: CONTINENTS, svg: continentMapSvg, total: 7, totalWord: "seven", noun: "continent" });
+    makeAtlas({ prefix: "ocean", items: OCEANS, svg: oceanMapSvg, total: 5, totalWord: "five", noun: "ocean" });
+
+    // --- Kula ziemska i ile jest wody ---
+
+    (function buildGlobe() {
+      let s = `<svg xmlns="http://www.w3.org/2000/svg" width="330" height="190" viewBox="0 0 400 230" preserveAspectRatio="none"><rect width="400" height="230" fill="#3d9be0"/>`;
+      Object.entries(SHAPES).forEach(([key, d]) => {
+        s += `<path d="${d}" fill="${key === "antarctica" ? "#f4faff" : "#7bc47f"}"/>`;
+      });
+      s += `</svg>`;
+      document.getElementById("globe").style.backgroundImage = 'url("data:image/svg+xml;utf8,' + encodeURIComponent(s) + '")';
+    })();
+
+    const waterBar = document.querySelector("#share-bar .water");
+    const landBar = document.querySelector("#share-bar .land");
+    const EARTH_STORY = "This is the Earth, our home. Most of the Earth is covered with water. The water is in the oceans. The land is in big pieces called continents.";
+
+    function showShare(animate) {
+      if (animate) {
+        waterBar.style.transition = landBar.style.transition = "none";
+        waterBar.style.width = landBar.style.width = "50%";
+        void waterBar.offsetWidth;
+        waterBar.style.transition = landBar.style.transition = "";
+      }
+
+      waterBar.style.width = "71%";
+      landBar.style.width = "29%";
+    }
+
+    showShare(false);
+
+    document.getElementById("earth-tell").addEventListener("click", () => {
+      showShare(true);
+      speak(EARTH_STORY);
+    });
+
+    // --- Co to jest? (słownik) ---
+
+    const GEO_WORDS = [
+      ["🌍", "Continent", "A continent is a very big piece of land."],
+      ["🌊", "Ocean", "An ocean is a very big area of salty water."],
+      ["🏝️", "Island", "An island is land with water all around it."],
+      ["⛰️", "Mountain", "A mountain is very high land. Some mountains have snow on top."],
+      ["🌋", "Volcano", "A volcano is a mountain that can blow out hot lava."],
+      ["🏜️", "Desert", "A desert is a very dry place with a lot of sand."],
+      ["🏞️", "River", "A river is water that flows to the sea."],
+      ["🛶", "Lake", "A lake is water with land all around it."],
+      ["🏖️", "Beach", "A beach is sand next to the sea."],
+      ["🌲", "Forest", "A forest is a place with a lot of trees."]
+    ];
+    const geoWords = document.getElementById("geo-words");
+
+    GEO_WORDS.forEach(([emoji, word, meaning]) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "word-card";
+      card.setAttribute("aria-label", word);
+
+      const icon = document.createElement("span");
+      icon.className = "word-emoji";
+      icon.textContent = emoji;
+
+      const name = document.createElement("span");
+      name.className = "word-english";
+      name.textContent = word;
+
+      const hint = document.createElement("span");
+      hint.className = "word-hint";
+      hint.textContent = meaning;
+
+      card.append(icon, name, hint);
+      card.addEventListener("click", () => speak(word + ". " + meaning));
+      geoWords.appendChild(card);
+    });
+
+    // --- Pytania do quizu ---
+
+    const QUIZ_LENGTH = 5;
+    const QUIZ_POOL = [
+      { say: "How many continents are there?", options: [
+        { icon: "7️⃣", label: "Seven", correct: true }, { icon: "5️⃣", label: "Five" }, { icon: "9️⃣", label: "Nine" }] },
+      { say: "How many oceans are there?", options: [
+        { icon: "5️⃣", label: "Five", correct: true }, { icon: "7️⃣", label: "Seven" }, { icon: "3️⃣", label: "Three" }] },
+      { say: "Which one is an island?", options: [
+        { icon: "🏝️", label: "Island", correct: true }, { icon: "⛰️", label: "Mountain" }, { icon: "🏜️", label: "Desert" }] },
+      { say: "Which one is a mountain?", options: [
+        { icon: "⛰️", label: "Mountain", correct: true }, { icon: "🏝️", label: "Island" }, { icon: "🌊", label: "Ocean" }] },
+      { say: "Which one is a desert?", options: [
+        { icon: "🏜️", label: "Desert", correct: true }, { icon: "🌲", label: "Forest" }, { icon: "🌊", label: "Ocean" }] },
+      { say: "Which one is a volcano?", options: [
+        { icon: "🌋", label: "Volcano", correct: true }, { icon: "🏖️", label: "Beach" }, { icon: "🌲", label: "Forest" }] },
+      { say: "Which one is the ocean?", options: [
+        { icon: "🌊", label: "Ocean", correct: true }, { icon: "🏜️", label: "Desert" }, { icon: "🌋", label: "Volcano" }] },
+      { say: "Which one is a forest?", options: [
+        { icon: "🌲", label: "Forest", correct: true }, { icon: "🏖️", label: "Beach" }, { icon: "🏜️", label: "Desert" }] },
+      { say: "Most of the Earth is covered with water or with land?", options: [
+        { icon: "🌊", label: "Water", correct: true }, { icon: "⛰️", label: "Land" }] },
+      { say: "Which is the biggest continent?", options: [
+        { dot: CONTINENTS.asia.color, size: 72, label: "Asia", correct: true },
+        { dot: CONTINENTS.europe.color, size: 40, label: "Europe" },
+        { dot: CONTINENTS.australia.color, size: 32, label: "Australia" }] },
+      { say: "Which is the smallest continent?", options: [
+        { dot: CONTINENTS.australia.color, size: 32, label: "Australia", correct: true },
+        { dot: CONTINENTS.africa.color, size: 62, label: "Africa" },
+        { dot: CONTINENTS.asia.color, size: 72, label: "Asia" }] },
+      { say: "Which continent is the coldest? It is covered with ice.", options: [
+        { icon: "🧊", label: "Antarctica", correct: true },
+        { dot: CONTINENTS.africa.color, size: 46, label: "Africa" },
+        { dot: CONTINENTS.southAmerica.color, size: 46, label: "South America" }] }
+    ];
+
+    const quizBox = document.getElementById("quiz-box");
+    let quiz = null;
+
+    function shuffle(list) {
+      const copy = [...list];
+
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+
+      return copy;
+    }
+
+    function optionButton(option, onPick) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "quiz-option";
+
+      const icon = document.createElement("span");
+      icon.className = "quiz-icon";
+
+      if (option.dot) {
+        icon.classList.add("dot");
+        icon.style.background = option.dot;
+        icon.style.width = icon.style.height = option.size + "px";
+      } else {
+        icon.textContent = option.icon;
+      }
+
+      const label = document.createElement("span");
+      label.textContent = option.label;
+
+      button.append(icon, label);
+      button.addEventListener("click", () => onPick(button));
+      return button;
+    }
+
+    function startQuiz() {
+      quiz = {
+        questions: shuffle(QUIZ_POOL).slice(0, QUIZ_LENGTH),
+        index: 0,
+        firstTry: 0,
+        missed: false,
+        locked: false
+      };
+
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const question = quiz.questions[quiz.index];
+      quiz.missed = false;
+      quiz.locked = false;
+
+      const head = document.createElement("div");
+      head.className = "quiz-head";
+
+      const counter = document.createElement("span");
+      counter.textContent = "Question " + (quiz.index + 1) + " of " + quiz.questions.length;
+
+      const replay = document.createElement("button");
+      replay.type = "button";
+      replay.className = "secondary-button";
+      replay.textContent = "🔊 Listen again";
+      replay.addEventListener("click", () => speak(question.say));
+
+      head.append(counter, replay);
+
+      const options = document.createElement("div");
+      options.className = "quiz-options";
+
+      const feedback = document.createElement("p");
+      feedback.id = "quiz-feedback";
+      feedback.className = "form-message";
+      feedback.setAttribute("role", "status");
+
+      shuffle(question.options).forEach(option => {
+        options.appendChild(optionButton(option, button => answer(option, button, question, feedback)));
+      });
+
+      quizBox.replaceChildren(head, options, feedback);
+      speak(question.say);
+    }
+
+    function answer(option, button, question, feedback) {
+      if (quiz.locked) return;
+
+      if (option.correct) {
+        quiz.locked = true;
+        if (!quiz.missed) quiz.firstTry++;
+
+        button.classList.add("right");
+        feedback.textContent = "🎉 Yes!";
+        speak("Yes! Great job!");
+
+        setTimeout(() => {
+          quiz.index++;
+
+          if (quiz.index < quiz.questions.length) showQuestion();
+          else finishQuiz();
+        }, 1500);
+
+        return;
+      }
+
+      quiz.missed = true;
+      button.classList.add("wrong");
+      button.disabled = true;
+      feedback.textContent = "Try again! 💫";
+      speak("Try again. " + question.say);
+    }
+
+    function finishQuiz() {
+      const total = quiz.questions.length;
+      const stars = quiz.firstTry >= total - 1 ? 3 : quiz.firstTry >= total - 2 ? 2 : 1;
+      const best = Math.max((readProgress()[LESSON_ID] || {}).stars || 0, stars);
+
+      setProgress({ done: true, stars: best });
+      renderStatus();
+
+      const result = document.createElement("div");
+      result.className = "quiz-result";
+
+      const big = document.createElement("div");
+      big.className = "quiz-big";
+      big.textContent = "🏆";
+
+      const title = document.createElement("h3");
+      title.textContent = "You did it! " + "⭐".repeat(stars);
+
+      const score = document.createElement("p");
+      score.textContent = quiz.firstTry + " of " + total + " right on the first try";
+
+      const again = document.createElement("button");
+      again.type = "button";
+      again.className = "primary-button";
+      again.textContent = "🔁 Play again";
+      again.addEventListener("click", startQuiz);
+
+      result.append(big, title, score, again);
+      quizBox.replaceChildren(result);
+      speak("Wow! You did it! Great job!");
+    }
+
+    document.getElementById("quiz-start").addEventListener("click", startQuiz);
+  </script>
+</body>
+</html>
