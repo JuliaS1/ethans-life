@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff5f8">
+  <title>Lesson 4: Animals Around the World 🦁 - Ethan's Life</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+  <style>
+    /* Strona nigdy nie przesuwa się na boki (żeby po prawej nie było białego tła) */
+    html, body { max-width: 100%; overflow-x: hidden; }
+    @supports (overflow: clip) { html, body { overflow-x: clip; } }
+    img, svg, video, canvas { max-width: 100%; }
+    input, select, textarea, button { max-width: 100%; box-sizing: border-box; }
+    emoji-picker { width: 100%; max-width: 100%; }
+    .picker-panel { max-width: 100%; overflow-x: auto; }
+
+    [hidden] { display: none !important; }
+
+    .garage-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
+    /* Lekcje */
+    .lesson-card {
+      margin: 16px 0;
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 8px 24px rgba(255, 143, 171, 0.25);
+    }
+
+    .lesson-card h3 { margin-top: 0; }
+    .lesson-hint { margin-top: -6px; opacity: 0.8; }
+
+    .space-map svg, .mini-svg { display: block; width: 100%; height: auto; }
+    .space-map { max-width: 460px; margin: 0 auto; }
+
+    .orbit, .moon-orbit, .spin {
+      animation-name: lesson-spin;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+
+    .orbit { transform-origin: 210px 210px; }
+    .body { cursor: pointer; }
+
+    @keyframes lesson-spin { to { transform: rotate(360deg); } }
+
+    .space-caption {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      margin: 12px 0;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: #fff0f5;
+      font-size: 1.05rem;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      box-shadow: inset -3px -3px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    .dot-big { width: 44px; height: 44px; flex: none; }
+
+    .planet-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+
+    .planet-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border: 2px solid #ff8fab;
+      border-radius: 999px;
+      background: #fff;
+      color: #d6336c;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .planet-chip:active { transform: scale(0.95); }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .orbit, .moon-orbit, .spin { animation: none; }
+    }
+
+    .lesson-status {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .lesson-status.done { border: 3px solid #2ecc71; }
+    .status-text { font-size: 1.15rem; font-weight: 700; }
+
+    .quiz-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .quiz-options { display: flex; flex-wrap: wrap; gap: 12px; }
+
+    .quiz-option {
+      flex: 1 1 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      min-height: 120px;
+      padding: 12px;
+      border: 3px solid #ffc2d1;
+      border-radius: 20px;
+      background: #fff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .quiz-option:active { transform: scale(0.96); }
+    .quiz-option.right { border-color: #2ecc71; background: #eafff1; }
+    .quiz-option.wrong { border-color: #ff6b81; background: #fff0f2; opacity: 0.6; }
+    .quiz-icon { font-size: 3rem; line-height: 1; }
+    .quiz-result { text-align: center; }
+    .quiz-big { font-size: 3.5rem; line-height: 1.2; }
+
+    .space-caption { flex-wrap: wrap; }
+    .caption-text { flex: 1; min-width: 210px; }
+    .caption-detail { margin: 6px 0 8px; }
+    .fact-badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+
+    .fact-badge {
+      padding: 4px 10px;
+      border: 2px solid #ffc2d1;
+      border-radius: 999px;
+      background: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .map-legend { margin: 8px 0 0; font-size: 0.9rem; opacity: 0.8; }
+
+    .table-wrap { overflow-x: auto; }
+    .facts-table { width: 100%; border-collapse: collapse; }
+    .facts-table th, .facts-table td { padding: 10px 8px; text-align: left; white-space: nowrap; }
+    .facts-table thead th { border-bottom: 2px solid #ffc2d1; color: #d6336c; }
+    .fact-row { cursor: pointer; }
+    .fact-row td { border-bottom: 1px solid #ffe0e8; }
+    .fact-row:hover { background: #fff0f5; }
+    .caption-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
+    /* Lekcja 4: zwierzęta świata */
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border: 2px solid #ff8fab;
+      border-radius: 999px;
+      background: #fff;
+      color: #d6336c;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .chip:active { transform: scale(0.95); }
+    .chip.active { background: #ff8fab; color: #fff; }
+
+    .info-box {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      margin: 12px 0;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: #fff0f5;
+      font-size: 1.05rem;
+    }
+
+    .info-icon { font-size: 2.6rem; line-height: 1; }
+    .info-text { flex: 1; min-width: 200px; }
+
+    .world-map svg {
+      display: block;
+      width: 100%;
+      max-width: 560px;
+      height: auto;
+      margin: 0 auto;
+      border-radius: 18px;
+    }
+
+    .continent { cursor: pointer; }
+    .continent path { stroke: #fff; stroke-width: 2; stroke-linejoin: round; transition: filter 0.2s ease; }
+    .continent:hover path { filter: brightness(1.06); }
+    .continent.active path { stroke: #d6336c; stroke-width: 4; }
+    .mascot { font-size: 22px; animation: mascot-bob 2.4s ease-in-out infinite; pointer-events: none; }
+    .continent.active .mascot { animation-duration: 0.9s; }
+    @keyframes mascot-bob { 50% { transform: translateY(-4px); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .mascot { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Lesson 4</p>
+      <h1>Animals Around the World <span>🦁</span></h1>
+      <p>Which animals live on which continent?</p>
+      <nav>
+        <a href="/">← Back to Ethan's Life</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="lesson-card lesson-status" id="lesson-status">
+      <span id="status-text" class="status-text"></span>
+      <button id="status-toggle" type="button" class="secondary-button"></button>
+    </div>
+
+    <section id="lesson" class="section">
+      <div class="lesson-card">
+        <h3>🌍 Visit the continents</h3>
+        <p class="lesson-hint">Tap a continent on the map to meet its animals!</p>
+        <div id="world-map" class="world-map"></div>
+        <div id="continent-chips" class="chip-row"></div>
+        <div id="continent-info" class="info-box" aria-live="polite"></div>
+        <div id="animal-grid" class="words-grid"></div>
+        <div id="animal-info" class="info-box" aria-live="polite"></div>
+        <p id="lesson-message" class="form-message" role="status"></p>
+      </div>
+
+      <div class="content-heading">
+        <h3>🐾 Animal words</h3>
+        <p>Tap a card to hear the word.</p>
+      </div>
+      <div id="animal-words" class="words-grid"></div>
+
+      <div class="lesson-card" id="quiz-card">
+        <h3>🧠 Quiz time!</h3>
+        <p class="lesson-hint">Listen and tap the right picture. You can do it! 💪</p>
+        <div id="quiz-box" class="quiz-box">
+          <button id="quiz-start" type="button" class="primary-button">▶ Start the quiz</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>Made with lots of love for Ethan 💛🦁🌍</footer>
+
+  <script>
+    function showMessage(id, message) {
+      document.getElementById(id).textContent = message;
+    }
+
+    function speak(text) {
+      if (!("speechSynthesis" in window)) {
+        showMessage("lesson-message", "Speech is not supported in this browser.");
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+
+      // Długi tekst mówimy zdanie po zdaniu, bo część przeglądarek ucina zbyt długie wypowiedzi
+      const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+
+      sentences.forEach(sentence => {
+        const part = sentence.trim();
+        if (!part) return;
+
+        const utterance = new SpeechSynthesisUtterance(part);
+        utterance.lang = "en-US";
+        utterance.rate = 0.8;
+        window.speechSynthesis.speak(utterance);
+      });
+    }
+
+    function stopSpeaking() {
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    }
+
+    // --- Postęp lekcji (zapisany na tym urządzeniu) ---
+
+    const LESSON_ID = "animals";
+    const PROGRESS_KEY = "ethanLessons";
+
+    function readProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(PROGRESS_KEY) || "{}") || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function setProgress(update) {
+      const all = readProgress();
+      all[LESSON_ID] = { ...(all[LESSON_ID] || {}), ...update };
+
+      try {
+        localStorage.setItem(PROGRESS_KEY, JSON.stringify(all));
+      } catch {}
+    }
+
+    const statusCard = document.getElementById("lesson-status");
+    const statusText = document.getElementById("status-text");
+    const statusToggle = document.getElementById("status-toggle");
+
+    function renderStatus() {
+      const progress = readProgress()[LESSON_ID] || {};
+      const done = Boolean(progress.done);
+
+      statusText.textContent = done
+        ? "✅ Lesson done! " + "⭐".repeat(Math.min(progress.stars || 0, 3))
+        : "🔲 Not done yet";
+      statusToggle.textContent = done ? "↩ Mark as not done" : "✅ Mark as done";
+      statusCard.classList.toggle("done", done);
+    }
+
+    statusToggle.addEventListener("click", () => {
+      const progress = readProgress()[LESSON_ID] || {};
+      setProgress({ done: !progress.done });
+      renderStatus();
+    });
+
+    renderStatus();
+
+    // --- Lekcja 4: zwierzęta z całego świata ---
+
+    const A = (icon, name, say, fun) => ({ icon, name, say, fun });
+
+    const CONTINENTS = {
+      northAmerica: { name: "North America", color: "#ffb5a7", mascot: "🦅", at: [95, 60],
+        say: "North America has forests, wide plains and huge mountains.",
+        animals: [
+          A("🦬", "Bison", "The bison is big and hairy, and it lives on the plains.", "A bison can run very fast."),
+          A("🦅", "Eagle", "The bald eagle is a big bird that flies high in the sky.", "It has very good eyes."),
+          A("🦝", "Raccoon", "The raccoon has a black mask on its face.", "It has clever little hands."),
+          A("🦫", "Beaver", "The beaver builds dams in rivers with sticks.", "It has big orange teeth.")
+        ] },
+      southAmerica: { name: "South America", color: "#b5e48c", mascot: "🦜", at: [128, 160],
+        say: "South America has the Amazon rainforest and the high Andes mountains.",
+        animals: [
+          A("🦙", "Llama", "The llama lives in the mountains of South America.", "It has soft, warm wool."),
+          A("🦜", "Parrot", "The parrot is a colourful bird that can copy words.", "It lives in the rainforest."),
+          A("🦥", "Sloth", "The sloth moves very, very slowly.", "It hangs upside down in the trees."),
+          A("🐒", "Monkey", "Monkeys live in the rainforest and climb the trees.", "They love to eat fruit.")
+        ] },
+      europe: { name: "Europe", color: "#a2d2ff", mascot: "🦊", at: [217, 52],
+        say: "Europe is where we live! It has forests, fields and cities.",
+        animals: [
+          A("🦊", "Fox", "The fox has red fur and a bushy tail.", "It sleeps in a den."),
+          A("🦌", "Deer", "The deer lives in the forest.", "Boy deer have big antlers."),
+          A("🐻", "Bear", "The brown bear is big and strong.", "It sleeps a lot in winter."),
+          A("🦔", "Hedgehog", "The hedgehog has sharp spikes on its back.", "It rolls into a ball when it is scared.")
+        ] },
+      africa: { name: "Africa", color: "#ffd166", mascot: "🦁", at: [218, 128],
+        say: "Africa is very hot. It has deserts, wide grasslands and rainforests.",
+        animals: [
+          A("🦁", "Lion", "The lion is a big cat, and it says roar.", "Lions live in a family called a pride."),
+          A("🐘", "Elephant", "The elephant is the biggest animal on land.", "It uses its long trunk like a hand."),
+          A("🦒", "Giraffe", "The giraffe has a very, very long neck.", "It eats leaves from tall trees."),
+          A("🦓", "Zebra", "The zebra has black and white stripes.", "Every zebra has different stripes.")
+        ] },
+      asia: { name: "Asia", color: "#cdb4db", mascot: "🐼", at: [310, 64],
+        say: "Asia is the biggest continent. It has jungles, mountains and deserts.",
+        animals: [
+          A("🐼", "Panda", "The giant panda lives in China.", "It eats bamboo almost all day."),
+          A("🐯", "Tiger", "The tiger is a big cat with stripes.", "Tigers are good swimmers."),
+          A("🐫", "Camel", "The camel lives in the desert and has two humps.", "It can walk a long way without water."),
+          A("🦧", "Orangutan", "Orangutans live in the forests of Asia.", "They are very clever and have orange hair.")
+        ] },
+      australia: { name: "Australia", color: "#ffafcc", mascot: "🦘", at: [338, 168],
+        say: "Australia is a country and a continent. It is warm and dry.",
+        animals: [
+          A("🦘", "Kangaroo", "The kangaroo hops on its strong back legs.", "A mother kangaroo carries her baby in a pouch."),
+          A("🐨", "Koala", "The koala lives in trees and eats eucalyptus leaves.", "It sleeps for most of the day."),
+          A("🐊", "Crocodile", "The crocodile lives in rivers and has big teeth.", "It can stay very still in the water.")
+        ] },
+      antarctica: { name: "Antarctica", color: "#e9f5ff", mascot: "🐧", at: [200, 218],
+        say: "Antarctica is the coldest place on Earth. It is covered with ice.",
+        animals: [
+          A("🐧", "Penguin", "The penguin is a bird that cannot fly, but it swims very well.", "Penguins like cold places."),
+          A("🦭", "Seal", "The seal swims in the cold sea.", "It has thick fat to stay warm."),
+          A("🐋", "Whale", "The whale is the biggest animal in the sea.", "Whales are not fish. They breathe air.")
+        ] }
+    };
+
+    const SHAPES = {
+      northAmerica: "M30 40 L60 25 L110 22 L150 35 L165 55 L145 72 L130 85 L120 105 L105 110 L92 98 L75 85 L55 70 L35 58 Z",
+      southAmerica: "M110 118 L135 114 L152 130 L150 155 L138 185 L122 212 L112 185 L105 150 Z",
+      europe: "M190 38 L215 30 L240 36 L245 52 L228 64 L205 66 L192 55 Z",
+      africa: "M190 78 L232 74 L252 92 L250 125 L236 160 L216 185 L204 160 L194 125 L184 98 Z",
+      asia: "M248 32 L300 22 L355 32 L372 60 L350 92 L318 108 L290 100 L262 92 L250 62 Z",
+      australia: "M312 148 L346 142 L366 158 L358 180 L330 188 L310 172 Z",
+      antarctica: "M70 203 Q200 192 330 203 L330 224 L70 224 Z"
+    };
+
+    function mapSvg() {
+      let s = `<svg viewBox="0 0 400 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A map of the world">
+        <rect width="400" height="230" rx="18" fill="#bfe3ff"/>`;
+
+      Object.entries(CONTINENTS).forEach(([key, c]) => {
+        s += `<g class="continent" data-continent="${key}">
+          <path d="${SHAPES[key]}" fill="${c.color}"/>
+          <text class="mascot" x="${c.at[0]}" y="${c.at[1]}" text-anchor="middle">${c.mascot}</text>
+        </g>`;
+      });
+
+      return s + `</svg>`;
+    }
+
+    const worldMap = document.getElementById("world-map");
+    const continentChips = document.getElementById("continent-chips");
+    const continentInfo = document.getElementById("continent-info");
+    const animalGrid = document.getElementById("animal-grid");
+    const animalInfo = document.getElementById("animal-info");
+
+    worldMap.innerHTML = mapSvg();
+
+    function listNames(names) {
+      return names.length > 1 ? names.slice(0, -1).join(", ") + " and " + names[names.length - 1] : names[0];
+    }
+
+    function buttonsFor(speakText) {
+      const buttons = document.createElement("div");
+      buttons.className = "caption-buttons";
+
+      const again = document.createElement("button");
+      again.type = "button";
+      again.className = "secondary-button";
+      again.textContent = "🔊 Tell me again";
+      again.addEventListener("click", () => speak(speakText));
+
+      const stop = document.createElement("button");
+      stop.type = "button";
+      stop.className = "secondary-button";
+      stop.textContent = "⏹ Stop";
+      stop.addEventListener("click", stopSpeaking);
+
+      buttons.append(again, stop);
+      return buttons;
+    }
+
+    function fillInfo(box, icon, title, lines, speakText) {
+      box.replaceChildren();
+
+      const iconEl = document.createElement("span");
+      iconEl.className = "info-icon";
+      iconEl.textContent = icon;
+
+      const text = document.createElement("div");
+      text.className = "info-text";
+
+      const titleEl = document.createElement("strong");
+      titleEl.textContent = title;
+      text.appendChild(titleEl);
+
+      lines.forEach(line => {
+        const div = document.createElement("div");
+        div.textContent = line;
+        text.appendChild(div);
+      });
+
+      text.appendChild(buttonsFor(speakText));
+      box.append(iconEl, text);
+    }
+
+    function showAnimal(animal) {
+      fillInfo(animalInfo, animal.icon, animal.name, [animal.say, "💡 " + animal.fun],
+        animal.name + ". " + animal.say + " " + animal.fun);
+      speak(animal.name + ". " + animal.say + " " + animal.fun);
+    }
+
+    function showContinent(key) {
+      const continent = CONTINENTS[key];
+      const names = continent.animals.map(a => a.name);
+      const story = continent.name + ". " + continent.say + " The animals here are the " + listNames(names).toLowerCase() + ".";
+
+      worldMap.querySelectorAll(".continent").forEach(el => {
+        el.classList.toggle("active", el.dataset.continent === key);
+      });
+
+      continentChips.querySelectorAll(".chip").forEach(chip => {
+        chip.classList.toggle("active", chip.dataset.key === key);
+      });
+
+      fillInfo(continentInfo, continent.mascot, continent.name,
+        [continent.say, "🐾 Animals: " + names.join(", ")], story);
+
+      animalGrid.replaceChildren();
+
+      continent.animals.forEach(animal => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "word-card";
+        card.setAttribute("aria-label", animal.name);
+
+        const icon = document.createElement("span");
+        icon.className = "word-emoji";
+        icon.textContent = animal.icon;
+
+        const name = document.createElement("span");
+        name.className = "word-english";
+        name.textContent = animal.name;
+
+        const hint = document.createElement("span");
+        hint.className = "word-hint";
+        hint.textContent = "Tap to listen 🔊";
+
+        card.append(icon, name, hint);
+        card.addEventListener("click", () => showAnimal(animal));
+        animalGrid.appendChild(card);
+      });
+
+      animalInfo.textContent = "Tap an animal! 👆";
+      speak(story);
+    }
+
+    Object.entries(CONTINENTS).forEach(([key, continent]) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip";
+      chip.dataset.key = key;
+      chip.textContent = continent.mascot + " " + continent.name;
+      chip.addEventListener("click", () => showContinent(key));
+      continentChips.appendChild(chip);
+    });
+
+    worldMap.querySelectorAll(".continent").forEach(el => {
+      el.addEventListener("click", () => showContinent(el.dataset.continent));
+    });
+
+    continentInfo.textContent = "Tap a continent on the map! 👆";
+
+    // --- Słowa ---
+
+    const ANIMAL_WORDS = [
+      ["🦁", "Lion"], ["🐘", "Elephant"], ["🦒", "Giraffe"], ["🐼", "Panda"], ["🦘", "Kangaroo"], ["🐧", "Penguin"],
+      ["🦜", "Parrot"], ["🐒", "Monkey"], ["🦊", "Fox"], ["🐻", "Bear"], ["🐋", "Whale"], ["🐊", "Crocodile"]
+    ];
+    const animalWords = document.getElementById("animal-words");
+
+    ANIMAL_WORDS.forEach(([emoji, word]) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "word-card";
+      card.setAttribute("aria-label", "Hear " + word);
+
+      const icon = document.createElement("span");
+      icon.className = "word-emoji";
+      icon.textContent = emoji;
+
+      const name = document.createElement("span");
+      name.className = "word-english";
+      name.textContent = word;
+
+      const hint = document.createElement("span");
+      hint.className = "word-hint";
+      hint.textContent = "Tap to listen 🔊";
+
+      card.append(icon, name, hint);
+      card.addEventListener("click", () => speak(word));
+      animalWords.appendChild(card);
+    });
+
+    // --- Pytania do quizu ---
+
+    const QUIZ_LENGTH = 5;
+    const QUIZ_POOL = [
+      { say: "Which one is the lion?", options: [
+        { icon: "🦁", label: "Lion", correct: true }, { icon: "🐘", label: "Elephant" }, { icon: "🐼", label: "Panda" }] },
+      { say: "Which animal is the biggest animal on land?", options: [
+        { icon: "🐘", label: "Elephant", correct: true }, { icon: "🦊", label: "Fox" }, { icon: "🦘", label: "Kangaroo" }] },
+      { say: "Which animal has a very long neck?", options: [
+        { icon: "🦒", label: "Giraffe", correct: true }, { icon: "🐻", label: "Bear" }, { icon: "🐒", label: "Monkey" }] },
+      { say: "Which animal has black and white stripes?", options: [
+        { icon: "🦓", label: "Zebra", correct: true }, { icon: "🦘", label: "Kangaroo" }, { icon: "🐧", label: "Penguin" }] },
+      { say: "Which animal hops on its strong back legs?", options: [
+        { icon: "🦘", label: "Kangaroo", correct: true }, { icon: "🐢", label: "Turtle" }, { icon: "🐘", label: "Elephant" }] },
+      { say: "Which animal eats bamboo?", options: [
+        { icon: "🐼", label: "Panda", correct: true }, { icon: "🦁", label: "Lion" }, { icon: "🐊", label: "Crocodile" }] },
+      { say: "Which bird cannot fly, but swims very well?", options: [
+        { icon: "🐧", label: "Penguin", correct: true }, { icon: "🦅", label: "Eagle" }, { icon: "🦜", label: "Parrot" }] },
+      { say: "Which animal is the biggest animal in the sea?", options: [
+        { icon: "🐋", label: "Whale", correct: true }, { icon: "🐊", label: "Crocodile" }, { icon: "🦭", label: "Seal" }] },
+      { say: "Which animal moves very, very slowly?", options: [
+        { icon: "🦥", label: "Sloth", correct: true }, { icon: "🐒", label: "Monkey" }, { icon: "🦊", label: "Fox" }] },
+      { say: "Which animal lives in cold Antarctica?", options: [
+        { icon: "🐧", label: "Penguin", correct: true }, { icon: "🦁", label: "Lion" }, { icon: "🦘", label: "Kangaroo" }] },
+      { say: "Which animal lives in hot Africa?", options: [
+        { icon: "🦁", label: "Lion", correct: true }, { icon: "🐧", label: "Penguin" }, { icon: "🐨", label: "Koala" }] },
+      { say: "Which animal lives in Australia?", options: [
+        { icon: "🐨", label: "Koala", correct: true }, { icon: "🦁", label: "Lion" }, { icon: "🐧", label: "Penguin" }] },
+      { say: "Which animal has a mask on its face?", options: [
+        { icon: "🦝", label: "Raccoon", correct: true }, { icon: "🦔", label: "Hedgehog" }, { icon: "🦌", label: "Deer" }] }
+    ];
+
+    const quizBox = document.getElementById("quiz-box");
+    let quiz = null;
+
+    function shuffle(list) {
+      const copy = [...list];
+
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+
+      return copy;
+    }
+
+    function optionButton(option, onPick) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "quiz-option";
+
+      const icon = document.createElement("span");
+      icon.className = "quiz-icon";
+
+      if (option.dot) {
+        icon.classList.add("dot");
+        icon.style.background = option.dot;
+        icon.style.width = icon.style.height = option.size + "px";
+      } else {
+        icon.textContent = option.icon;
+      }
+
+      const label = document.createElement("span");
+      label.textContent = option.label;
+
+      button.append(icon, label);
+      button.addEventListener("click", () => onPick(button));
+      return button;
+    }
+
+    function startQuiz() {
+      quiz = {
+        questions: shuffle(QUIZ_POOL).slice(0, QUIZ_LENGTH),
+        index: 0,
+        firstTry: 0,
+        missed: false,
+        locked: false
+      };
+
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const question = quiz.questions[quiz.index];
+      quiz.missed = false;
+      quiz.locked = false;
+
+      const head = document.createElement("div");
+      head.className = "quiz-head";
+
+      const counter = document.createElement("span");
+      counter.textContent = "Question " + (quiz.index + 1) + " of " + quiz.questions.length;
+
+      const replay = document.createElement("button");
+      replay.type = "button";
+      replay.className = "secondary-button";
+      replay.textContent = "🔊 Listen again";
+      replay.addEventListener("click", () => speak(question.say));
+
+      head.append(counter, replay);
+
+      const options = document.createElement("div");
+      options.className = "quiz-options";
+
+      const feedback = document.createElement("p");
+      feedback.id = "quiz-feedback";
+      feedback.className = "form-message";
+      feedback.setAttribute("role", "status");
+
+      shuffle(question.options).forEach(option => {
+        options.appendChild(optionButton(option, button => answer(option, button, question, feedback)));
+      });
+
+      quizBox.replaceChildren(head, options, feedback);
+      speak(question.say);
+    }
+
+    function answer(option, button, question, feedback) {
+      if (quiz.locked) return;
+
+      if (option.correct) {
+        quiz.locked = true;
+        if (!quiz.missed) quiz.firstTry++;
+
+        button.classList.add("right");
+        feedback.textContent = "🎉 Yes!";
+        speak("Yes! Great job!");
+
+        setTimeout(() => {
+          quiz.index++;
+
+          if (quiz.index < quiz.questions.length) showQuestion();
+          else finishQuiz();
+        }, 1500);
+
+        return;
+      }
+
+      quiz.missed = true;
+      button.classList.add("wrong");
+      button.disabled = true;
+      feedback.textContent = "Try again! 💫";
+      speak("Try again. " + question.say);
+    }
+
+    function finishQuiz() {
+      const total = quiz.questions.length;
+      const stars = quiz.firstTry >= total - 1 ? 3 : quiz.firstTry >= total - 2 ? 2 : 1;
+      const best = Math.max((readProgress()[LESSON_ID] || {}).stars || 0, stars);
+
+      setProgress({ done: true, stars: best });
+      renderStatus();
+
+      const result = document.createElement("div");
+      result.className = "quiz-result";
+
+      const big = document.createElement("div");
+      big.className = "quiz-big";
+      big.textContent = "🏆";
+
+      const title = document.createElement("h3");
+      title.textContent = "You did it! " + "⭐".repeat(stars);
+
+      const score = document.createElement("p");
+      score.textContent = quiz.firstTry + " of " + total + " right on the first try";
+
+      const again = document.createElement("button");
+      again.type = "button";
+      again.className = "primary-button";
+      again.textContent = "🔁 Play again";
+      again.addEventListener("click", startQuiz);
+
+      result.append(big, title, score, again);
+      quizBox.replaceChildren(result);
+      speak("Wow! You did it! Great job!");
+    }
+
+    document.getElementById("quiz-start").addEventListener("click", startQuiz);
+  </script>
+</body>
+</html>
