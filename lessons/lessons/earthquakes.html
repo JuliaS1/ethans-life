@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff5f8">
+  <title>Lesson 7: Earthquakes 🌍 - Ethan's Life</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+  <style>
+    /* Strona nigdy nie przesuwa się na boki (żeby po prawej nie było białego tła) */
+    html, body { max-width: 100%; overflow-x: hidden; }
+    @supports (overflow: clip) { html, body { overflow-x: clip; } }
+    img, svg, video, canvas { max-width: 100%; }
+    input, select, textarea, button { max-width: 100%; box-sizing: border-box; }
+    emoji-picker { width: 100%; max-width: 100%; }
+    .picker-panel { max-width: 100%; overflow-x: auto; }
+
+    [hidden] { display: none !important; }
+
+    .garage-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
+    /* Lekcje */
+    .lesson-card {
+      margin: 16px 0;
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 8px 24px rgba(255, 143, 171, 0.25);
+    }
+
+    .lesson-card h3 { margin-top: 0; }
+    .lesson-hint { margin-top: -6px; opacity: 0.8; }
+
+    .space-map svg, .mini-svg { display: block; width: 100%; height: auto; }
+    .space-map { max-width: 460px; margin: 0 auto; }
+
+    .orbit, .moon-orbit, .spin {
+      animation-name: lesson-spin;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+
+    .orbit { transform-origin: 210px 210px; }
+    .body { cursor: pointer; }
+
+    @keyframes lesson-spin { to { transform: rotate(360deg); } }
+
+    .space-caption {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      margin: 12px 0;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: #fff0f5;
+      font-size: 1.05rem;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      box-shadow: inset -3px -3px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    .dot-big { width: 44px; height: 44px; flex: none; }
+
+    .planet-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+
+    .planet-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border: 2px solid #ff8fab;
+      border-radius: 999px;
+      background: #fff;
+      color: #d6336c;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .planet-chip:active { transform: scale(0.95); }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .orbit, .moon-orbit, .spin { animation: none; }
+    }
+
+    .lesson-status {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .lesson-status.done { border: 3px solid #2ecc71; }
+    .status-text { font-size: 1.15rem; font-weight: 700; }
+
+    .quiz-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .quiz-options { display: flex; flex-wrap: wrap; gap: 12px; }
+
+    .quiz-option {
+      flex: 1 1 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      min-height: 120px;
+      padding: 12px;
+      border: 3px solid #ffc2d1;
+      border-radius: 20px;
+      background: #fff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .quiz-option:active { transform: scale(0.96); }
+    .quiz-option.right { border-color: #2ecc71; background: #eafff1; }
+    .quiz-option.wrong { border-color: #ff6b81; background: #fff0f2; opacity: 0.6; }
+    .quiz-icon { font-size: 3rem; line-height: 1; }
+    .quiz-result { text-align: center; }
+    .quiz-big { font-size: 3.5rem; line-height: 1.2; }
+
+    .space-caption { flex-wrap: wrap; }
+    .caption-text { flex: 1; min-width: 210px; }
+    .caption-detail { margin: 6px 0 8px; }
+    .fact-badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+
+    .fact-badge {
+      padding: 4px 10px;
+      border: 2px solid #ffc2d1;
+      border-radius: 999px;
+      background: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .map-legend { margin: 8px 0 0; font-size: 0.9rem; opacity: 0.8; }
+
+    .table-wrap { overflow-x: auto; }
+    .facts-table { width: 100%; border-collapse: collapse; }
+    .facts-table th, .facts-table td { padding: 10px 8px; text-align: left; white-space: nowrap; }
+    .facts-table thead th { border-bottom: 2px solid #ffc2d1; color: #d6336c; }
+    .fact-row { cursor: pointer; }
+    .fact-row td { border-bottom: 1px solid #ffe0e8; }
+    .fact-row:hover { background: #fff0f5; }
+    .caption-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border: 2px solid #ff8fab;
+      border-radius: 999px;
+      background: #fff;
+      color: #d6336c;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .chip:active { transform: scale(0.95); }
+    .chip.active { background: #ff8fab; color: #fff; }
+
+    .info-box {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      margin: 12px 0;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: #fff0f5;
+      font-size: 1.05rem;
+    }
+
+    .info-icon { font-size: 2.6rem; line-height: 1; }
+    .info-text { flex: 1; min-width: 200px; }
+
+    .fact-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      margin: 8px 0;
+      padding: 12px 14px;
+      border: 3px solid #ffc2d1;
+      border-radius: 18px;
+      background: #fff;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .fact-card:active { transform: scale(0.98); }
+    .fact-icon { flex: none; font-size: 2rem; line-height: 1; }
+
+    .scene svg { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; border-radius: 18px; }
+    .scene-note { min-height: 1.4em; margin: 10px 0 0; font-weight: 700; text-align: center; }
+    .big-slider { width: 100%; margin: 14px 0 4px; accent-color: #ff8fab; }
+
+    /* Lekcja 7: trzęsienia ziemi */
+    .layer { cursor: pointer; transition: filter 0.2s ease; }
+    .layer:hover { filter: brightness(1.08); }
+    .layer.active { stroke: #ff2a6d; stroke-width: 5; }
+    .core-beat { animation: core-beat 1.4s ease-in-out infinite alternate; transform-origin: 150px 150px; }
+    @keyframes core-beat { to { transform: scale(1.06); } }
+
+    .pressure { height: 22px; overflow: hidden; border-radius: 12px; background: #ffe3ec; }
+    .pressure-fill { width: 0%; height: 100%; border-radius: 12px; background: linear-gradient(90deg, #ffd60a, #ff4d4d); transition: width 0.35s ease; }
+    .pressure-label { margin: 10px 0 4px; font-weight: 700; }
+
+    .plate { transition: transform 0.4s ease; }
+    .arrow { transition: opacity 0.4s ease; }
+
+    .shake-s { animation: shake-small 0.12s linear infinite; }
+    .shake-m { animation: shake-medium 0.1s linear infinite; }
+    .shake-l { animation: shake-large 0.08s linear infinite; }
+    @keyframes shake-small { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-1px, 0); } 75% { transform: translate(1px, 0); } }
+    @keyframes shake-medium { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-3px, 1px); } 75% { transform: translate(3px, -1px); } }
+    @keyframes shake-large { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-6px, 2px); } 75% { transform: translate(6px, -2px); } }
+
+    .house { transform-box: fill-box; transform-origin: 50% 100%; }
+    .shake-s .house { animation: wobble-small 0.14s linear infinite; }
+    .shake-m .house { animation: wobble-medium 0.12s linear infinite; }
+    .shake-l .house { animation: wobble-large 0.1s linear infinite; }
+    @keyframes wobble-small { 50% { transform: rotate(1deg); } }
+    @keyframes wobble-medium { 25% { transform: rotate(-3deg); } 75% { transform: rotate(3deg); } }
+    @keyframes wobble-large { 25% { transform: rotate(-6deg); } 75% { transform: rotate(6deg); } }
+
+    .seismo { margin-top: 10px; }
+    .seismo svg { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; border-radius: 14px; }
+
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
+
+    .step-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 6px;
+      border: 3px solid #ffc2d1;
+      border-radius: 18px;
+      background: #fff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .step-card .step-emoji { font-size: 2.2rem; line-height: 1.1; }
+    .step-card.active { border-color: #2ecc71; background: #eafff1; }
+    .room-shake { animation: shake-medium 0.1s linear infinite; }
+    #figure { transition: transform 1s ease, font-size 0.6s ease; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .core-beat, .shake-s, .shake-m, .shake-l, .room-shake,
+      .shake-s .house, .shake-m .house, .shake-l .house { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Lesson 7</p>
+      <h1>Earthquakes <span>🌍</span></h1>
+      <p>What happens when the ground shakes, and how do we stay safe?</p>
+      <nav>
+        <a href="/">← Back to Ethan's Life</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="lesson-card lesson-status" id="lesson-status">
+      <span id="status-text" class="status-text"></span>
+      <button id="status-toggle" type="button" class="secondary-button"></button>
+    </div>
+
+    <section id="lesson" class="section">
+      <div class="lesson-card">
+        <h3>🥚 Inside the Earth</h3>
+        <p class="lesson-hint">The Earth has layers, like an egg! Tap a layer.</p>
+        <div id="layers-view" class="scene"></div>
+        <div id="layers-chips" class="chip-row"></div>
+        <div id="layers-info" class="info-box" aria-live="polite"></div>
+        <p id="lesson-message" class="form-message" role="status"></p>
+      </div>
+
+      <div class="lesson-card">
+        <h3>💥 What is an earthquake?</h3>
+        <p class="lesson-hint">The plates under the ground push against each other. Push them and see what happens!</p>
+        <div id="sim-view" class="scene"></div>
+        <p class="pressure-label">Pressure</p>
+        <div class="pressure"><div id="pressure-fill" class="pressure-fill"></div></div>
+        <p id="sim-text" class="scene-note" role="status"></p>
+        <div id="seismo-view" class="seismo"></div>
+        <div class="garage-actions">
+          <button id="push" type="button" class="primary-button">👉 Push the plates</button>
+          <button id="sim-explain" type="button" class="secondary-button">🔊 Tell me</button>
+          <button type="button" class="secondary-button" onclick="stopSpeaking()">⏹ Stop</button>
+        </div>
+        <p class="lesson-hint" style="margin-top:14px">Or try a shake of any size:</p>
+        <div id="sim-levels" class="chip-row">
+          <button type="button" class="chip" data-level="small">Small</button>
+          <button type="button" class="chip" data-level="medium">Medium</button>
+          <button type="button" class="chip" data-level="big">Big</button>
+        </div>
+      </div>
+
+      <div class="lesson-card">
+        <h3>🛡️ Drop, Cover and Hold on!</h3>
+        <p class="lesson-hint">This is how we stay safe in an earthquake.</p>
+        <div id="room-view" class="scene"></div>
+        <div id="dch-steps" class="steps"></div>
+        <p id="dch-text" class="scene-note" role="status">Tap a step, or press the button!</p>
+        <div class="garage-actions">
+          <button id="dch-play" type="button" class="primary-button">▶ Show me</button>
+        </div>
+        <div id="tips-list" style="margin-top:12px"></div>
+      </div>
+
+      <div class="content-heading">
+        <h3>💡 Earthquake facts</h3>
+        <p>Tap a card to hear it.</p>
+      </div>
+      <div id="facts-list"></div>
+
+      <div class="content-heading">
+        <h3>🏚️ Earthquake words</h3>
+        <p>Tap a card to hear the word.</p>
+      </div>
+      <div id="quake-words" class="words-grid"></div>
+
+      <div class="lesson-card" id="quiz-card">
+        <h3>🧠 Quiz time!</h3>
+        <p class="lesson-hint">Listen and tap the right picture. You can do it! 💪</p>
+        <div id="quiz-box" class="quiz-box">
+          <button id="quiz-start" type="button" class="primary-button">▶ Start the quiz</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>Made with lots of love for Ethan 💛🌍💥</footer>
+
+  <script>
+    function showMessage(id, message) {
+      document.getElementById(id).textContent = message;
+    }
+
+    function speak(text) {
+      if (!("speechSynthesis" in window)) {
+        showMessage("lesson-message", "Speech is not supported in this browser.");
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+
+      // Długi tekst mówimy zdanie po zdaniu, bo część przeglądarek ucina zbyt długie wypowiedzi
+      const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+
+      sentences.forEach(sentence => {
+        const part = sentence.trim();
+        if (!part) return;
+
+        const utterance = new SpeechSynthesisUtterance(part);
+        utterance.lang = "en-US";
+        utterance.rate = 0.8;
+        window.speechSynthesis.speak(utterance);
+      });
+    }
+
+    function stopSpeaking() {
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    }
+
+    // --- Postęp lekcji (zapisany na tym urządzeniu) ---
+
+    const LESSON_ID = "earthquakes";
+    const PROGRESS_KEY = "ethanLessons";
+
+    function readProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(PROGRESS_KEY) || "{}") || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function setProgress(update) {
+      const all = readProgress();
+      all[LESSON_ID] = { ...(all[LESSON_ID] || {}), ...update };
+
+      try {
+        localStorage.setItem(PROGRESS_KEY, JSON.stringify(all));
+      } catch {}
+    }
+
+    const statusCard = document.getElementById("lesson-status");
+    const statusText = document.getElementById("status-text");
+    const statusToggle = document.getElementById("status-toggle");
+
+    function renderStatus() {
+      const progress = readProgress()[LESSON_ID] || {};
+      const done = Boolean(progress.done);
+
+      statusText.textContent = done
+        ? "✅ Lesson done! " + "⭐".repeat(Math.min(progress.stars || 0, 3))
+        : "🔲 Not done yet";
+      statusToggle.textContent = done ? "↩ Mark as not done" : "✅ Mark as done";
+      statusCard.classList.toggle("done", done);
+    }
+
+    statusToggle.addEventListener("click", () => {
+      const progress = readProgress()[LESSON_ID] || {};
+      setProgress({ done: !progress.done });
+      renderStatus();
+    });
+
+    renderStatus();
+
+    // --- Lekcja 7: trzęsienia ziemi ---
+
+    const $ = id => document.getElementById(id);
+
+    function buttonsFor(speakText) {
+      const buttons = document.createElement("div");
+      buttons.className = "caption-buttons";
+
+      const again = document.createElement("button");
+      again.type = "button";
+      again.className = "secondary-button";
+      again.textContent = "🔊 Tell me again";
+      again.addEventListener("click", () => speak(speakText));
+
+      const stop = document.createElement("button");
+      stop.type = "button";
+      stop.className = "secondary-button";
+      stop.textContent = "⏹ Stop";
+      stop.addEventListener("click", stopSpeaking);
+
+      buttons.append(again, stop);
+      return buttons;
+    }
+
+    function fillInfo(box, icon, title, lines, speakText) {
+      box.replaceChildren();
+
+      const iconEl = document.createElement("span");
+      iconEl.className = "info-icon";
+      iconEl.textContent = icon;
+
+      const text = document.createElement("div");
+      text.className = "info-text";
+
+      const titleEl = document.createElement("strong");
+      titleEl.textContent = title;
+      text.appendChild(titleEl);
+
+      lines.forEach(line => {
+        const div = document.createElement("div");
+        div.textContent = line;
+        text.appendChild(div);
+      });
+
+      text.appendChild(buttonsFor(speakText));
+      box.append(iconEl, text);
+    }
+
+    // --- Wnętrze Ziemi ---
+
+    const LAYERS = {
+      crust: { name: "Crust", icon: "🥚", color: "#6b8e4e", r: 140,
+        say: "The crust is the hard skin of the Earth. We live on it. It is thin, like the shell of an egg." },
+      mantle: { name: "Mantle", icon: "🟠", color: "#e8773a", r: 128,
+        say: "The mantle is hot rock. It moves very, very slowly. It is very thick." },
+      outer: { name: "Outer core", icon: "🟡", color: "#ffb703", r: 84,
+        say: "The outer core is hot liquid metal." },
+      inner: { name: "Inner core", icon: "🔥", color: "#ffe08a", r: 44,
+        say: "The inner core is a ball of metal in the middle of the Earth. It is as hot as the surface of the Sun." }
+    };
+
+    $("layers-view").innerHTML = `<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The layers inside the Earth" style="max-width:320px">
+      ${Object.entries(LAYERS).map(([key, l]) =>
+        `<circle class="layer${key === "inner" ? " core-beat" : ""}" data-key="${key}" cx="150" cy="150" r="${l.r}" fill="${l.color}" stroke="#fff" stroke-width="2"/>`).join("")}
+    </svg>`;
+
+    function showLayer(key) {
+      const layer = LAYERS[key];
+
+      $("layers-view").querySelectorAll(".layer").forEach(el => el.classList.toggle("active", el.dataset.key === key));
+      $("layers-chips").querySelectorAll(".chip").forEach(chip => chip.classList.toggle("active", chip.dataset.key === key));
+
+      fillInfo($("layers-info"), layer.icon, layer.name, [layer.say], layer.name + ". " + layer.say);
+      speak(layer.name + ". " + layer.say);
+    }
+
+    Object.entries(LAYERS).forEach(([key, layer]) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip";
+      chip.dataset.key = key;
+      chip.textContent = layer.icon + " " + layer.name;
+      chip.addEventListener("click", () => showLayer(key));
+      $("layers-chips").appendChild(chip);
+    });
+
+    $("layers-view").querySelectorAll(".layer").forEach(el => {
+      el.addEventListener("click", () => showLayer(el.dataset.key));
+    });
+
+    $("layers-info").textContent = "Tap a layer of the Earth! 👆 The Earth is like an egg.";
+
+    // --- Płyty i trzęsienie ---
+
+    $("sim-view").innerHTML = `<svg viewBox="0 0 400 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two plates push together, then slip and the ground shakes">
+      <rect width="400" height="250" fill="#bfe9ff"/>
+      <g id="sim-world">
+        <g id="plate-l" class="plate">
+          <rect x="-20" y="130" width="218" height="130" fill="#9c6b3f"/>
+          <rect x="-20" y="130" width="218" height="12" fill="#5fbf4f"/>
+          <text class="house" x="40" y="128" font-size="34">🏠</text>
+          <text class="house" x="100" y="128" font-size="34">🌳</text>
+          <text class="house" x="150" y="128" font-size="34">🏢</text>
+          <text class="arrow" id="arrow-up" x="99" y="205" font-size="36" opacity="0">⬆️</text>
+        </g>
+        <g id="plate-r" class="plate">
+          <rect x="202" y="130" width="218" height="130" fill="#8a5a33"/>
+          <rect x="202" y="130" width="218" height="12" fill="#5fbf4f"/>
+          <text class="house" x="220" y="128" font-size="34">🏫</text>
+          <text class="house" x="280" y="128" font-size="34">🏠</text>
+          <text class="house" x="335" y="128" font-size="34">🌳</text>
+          <text class="arrow" id="arrow-down" x="285" y="205" font-size="36" opacity="0">⬇️</text>
+        </g>
+      </g>
+    </svg>`;
+
+    $("seismo-view").innerHTML = `<svg viewBox="0 0 400 70" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A seismograph line">
+      <rect width="400" height="70" fill="#fffdf2"/>
+      <path d="M0 35H400" stroke="#e8dfc0" stroke-width="1"/><path d="M0 12H400M0 58H400" stroke="#f1ead0" stroke-width="1"/>
+      <path id="seis-line" d="M0 35 L400 35" fill="none" stroke="#d6336c" stroke-width="2" stroke-linejoin="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"/>
+      <text x="6" y="14" font-size="11" fill="#8d8d99">📈 seismograph</text>
+    </svg>`;
+
+    const PRESSURE_TEXT = {
+      0: "The plates are stuck together. Push them!",
+      20: "The plates push... but they are stuck!",
+      40: "They push and push...",
+      60: "Pushing harder and harder...",
+      80: "Almost... 😮"
+    };
+
+    let pressure = 0;
+    let quaking = false;
+
+    function setPressure(p) {
+      pressure = p;
+      $("pressure-fill").style.width = p + "%";
+      $("plate-l").style.transform = "translateY(" + (-p * 0.05) + "px)";
+      $("plate-r").style.transform = "translateY(" + (p * 0.05) + "px)";
+      $("arrow-up").setAttribute("opacity", p ? 0.4 + p / 170 : 0);
+      $("arrow-down").setAttribute("opacity", p ? 0.4 + p / 170 : 0);
+      $("sim-text").textContent = PRESSURE_TEXT[p] || PRESSURE_TEXT[0];
+    }
+
+    function drawSeismograph(amplitude) {
+      const points = [];
+      const n = 140;
+
+      for (let i = 0; i <= n; i++) {
+        const envelope = i < 14 ? 0.03 : i < 34 ? (i - 14) / 20 : Math.exp(-(i - 34) / 42);
+        const y = 35 + envelope * amplitude * (Math.random() * 2 - 1);
+        points.push((i * 400 / n).toFixed(1) + " " + y.toFixed(1));
+      }
+
+      const line = $("seis-line");
+      line.setAttribute("d", "M" + points.join(" L"));
+
+      if (line.animate) {
+        line.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: 2400, easing: "linear" });
+      }
+    }
+
+    const QUAKES = {
+      small: { cls: "shake-s", ms: 1600, amplitude: 9, text: "A small earthquake. We may not even feel it." },
+      medium: { cls: "shake-m", ms: 2400, amplitude: 22, text: "A medium earthquake. The ground shakes!" },
+      big: { cls: "shake-l", ms: 3200, amplitude: 33, text: "A big earthquake. The ground shakes a lot, so we stay safe!" }
+    };
+
+    function quake(level) {
+      if (quaking) return;
+      quaking = true;
+      $("push").disabled = true;
+
+      const q = QUAKES[level];
+      const world = $("sim-world");
+
+      $("plate-l").style.transform = "translateY(-12px)";
+      $("plate-r").style.transform = "translateY(12px)";
+      $("pressure-fill").style.width = "0%";
+      $("sim-text").textContent = "💥 Earthquake! " + q.text;
+      speak("Earthquake! The plates slipped, and the ground shakes! " + q.text);
+
+      world.classList.add(q.cls);
+      drawSeismograph(q.amplitude);
+
+      setTimeout(() => {
+        world.classList.remove(q.cls);
+        pressure = 0;
+        setPressure(0);
+        $("sim-text").textContent = "The ground is still again. The plates start to push again, very slowly.";
+        $("push").disabled = false;
+        quaking = false;
+      }, q.ms + 400);
+    }
+
+    $("push").addEventListener("click", () => {
+      if (quaking) return;
+      const next = pressure + 20;
+
+      if (next >= 100) {
+        quake("medium");
+        return;
+      }
+
+      setPressure(next);
+      if (next === 20) speak("The plates push, but they are stuck. Keep pushing!");
+    });
+
+    document.querySelectorAll("#sim-levels [data-level]").forEach(button => {
+      button.addEventListener("click", () => quake(button.dataset.level));
+    });
+
+    $("sim-explain").addEventListener("click", () => speak(
+      "The Earth's crust is made of big plates. The plates move very slowly, and they push against each other. Sometimes they get stuck. When they finally slip, the ground shakes. That is an earthquake!"));
+
+    setPressure(0);
+
+    // --- Padnij, osłoń się, trzymaj się ---
+
+    const DCH = [
+      { word: "Drop", emoji: "🧎", say: "Drop! Get down on your hands and knees." },
+      { word: "Cover", emoji: "🛡️", say: "Cover! Get under a strong table and cover your head." },
+      { word: "Hold on", emoji: "🤝", say: "Hold on! Hold the table leg until the shaking stops." }
+    ];
+
+    $("room-view").innerHTML = `<svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Drop, cover and hold on under a table">
+      <g id="room">
+        <rect width="400" height="220" fill="#fdf1dc"/>
+        <rect y="182" width="400" height="38" fill="#d9b382"/>
+        <text x="320" y="130" font-size="46">🪟</text>
+        <rect x="130" y="122" width="140" height="12" rx="3" fill="#8a5a33"/>
+        <rect x="138" y="134" width="8" height="48" fill="#8a5a33"/>
+        <rect x="254" y="134" width="8" height="48" fill="#8a5a33"/>
+        <text id="figure" x="60" y="182" font-size="58" text-anchor="middle">🧍</text>
+        <text id="grip" x="150" y="176" font-size="22" opacity="0">✊</text>
+      </g>
+    </svg>`;
+
+    const figure = $("figure");
+    const stepButtons = [];
+
+    function showStep(index) {
+      const step = DCH[index];
+      stepButtons.forEach((b, i) => b.classList.toggle("active", i === index));
+
+      if (index === 0) {
+        figure.textContent = "🧎";
+        figure.style.transform = "translateX(0)";
+        figure.style.fontSize = "52px";
+        $("grip").setAttribute("opacity", 0);
+        $("room").classList.remove("room-shake");
+      } else {
+        figure.textContent = "🧎";
+        figure.style.fontSize = "44px";
+        figure.style.transform = "translateX(140px)";
+        $("room").classList.add("room-shake");
+        $("grip").setAttribute("opacity", index === 2 ? 1 : 0);
+      }
+
+      $("dch-text").textContent = step.say;
+      speak(step.say);
+    }
+
+    DCH.forEach((step, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "step-card";
+      button.innerHTML = `<span class="step-emoji">${step.emoji}</span><span>${index + 1}. ${step.word}</span>`;
+      button.addEventListener("click", () => showStep(index));
+      $("dch-steps").appendChild(button);
+      stepButtons.push(button);
+    });
+
+    $("dch-play").addEventListener("click", () => {
+      figure.textContent = "🧍";
+      figure.style.transform = "translateX(0)";
+      figure.style.fontSize = "58px";
+      $("grip").setAttribute("opacity", 0);
+      $("room").classList.remove("room-shake");
+      stepButtons.forEach(b => b.classList.remove("active"));
+      $("dch-text").textContent = "An earthquake! Drop, Cover and Hold on!";
+      speak("An earthquake! Drop, cover, and hold on!");
+
+      setTimeout(() => showStep(0), 2600);
+      setTimeout(() => showStep(1), 6200);
+      setTimeout(() => showStep(2), 10200);
+      setTimeout(() => {
+        $("room").classList.remove("room-shake");
+        $("dch-text").textContent = "The shaking stopped. We listen to the grown-ups. Well done! 🎉";
+        speak("The shaking stopped. We listen to the grown-ups. Well done!");
+      }, 14800);
+    });
+
+    const TIPS = [
+      ["🪟", "Stay away from windows."],
+      ["🌳", "If you are outside, go to an open place, away from buildings."],
+      ["🧑‍🚒", "When the shaking stops, listen to the grown-ups."]
+    ];
+
+    function addFactCards(list, items) {
+      items.forEach(([icon, text]) => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "fact-card";
+
+        const iconEl = document.createElement("span");
+        iconEl.className = "fact-icon";
+        iconEl.textContent = icon;
+
+        const textEl = document.createElement("span");
+        textEl.textContent = text;
+
+        card.append(iconEl, textEl);
+        card.addEventListener("click", () => speak(text));
+        list.appendChild(card);
+      });
+    }
+
+    addFactCards($("tips-list"), TIPS);
+
+    // --- Ciekawostki ---
+
+    addFactCards($("facts-list"), [
+      ["📅", "Earthquakes happen every day, but most are so small that we cannot feel them."],
+      ["📈", "Scientists use a machine called a seismograph to measure earthquakes."],
+      ["🌊", "An earthquake under the sea can make a very big wave called a tsunami."],
+      ["🌋", "Earthquakes and volcanoes often happen in the same places, where plates meet."],
+      ["🐌", "The plates move very, very slowly, about as fast as your fingernails grow."]
+    ]);
+
+    // --- Słowa ---
+
+    const WORDS = [
+      ["🏚️", "Earthquake"], ["📳", "Shake"], ["🧱", "Plate"], ["🥚", "Crust"],
+      ["🔥", "Core"], ["🌊", "Wave"], ["🛡️", "Safe"], ["🧑‍🚒", "Helper"]
+    ];
+
+    WORDS.forEach(([emoji, word]) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "word-card";
+      card.setAttribute("aria-label", "Hear " + word);
+
+      const icon = document.createElement("span");
+      icon.className = "word-emoji";
+      icon.textContent = emoji;
+
+      const name = document.createElement("span");
+      name.className = "word-english";
+      name.textContent = word;
+
+      const hint = document.createElement("span");
+      hint.className = "word-hint";
+      hint.textContent = "Tap to listen 🔊";
+
+      card.append(icon, name, hint);
+      card.addEventListener("click", () => speak(word));
+      $("quake-words").appendChild(card);
+    });
+
+    // --- Pytania do quizu ---
+
+    const QUIZ_LENGTH = 5;
+    const QUIZ_POOL = [
+      { say: "Drop, cover, and what?", options: [
+        { icon: "🤝", label: "Hold on", correct: true }, { icon: "🏃", label: "Run" }, { icon: "🛏️", label: "Sleep" }] },
+      { say: "Where do we hide in an earthquake?", options: [
+        { icon: "🛡️", label: "Under a table", correct: true }, { icon: "🪟", label: "By the window" }, { icon: "🏃", label: "Run outside" }] },
+      { say: "Which layer is like the shell of an egg?", options: [
+        { dot: LAYERS.crust.color, size: 46, label: "Crust", correct: true },
+        { dot: LAYERS.mantle.color, size: 46, label: "Mantle" },
+        { dot: LAYERS.inner.color, size: 46, label: "Core" }] },
+      { say: "Which part of the Earth is in the very middle and very hot?", options: [
+        { dot: LAYERS.inner.color, size: 46, label: "Core", correct: true },
+        { dot: LAYERS.crust.color, size: 46, label: "Crust" },
+        { dot: LAYERS.mantle.color, size: 46, label: "Mantle" }] },
+      { say: "What moves very slowly under our feet?", options: [
+        { icon: "🧱", label: "Plates", correct: true }, { icon: "🚗", label: "Car" }, { icon: "🚲", label: "Bike" }] },
+      { say: "What machine measures earthquakes?", options: [
+        { icon: "📈", label: "Seismograph", correct: true }, { icon: "🌡️", label: "Thermometer" }, { icon: "⏱️", label: "Clock" }] },
+      { say: "A big earthquake under the sea can make a very big wave. What is it called?", options: [
+        { icon: "🌊", label: "Tsunami", correct: true }, { icon: "🌧️", label: "Rain" }, { icon: "💨", label: "Wind" }] },
+      { say: "Is it safe to stand near a window in an earthquake?", options: [
+        { icon: "❌", label: "No", correct: true }, { icon: "✅", label: "Yes" }] },
+      { say: "How do the plates move?", options: [
+        { icon: "🐌", label: "Slowly", correct: true }, { icon: "🚀", label: "Fast" }] },
+      { say: "The shaking stops. What do we do?", options: [
+        { icon: "🧑‍🚒", label: "Listen to the grown-ups", correct: true }, { icon: "🏃", label: "Run away alone" }] },
+      { say: "The inner core is as hot as the...", options: [
+        { icon: "☀️", label: "Sun", correct: true }, { icon: "❄️", label: "Ice" }, { icon: "🌊", label: "Sea" }] },
+      { say: "What do we call the shaking of the ground?", options: [
+        { icon: "🏚️", label: "Earthquake", correct: true }, { icon: "🌪️", label: "Storm" }, { icon: "🌊", label: "Wave" }] }
+    ];
+
+    const quizBox = document.getElementById("quiz-box");
+    let quiz = null;
+
+    function shuffle(list) {
+      const copy = [...list];
+
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+
+      return copy;
+    }
+
+    function optionButton(option, onPick) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "quiz-option";
+
+      const icon = document.createElement("span");
+      icon.className = "quiz-icon";
+
+      if (option.dot) {
+        icon.classList.add("dot");
+        icon.style.background = option.dot;
+        icon.style.width = icon.style.height = option.size + "px";
+      } else {
+        icon.textContent = option.icon;
+      }
+
+      const label = document.createElement("span");
+      label.textContent = option.label;
+
+      button.append(icon, label);
+      button.addEventListener("click", () => onPick(button));
+      return button;
+    }
+
+    function startQuiz() {
+      quiz = {
+        questions: shuffle(QUIZ_POOL).slice(0, QUIZ_LENGTH),
+        index: 0,
+        firstTry: 0,
+        missed: false,
+        locked: false
+      };
+
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const question = quiz.questions[quiz.index];
+      quiz.missed = false;
+      quiz.locked = false;
+
+      const head = document.createElement("div");
+      head.className = "quiz-head";
+
+      const counter = document.createElement("span");
+      counter.textContent = "Question " + (quiz.index + 1) + " of " + quiz.questions.length;
+
+      const replay = document.createElement("button");
+      replay.type = "button";
+      replay.className = "secondary-button";
+      replay.textContent = "🔊 Listen again";
+      replay.addEventListener("click", () => speak(question.say));
+
+      head.append(counter, replay);
+
+      const options = document.createElement("div");
+      options.className = "quiz-options";
+
+      const feedback = document.createElement("p");
+      feedback.id = "quiz-feedback";
+      feedback.className = "form-message";
+      feedback.setAttribute("role", "status");
+
+      shuffle(question.options).forEach(option => {
+        options.appendChild(optionButton(option, button => answer(option, button, question, feedback)));
+      });
+
+      quizBox.replaceChildren(head, options, feedback);
+      speak(question.say);
+    }
+
+    function answer(option, button, question, feedback) {
+      if (quiz.locked) return;
+
+      if (option.correct) {
+        quiz.locked = true;
+        if (!quiz.missed) quiz.firstTry++;
+
+        button.classList.add("right");
+        feedback.textContent = "🎉 Yes!";
+        speak("Yes! Great job!");
+
+        setTimeout(() => {
+          quiz.index++;
+
+          if (quiz.index < quiz.questions.length) showQuestion();
+          else finishQuiz();
+        }, 1500);
+
+        return;
+      }
+
+      quiz.missed = true;
+      button.classList.add("wrong");
+      button.disabled = true;
+      feedback.textContent = "Try again! 💫";
+      speak("Try again. " + question.say);
+    }
+
+    function finishQuiz() {
+      const total = quiz.questions.length;
+      const stars = quiz.firstTry >= total - 1 ? 3 : quiz.firstTry >= total - 2 ? 2 : 1;
+      const best = Math.max((readProgress()[LESSON_ID] || {}).stars || 0, stars);
+
+      setProgress({ done: true, stars: best });
+      renderStatus();
+
+      const result = document.createElement("div");
+      result.className = "quiz-result";
+
+      const big = document.createElement("div");
+      big.className = "quiz-big";
+      big.textContent = "🏆";
+
+      const title = document.createElement("h3");
+      title.textContent = "You did it! " + "⭐".repeat(stars);
+
+      const score = document.createElement("p");
+      score.textContent = quiz.firstTry + " of " + total + " right on the first try";
+
+      const again = document.createElement("button");
+      again.type = "button";
+      again.className = "primary-button";
+      again.textContent = "🔁 Play again";
+      again.addEventListener("click", startQuiz);
+
+      result.append(big, title, score, again);
+      quizBox.replaceChildren(result);
+      speak("Wow! You did it! Great job!");
+    }
+
+    document.getElementById("quiz-start").addEventListener("click", startQuiz);
+  </script>
+</body>
+</html>
