@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff5f8">
+  <title>Lesson 9: Busy Bees 🐝 - Ethan's Life</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+  <style>
+    /* Strona nigdy nie przesuwa się na boki (żeby po prawej nie było białego tła) */
+    html, body { max-width: 100%; overflow-x: hidden; }
+    @supports (overflow: clip) { html, body { overflow-x: clip; } }
+    img, svg, video, canvas { max-width: 100%; }
+    input, select, textarea, button { max-width: 100%; box-sizing: border-box; }
+    emoji-picker { width: 100%; max-width: 100%; }
+    .picker-panel { max-width: 100%; overflow-x: auto; }
+
+    [hidden] { display: none !important; }
+
+    .garage-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
+    /* Lekcje */
+    .lesson-card {
+      margin: 16px 0;
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 8px 24px rgba(255, 143, 171, 0.25);
+    }
+
+    .lesson-card h3 { margin-top: 0; }
+    .lesson-hint { margin-top: -6px; opacity: 0.8; }
+
+    .space-map svg, .mini-svg { display: block; width: 100%; height: auto; }
+    .space-map { max-width: 460px; margin: 0 auto; }
+
+    .orbit, .moon-orbit, .spin {
+      animation-name: lesson-spin;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+
+    .orbit { transform-origin: 210px 210px; }
+    .body { cursor: pointer; }
+
+    @keyframes lesson-spin { to { transform: rotate(360deg); } }
+
+    .space-caption {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      margin: 12px 0;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: #fff0f5;
+      font-size: 1.05rem;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      box-shadow: inset -3px -3px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    .dot-big { width: 44px; height: 44px; flex: none; }
+
+    .planet-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+
+    .planet-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border: 2px solid #ff8fab;
+      border-radius: 999px;
+      background: #fff;
+      color: #d6336c;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .planet-chip:active { transform: scale(0.95); }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .orbit, .moon-orbit, .spin { animation: none; }
+    }
+
+    .lesson-status {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .lesson-status.done { border: 3px solid #2ecc71; }
+    .status-text { font-size: 1.15rem; font-weight: 700; }
+
+    .quiz-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .quiz-options { display: flex; flex-wrap: wrap; gap: 12px; }
+
+    .quiz-option {
+      flex: 1 1 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      min-height: 120px;
+      padding: 12px;
+      border: 3px solid #ffc2d1;
+      border-radius: 20px;
+      background: #fff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .quiz-option:active { transform: scale(0.96); }
+    .quiz-option.right { border-color: #2ecc71; background: #eafff1; }
+    .quiz-option.wrong { border-color: #ff6b81; background: #fff0f2; opacity: 0.6; }
+    .quiz-icon { font-size: 3rem; line-height: 1; }
+    .quiz-result { text-align: center; }
+    .quiz-big { font-size: 3.5rem; line-height: 1.2; }
+
+    .space-caption { flex-wrap: wrap; }
+    .caption-text { flex: 1; min-width: 210px; }
+    .caption-detail { margin: 6px 0 8px; }
+    .fact-badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+
+    .fact-badge {
+      padding: 4px 10px;
+      border: 2px solid #ffc2d1;
+      border-radius: 999px;
+      background: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .map-legend { margin: 8px 0 0; font-size: 0.9rem; opacity: 0.8; }
+
+    .table-wrap { overflow-x: auto; }
+    .facts-table { width: 100%; border-collapse: collapse; }
+    .facts-table th, .facts-table td { padding: 10px 8px; text-align: left; white-space: nowrap; }
+    .facts-table thead th { border-bottom: 2px solid #ffc2d1; color: #d6336c; }
+    .fact-row { cursor: pointer; }
+    .fact-row td { border-bottom: 1px solid #ffe0e8; }
+    .fact-row:hover { background: #fff0f5; }
+    .caption-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border: 2px solid #ff8fab;
+      border-radius: 999px;
+      background: #fff;
+      color: #d6336c;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .chip:active { transform: scale(0.95); }
+    .chip.active { background: #ff8fab; color: #fff; }
+
+    .info-box {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      margin: 12px 0;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: #fff0f5;
+      font-size: 1.05rem;
+    }
+
+    .info-icon { font-size: 2.6rem; line-height: 1; }
+    .info-text { flex: 1; min-width: 200px; }
+
+    .fact-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      margin: 8px 0;
+      padding: 12px 14px;
+      border: 3px solid #ffc2d1;
+      border-radius: 18px;
+      background: #fff;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .fact-card:active { transform: scale(0.98); }
+    .fact-icon { flex: none; font-size: 2rem; line-height: 1; }
+
+    .scene svg { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; border-radius: 18px; }
+    .scene-note { min-height: 1.4em; margin: 10px 0 0; font-weight: 700; text-align: center; }
+    .big-slider { width: 100%; margin: 14px 0 4px; accent-color: #ff8fab; }
+
+
+    /* Lekcja 9: pszczoły */
+    .bee-part { cursor: pointer; }
+    .bee-part.active { filter: drop-shadow(0 0 4px #ff2a6d) drop-shadow(0 0 6px #ff2a6d); }
+    .bee-bob { animation: bee-bob 2.2s ease-in-out infinite alternate; }
+    @keyframes bee-bob { to { transform: translateY(-8px); } }
+    .wing { transform-box: fill-box; transform-origin: 50% 100%; animation: wing-flap 0.18s ease-in-out infinite alternate; }
+    @keyframes wing-flap { to { transform: rotate(-16deg); } }
+
+    #trip-bee { transition: transform 1.6s ease-in-out; }
+    .trip-item { transition: opacity 0.5s ease; }
+
+    .step-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+
+    .hex { cursor: pointer; transition: filter 0.2s ease; }
+    .hex:hover { filter: brightness(1.08); }
+    .hex.active { stroke: #d6336c; stroke-width: 4; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .bee-bob, .wing { animation: none; }
+      #trip-bee { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Lesson 9</p>
+      <h1>Busy Bees <span>🐝</span></h1>
+      <p>Meet the bee, follow it to the flowers and learn how it makes honey!</p>
+      <nav>
+        <a href="/">← Back to Ethan's Life</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="lesson-card lesson-status" id="lesson-status">
+      <span id="status-text" class="status-text"></span>
+      <button id="status-toggle" type="button" class="secondary-button"></button>
+    </div>
+
+    <section id="lesson" class="section">
+      <div class="lesson-card">
+        <h3>🐝 Meet the bee</h3>
+        <p class="lesson-hint">Tap a part of the bee to hear what it is and what it does!</p>
+        <div id="bee-view" class="scene"></div>
+        <div id="bee-chips" class="chip-row"></div>
+        <div id="bee-info" class="info-box" aria-live="polite"></div>
+        <p id="lesson-message" class="form-message" role="status"></p>
+      </div>
+
+      <div class="lesson-card">
+        <h3>🌻 A day in the life of a bee</h3>
+        <p class="lesson-hint">Follow the bee from the hive to the flowers and back home!</p>
+        <div id="trip-view" class="scene"></div>
+        <div id="trip-steps" class="step-row"></div>
+        <p id="trip-text" class="scene-note" role="status"></p>
+        <div class="garage-actions">
+          <button id="trip-play" type="button" class="primary-button">▶ Follow the bee</button>
+          <button type="button" class="secondary-button" onclick="stopSpeaking()">⏹ Stop</button>
+        </div>
+      </div>
+
+      <div class="lesson-card">
+        <h3>🍯 Inside the hive</h3>
+        <p class="lesson-hint">Bees build little rooms called cells, made of wax. Tap a cell!</p>
+        <div id="comb-view" class="scene"></div>
+        <p id="comb-text" class="scene-note" role="status"></p>
+        <div id="family-list"></div>
+      </div>
+
+      <div class="lesson-card">
+        <h3>💃 The waggle dance</h3>
+        <p class="lesson-hint">A bee dances in the hive to show its friends where the flowers are.</p>
+        <div id="dance-view" class="scene"></div>
+        <div class="garage-actions">
+          <button id="dance-btn" type="button" class="primary-button">💃 Make the bee dance</button>
+        </div>
+      </div>
+
+      <div class="content-heading">
+        <h3>💡 Bee facts</h3>
+        <p>Tap a card to hear it.</p>
+      </div>
+      <div id="facts-list"></div>
+
+      <div class="content-heading">
+        <h3>💛 Let's help the bees</h3>
+        <p>Tap a card to hear it.</p>
+      </div>
+      <div id="help-list"></div>
+
+      <div class="content-heading">
+        <h3>🌼 Bee words</h3>
+        <p>Tap a card to hear the word.</p>
+      </div>
+      <div id="bee-words" class="words-grid"></div>
+
+      <div class="lesson-card" id="quiz-card">
+        <h3>🧠 Quiz time!</h3>
+        <p class="lesson-hint">Listen and tap the right picture. You can do it! 💪</p>
+        <div id="quiz-box" class="quiz-box">
+          <button id="quiz-start" type="button" class="primary-button">▶ Start the quiz</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>Made with lots of love for Ethan 💛🐝🍯</footer>
+
+  <script>
+    function showMessage(id, message) {
+      document.getElementById(id).textContent = message;
+    }
+
+    function speak(text) {
+      if (!("speechSynthesis" in window)) {
+        showMessage("lesson-message", "Speech is not supported in this browser.");
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+
+      // Długi tekst mówimy zdanie po zdaniu, bo część przeglądarek ucina zbyt długie wypowiedzi
+      const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+
+      sentences.forEach(sentence => {
+        const part = sentence.trim();
+        if (!part) return;
+
+        const utterance = new SpeechSynthesisUtterance(part);
+        utterance.lang = "en-US";
+        utterance.rate = 0.8;
+        window.speechSynthesis.speak(utterance);
+      });
+    }
+
+    function stopSpeaking() {
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    }
+
+    // --- Postęp lekcji (zapisany na tym urządzeniu) ---
+
+    const LESSON_ID = "bees";
+    const PROGRESS_KEY = "ethanLessons";
+
+    function readProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(PROGRESS_KEY) || "{}") || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function setProgress(update) {
+      const all = readProgress();
+      all[LESSON_ID] = { ...(all[LESSON_ID] || {}), ...update };
+
+      try {
+        localStorage.setItem(PROGRESS_KEY, JSON.stringify(all));
+      } catch {}
+    }
+
+    const statusCard = document.getElementById("lesson-status");
+    const statusText = document.getElementById("status-text");
+    const statusToggle = document.getElementById("status-toggle");
+
+    function renderStatus() {
+      const progress = readProgress()[LESSON_ID] || {};
+      const done = Boolean(progress.done);
+
+      statusText.textContent = done
+        ? "✅ Lesson done! " + "⭐".repeat(Math.min(progress.stars || 0, 3))
+        : "🔲 Not done yet";
+      statusToggle.textContent = done ? "↩ Mark as not done" : "✅ Mark as done";
+      statusCard.classList.toggle("done", done);
+    }
+
+    statusToggle.addEventListener("click", () => {
+      const progress = readProgress()[LESSON_ID] || {};
+      setProgress({ done: !progress.done });
+      renderStatus();
+    });
+
+    renderStatus();
+
+    // --- Lekcja 9: pszczoły ---
+
+    const $ = id => document.getElementById(id);
+
+    function buttonsFor(speakText) {
+      const buttons = document.createElement("div");
+      buttons.className = "caption-buttons";
+
+      const again = document.createElement("button");
+      again.type = "button";
+      again.className = "secondary-button";
+      again.textContent = "🔊 Tell me again";
+      again.addEventListener("click", () => speak(speakText));
+
+      const stop = document.createElement("button");
+      stop.type = "button";
+      stop.className = "secondary-button";
+      stop.textContent = "⏹ Stop";
+      stop.addEventListener("click", stopSpeaking);
+
+      buttons.append(again, stop);
+      return buttons;
+    }
+
+    function fillInfo(box, icon, title, lines, speakText) {
+      box.replaceChildren();
+
+      const iconEl = document.createElement("span");
+      iconEl.className = "info-icon";
+      iconEl.textContent = icon;
+
+      const text = document.createElement("div");
+      text.className = "info-text";
+
+      const titleEl = document.createElement("strong");
+      titleEl.textContent = title;
+      text.appendChild(titleEl);
+
+      lines.forEach(line => {
+        const div = document.createElement("div");
+        div.textContent = line;
+        text.appendChild(div);
+      });
+
+      text.appendChild(buttonsFor(speakText));
+      box.append(iconEl, text);
+    }
+
+    function addFactCards(list, items) {
+      items.forEach(([icon, text]) => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "fact-card";
+
+        const iconEl = document.createElement("span");
+        iconEl.className = "fact-icon";
+        iconEl.textContent = icon;
+
+        const textEl = document.createElement("span");
+        textEl.textContent = text;
+
+        card.append(iconEl, textEl);
+        card.addEventListener("click", () => speak(text));
+        list.appendChild(card);
+      });
+    }
+
+    // --- Poznaj pszczołę ---
+
+    const PARTS = {
+      antennae: { name: "Antennae", icon: "📡", say: "A bee has two antennae. It uses them to smell and to feel.",
+        fun: "Bees can smell flowers from far away." },
+      eyes: { name: "Eyes", icon: "👀", say: "A bee has big eyes. It sees flowers very well.",
+        fun: "A bee has five eyes!" },
+      wings: { name: "Wings", icon: "🪽", say: "A bee has four wings. They help it fly.",
+        fun: "A bee flaps its wings about two hundred times every second!" },
+      body: { name: "Body", icon: "🐝", say: "The body of a bee is yellow and black, and fuzzy.",
+        fun: "Pollen sticks to the fuzzy hairs." },
+      legs: { name: "Legs", icon: "🦵", say: "A bee has six legs.",
+        fun: "Bees carry pollen on their back legs, in little pollen baskets." },
+      stinger: { name: "Stinger", icon: "📍", say: "The stinger is at the back of the bee. A bee only stings when it is scared.",
+        fun: "So we stay calm and walk away slowly." }
+    };
+
+    $("bee-view").innerHTML = `<svg viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A bee">
+      <defs><clipPath id="body-clip"><ellipse cx="200" cy="140" rx="86" ry="56"/></clipPath></defs>
+      <rect width="400" height="260" rx="18" fill="#d9f2ff"/>
+      <rect y="222" width="400" height="38" fill="#7bd36b"/>
+      <text x="26" y="246" font-size="30">🌼</text><text x="334" y="250" font-size="34">🌷</text>
+      <g class="bee-bob">
+        <g class="bee-part" data-part="wings">
+          <ellipse class="wing" cx="180" cy="72" rx="26" ry="50" fill="#e4f6ff" stroke="#9ccfe8" stroke-width="3" opacity=".9" transform="rotate(-24 180 72)"/>
+          <ellipse class="wing" cx="225" cy="70" rx="24" ry="46" fill="#e4f6ff" stroke="#9ccfe8" stroke-width="3" opacity=".9" transform="rotate(10 225 70)"/>
+        </g>
+        <g class="bee-part" data-part="legs">
+          <path d="M165 188 L150 222 M200 192 L196 226 M236 188 L246 222" stroke="#222" stroke-width="6" stroke-linecap="round" fill="none"/>
+          <circle cx="150" cy="214" r="9" fill="#ff9f1c"/><circle cx="246" cy="214" r="9" fill="#ff9f1c"/>
+          <rect x="140" y="190" width="120" height="40" fill="transparent"/>
+        </g>
+        <g class="bee-part" data-part="stinger">
+          <polygon points="118,140 80,148 118,156" fill="#222"/>
+          <rect x="70" y="130" width="56" height="34" fill="transparent"/>
+        </g>
+        <g class="bee-part" data-part="body">
+          <ellipse cx="200" cy="140" rx="86" ry="56" fill="#ffd60a"/>
+          <g clip-path="url(#body-clip)"><rect x="152" y="80" width="22" height="120" fill="#222"/><rect x="198" y="80" width="24" height="120" fill="#222"/><rect x="246" y="80" width="22" height="120" fill="#222"/></g>
+        </g>
+        <g>
+          <circle cx="296" cy="134" r="40" fill="#222"/>
+        </g>
+        <g class="bee-part" data-part="eyes">
+          <circle cx="306" cy="122" r="13" fill="#fff"/><circle cx="310" cy="122" r="6" fill="#222"/>
+          <circle cx="284" cy="130" r="10" fill="#fff"/><circle cx="287" cy="130" r="5" fill="#222"/>
+          <rect x="270" y="106" width="52" height="38" fill="transparent"/>
+        </g>
+        <path d="M300 150 Q312 158 322 148" stroke="#ffd60a" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <g class="bee-part" data-part="antennae">
+          <path d="M300 98 Q310 62 340 50 M282 100 Q282 66 304 46" stroke="#222" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <circle cx="340" cy="50" r="6" fill="#222"/><circle cx="304" cy="46" r="6" fill="#222"/>
+          <rect x="276" y="38" width="76" height="62" fill="transparent"/>
+        </g>
+      </g>
+    </svg>`;
+
+    function showPart(key) {
+      const part = PARTS[key];
+
+      $("bee-view").querySelectorAll(".bee-part").forEach(el => el.classList.toggle("active", el.dataset.part === key));
+      $("bee-chips").querySelectorAll(".chip").forEach(chip => chip.classList.toggle("active", chip.dataset.key === key));
+
+      fillInfo($("bee-info"), part.icon, part.name, [part.say, "💡 " + part.fun], part.name + ". " + part.say + " " + part.fun);
+      speak(part.name + ". " + part.say + " " + part.fun);
+    }
+
+    Object.entries(PARTS).forEach(([key, part]) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip";
+      chip.dataset.key = key;
+      chip.textContent = part.icon + " " + part.name;
+      chip.addEventListener("click", () => showPart(key));
+      $("bee-chips").appendChild(chip);
+    });
+
+    $("bee-view").querySelectorAll(".bee-part").forEach(el => {
+      el.addEventListener("click", () => showPart(el.dataset.part));
+    });
+
+    $("bee-info").textContent = "Tap a part of the bee! 👆";
+
+    // --- Podróż pszczoły ---
+
+    const TRIP = [
+      { icon: "🏠", name: "Leave the hive", at: [300, 120],
+        say: "The bee leaves the hive. It looks for flowers." },
+      { icon: "🌻", name: "Find a flower", at: [60, 176],
+        say: "The bee finds a flower. It drinks sweet nectar with its long tongue." },
+      { icon: "🌼", name: "Collect pollen", at: [60, 176], pollen: true,
+        say: "Yellow pollen sticks to the fuzzy bee." },
+      { icon: "🌷", name: "Another flower", at: [168, 182], spark: true,
+        say: "The bee flies to another flower. Some pollen falls off, and the flower can make seeds. This is called pollination!" },
+      { icon: "🍯", name: "Make honey", at: [300, 120], honey: true,
+        say: "The bee flies back to the hive. In the hive, the nectar becomes honey." }
+    ];
+
+    $("trip-view").innerHTML = `<svg viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A bee flies from the hive to the flowers and back">
+      <rect width="400" height="240" rx="18" fill="#cdeeff"/>
+      <circle cx="46" cy="42" r="22" fill="#ffd60a"/>
+      <rect y="200" width="400" height="40" fill="#7bd36b"/>
+      <text x="38" y="206" font-size="44">🌻</text>
+      <text x="146" y="210" font-size="40">🌷</text>
+      <g>
+        <ellipse cx="338" cy="176" rx="40" ry="26" fill="#c68a3a"/><ellipse cx="338" cy="148" rx="34" ry="22" fill="#d99a45"/>
+        <ellipse cx="338" cy="124" rx="26" ry="18" fill="#e5ab55"/><ellipse cx="338" cy="176" rx="12" ry="9" fill="#5a3a12"/>
+        <rect x="300" y="196" width="76" height="8" fill="#8a5a33"/>
+      </g>
+      <text id="spark" class="trip-item" x="160" y="168" font-size="26" style="opacity:0">✨</text>
+      <text id="honey" class="trip-item" x="362" y="116" font-size="26" style="opacity:0">🍯</text>
+      <g id="trip-bee" style="transform: translate(300px, 120px)">
+        <text x="-18" y="10" font-size="34">🐝</text>
+        <circle id="pollen" class="trip-item" cx="-2" cy="14" r="5" fill="#ff9f1c" style="opacity:0"/>
+      </g>
+    </svg>`;
+
+    const tripSteps = [];
+    let tripTimers = [];
+
+    function showTrip(index, speakIt = true) {
+      const step = TRIP[index];
+      $("trip-bee").style.transform = "translate(" + step.at[0] + "px, " + step.at[1] + "px)";
+      $("pollen").style.opacity = step.pollen ? 1 : 0;
+      $("spark").style.opacity = step.spark ? 1 : 0;
+      $("honey").style.opacity = step.honey ? 1 : 0;
+      tripSteps.forEach((b, i) => b.classList.toggle("active", i === index));
+      $("trip-text").textContent = step.say;
+      if (speakIt) speak(step.say);
+    }
+
+    TRIP.forEach((step, index) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip";
+      chip.textContent = step.icon + " " + (index + 1) + ". " + step.name;
+      chip.addEventListener("click", () => {
+        tripTimers.forEach(clearTimeout);
+        tripTimers = [];
+        showTrip(index);
+      });
+      $("trip-steps").appendChild(chip);
+      tripSteps.push(chip);
+    });
+
+    $("trip-play").addEventListener("click", () => {
+      tripTimers.forEach(clearTimeout);
+      tripTimers = [];
+      TRIP.forEach((_, index) => {
+        tripTimers.push(setTimeout(() => showTrip(index), index * 6500));
+      });
+    });
+
+    $("trip-text").textContent = "Tap a step, or follow the bee all the way!";
+
+    // --- Ul: plaster miodu ---
+
+    const CELLS = {
+      honey: { emoji: "🍯", color: "#ffb703", say: "This cell has honey. Bees make honey from nectar." },
+      egg: { emoji: "🥚", color: "#fff3c4", say: "This cell has an egg. The queen lays the eggs." },
+      baby: { emoji: "🐛", color: "#ffe08a", say: "This cell has a baby bee. Worker bees feed the babies." },
+      pollen: { emoji: "🌼", color: "#ff9f1c", say: "This cell has pollen. Baby bees eat pollen." }
+    };
+
+    const CELL_TYPES = ["honey", "egg", "baby", "pollen"];
+
+    (function buildComb() {
+      let s = `<svg viewBox="0 0 400 270" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A honeycomb">
+        <rect width="400" height="270" rx="18" fill="#7a4a18"/>`;
+
+      const radius = 34;
+      let n = 0;
+
+      for (let row = 0; row < 4; row++) {
+        for (let col = 0; col < 5; col++) {
+          const cx = 52 + col * 74 + (row % 2) * 37;
+          const cy = 48 + row * 58;
+          const type = CELL_TYPES[(n * 7 + row) % CELL_TYPES.length];
+          const points = [0, 1, 2, 3, 4, 5].map(i => {
+            const angle = Math.PI / 3 * i + Math.PI / 6;
+            return (cx + radius * Math.cos(angle)).toFixed(1) + "," + (cy + radius * Math.sin(angle)).toFixed(1);
+          }).join(" ");
+
+          s += `<g class="hex" data-type="${type}"><polygon points="${points}" fill="${CELLS[type].color}" stroke="#a96d22" stroke-width="3"/>
+            <text x="${cx}" y="${cy + 9}" font-size="24" text-anchor="middle">${CELLS[type].emoji}</text></g>`;
+          n++;
+        }
+      }
+
+      $("comb-view").innerHTML = s + `</svg>`;
+    })();
+
+    $("comb-view").querySelectorAll(".hex").forEach(hex => {
+      hex.addEventListener("click", () => {
+        $("comb-view").querySelectorAll(".hex").forEach(h => h.classList.toggle("active", h === hex));
+        const cell = CELLS[hex.dataset.type];
+        $("comb-text").textContent = cell.emoji + " " + cell.say;
+        speak(cell.say);
+      });
+    });
+
+    $("comb-text").textContent = "Tap a cell of the honeycomb! 👆";
+
+    addFactCards($("family-list"), [
+      ["👑", "The queen is the mother of the hive. She lays eggs. There is only one queen in a hive."],
+      ["🐝", "Worker bees are girls. They collect nectar, make honey, clean the hive and look after the babies."],
+      ["🧢", "Drones are boys. They do not sting, and they do not collect food."]
+    ]);
+
+    // --- Taniec pszczół ---
+
+    $("dance-view").innerHTML = `<svg viewBox="0 0 300 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A bee doing a waggle dance">
+      <rect width="300" height="160" rx="18" fill="#7a4a18"/>
+      <path d="M150 80 C 200 20, 250 20, 250 80 C 250 140, 200 140, 150 80 C 100 20, 50 20, 50 80 C 50 140, 100 140, 150 80 Z" fill="none" stroke="#e5ab55" stroke-width="3" stroke-dasharray="4 6"/>
+      <text id="dancer" x="0" y="0" font-size="30" text-anchor="middle">🐝</text>
+    </svg>`;
+
+    let danceFrame = null;
+    let danceAngle = 0;
+
+    function danceStep(last) {
+      return now => {
+        danceAngle += (now - last) / 1000 * 2.2;
+        const x = 150 + 100 * Math.sin(danceAngle);
+        const y = 84 + 40 * Math.sin(2 * danceAngle);
+        $("dancer").setAttribute("transform", "translate(" + x.toFixed(1) + " " + y.toFixed(1) + ")");
+        danceFrame = requestAnimationFrame(danceStep(now));
+      };
+    }
+
+    function setDance(on) {
+      cancelAnimationFrame(danceFrame);
+      danceFrame = null;
+
+      if (on) {
+        danceFrame = requestAnimationFrame(danceStep(performance.now()));
+        $("dance-btn").textContent = "⏸ Stop dancing";
+        speak("Bees dance to tell their friends where the flowers are. This is called the waggle dance!");
+      } else {
+        $("dance-btn").textContent = "💃 Make the bee dance";
+      }
+    }
+
+    $("dance-btn").addEventListener("click", () => setDance(!danceFrame));
+    $("dancer").setAttribute("transform", "translate(150 84)");
+
+    // --- Ciekawostki, miód i pomoc ---
+
+    addFactCards($("facts-list"), [
+      ["🍯", "A bee makes only a tiny drop of honey in its whole life."],
+      ["🌸", "To make one jar of honey, bees visit millions of flowers."],
+      ["🍎", "Bees help apples, strawberries and many other foods to grow."],
+      ["🏠", "Many thousands of bees can live together in one hive."],
+      ["💃", "Bees dance to tell their friends where the flowers are."]
+    ]);
+
+    addFactCards($("help-list"), [
+      ["🌻", "We can help bees by planting flowers."],
+      ["💧", "A little bowl of water with some stones helps thirsty bees."],
+      ["🧘", "If a bee comes close, stay calm and walk away slowly. Do not hit it."],
+      ["🙏", "Say thank you to the bees! They help our food to grow."]
+    ]);
+
+    // --- Słowa ---
+
+    const WORDS = [
+      ["🐝", "Bee"], ["🌻", "Flower"], ["🍯", "Honey"], ["🌼", "Pollen"],
+      ["👑", "Queen"], ["🌷", "Garden"], ["🍬", "Sweet"], ["☀️", "Sun"]
+    ];
+
+    WORDS.forEach(([emoji, word]) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "word-card";
+      card.setAttribute("aria-label", "Hear " + word);
+
+      const icon = document.createElement("span");
+      icon.className = "word-emoji";
+      icon.textContent = emoji;
+
+      const name = document.createElement("span");
+      name.className = "word-english";
+      name.textContent = word;
+
+      const hint = document.createElement("span");
+      hint.className = "word-hint";
+      hint.textContent = "Tap to listen 🔊";
+
+      card.append(icon, name, hint);
+      card.addEventListener("click", () => speak(word));
+      $("bee-words").appendChild(card);
+    });
+
+    // --- Pytania do quizu ---
+
+    const QUIZ_LENGTH = 5;
+    const QUIZ_POOL = [
+      { say: "Which one is a bee?", options: [
+        { icon: "🐝", label: "Bee", correct: true }, { icon: "🦋", label: "Butterfly" }, { icon: "🐞", label: "Ladybird" }] },
+      { say: "What do bees make?", options: [
+        { icon: "🍯", label: "Honey", correct: true }, { icon: "🥛", label: "Milk" }, { icon: "🧀", label: "Cheese" }] },
+      { say: "What do bees visit?", options: [
+        { icon: "🌻", label: "Flowers", correct: true }, { icon: "🪨", label: "Stones" }, { icon: "🍕", label: "Pizza" }] },
+      { say: "How many wings does a bee have?", options: [
+        { icon: "4️⃣", label: "Four", correct: true }, { icon: "2️⃣", label: "Two" }, { icon: "6️⃣", label: "Six" }] },
+      { say: "How many legs does a bee have?", options: [
+        { icon: "6️⃣", label: "Six", correct: true }, { icon: "4️⃣", label: "Four" }, { icon: "8️⃣", label: "Eight" }] },
+      { say: "Who is the mother of the hive and lays the eggs?", options: [
+        { icon: "👑", label: "Queen", correct: true }, { icon: "🌻", label: "Flower" }, { icon: "🍯", label: "Honey" }] },
+      { say: "Bees carry yellow dust from flower to flower. What is it called?", options: [
+        { icon: "🌼", label: "Pollen", correct: true }, { icon: "💧", label: "Water" }, { icon: "🪨", label: "Stones" }] },
+      { say: "What do bees do to tell their friends where the flowers are?", options: [
+        { icon: "💃", label: "Dance", correct: true }, { icon: "🎤", label: "Sing" }, { icon: "📱", label: "Phone" }] },
+      { say: "Which food comes from bees?", options: [
+        { icon: "🍯", label: "Honey", correct: true }, { icon: "🥕", label: "Carrot" }, { icon: "🍞", label: "Bread" }] },
+      { say: "A bee comes close to you. What do you do?", options: [
+        { icon: "🧘", label: "Stay calm and walk away", correct: true }, { icon: "👋", label: "Hit it" }] },
+      { say: "Is it good to hit a bee?", options: [
+        { icon: "❌", label: "No", correct: true }, { icon: "✅", label: "Yes" }] },
+      { say: "How can we help bees?", options: [
+        { icon: "🌻", label: "Plant flowers", correct: true }, { icon: "🗑️", label: "Throw rubbish" }, { icon: "🧪", label: "Use poison" }] }
+    ];
+
+    const quizBox = document.getElementById("quiz-box");
+    let quiz = null;
+
+    function shuffle(list) {
+      const copy = [...list];
+
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+
+      return copy;
+    }
+
+    function optionButton(option, onPick) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "quiz-option";
+
+      const icon = document.createElement("span");
+      icon.className = "quiz-icon";
+
+      if (option.dot) {
+        icon.classList.add("dot");
+        icon.style.background = option.dot;
+        icon.style.width = icon.style.height = option.size + "px";
+      } else {
+        icon.textContent = option.icon;
+      }
+
+      const label = document.createElement("span");
+      label.textContent = option.label;
+
+      button.append(icon, label);
+      button.addEventListener("click", () => onPick(button));
+      return button;
+    }
+
+    function startQuiz() {
+      quiz = {
+        questions: shuffle(QUIZ_POOL).slice(0, QUIZ_LENGTH),
+        index: 0,
+        firstTry: 0,
+        missed: false,
+        locked: false
+      };
+
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const question = quiz.questions[quiz.index];
+      quiz.missed = false;
+      quiz.locked = false;
+
+      const head = document.createElement("div");
+      head.className = "quiz-head";
+
+      const counter = document.createElement("span");
+      counter.textContent = "Question " + (quiz.index + 1) + " of " + quiz.questions.length;
+
+      const replay = document.createElement("button");
+      replay.type = "button";
+      replay.className = "secondary-button";
+      replay.textContent = "🔊 Listen again";
+      replay.addEventListener("click", () => speak(question.say));
+
+      head.append(counter, replay);
+
+      const options = document.createElement("div");
+      options.className = "quiz-options";
+
+      const feedback = document.createElement("p");
+      feedback.id = "quiz-feedback";
+      feedback.className = "form-message";
+      feedback.setAttribute("role", "status");
+
+      shuffle(question.options).forEach(option => {
+        options.appendChild(optionButton(option, button => answer(option, button, question, feedback)));
+      });
+
+      quizBox.replaceChildren(head, options, feedback);
+      speak(question.say);
+    }
+
+    function answer(option, button, question, feedback) {
+      if (quiz.locked) return;
+
+      if (option.correct) {
+        quiz.locked = true;
+        if (!quiz.missed) quiz.firstTry++;
+
+        button.classList.add("right");
+        feedback.textContent = "🎉 Yes!";
+        speak("Yes! Great job!");
+
+        setTimeout(() => {
+          quiz.index++;
+
+          if (quiz.index < quiz.questions.length) showQuestion();
+          else finishQuiz();
+        }, 1500);
+
+        return;
+      }
+
+      quiz.missed = true;
+      button.classList.add("wrong");
+      button.disabled = true;
+      feedback.textContent = "Try again! 💫";
+      speak("Try again. " + question.say);
+    }
+
+    function finishQuiz() {
+      const total = quiz.questions.length;
+      const stars = quiz.firstTry >= total - 1 ? 3 : quiz.firstTry >= total - 2 ? 2 : 1;
+      const best = Math.max((readProgress()[LESSON_ID] || {}).stars || 0, stars);
+
+      setProgress({ done: true, stars: best });
+      renderStatus();
+
+      const result = document.createElement("div");
+      result.className = "quiz-result";
+
+      const big = document.createElement("div");
+      big.className = "quiz-big";
+      big.textContent = "🏆";
+
+      const title = document.createElement("h3");
+      title.textContent = "You did it! " + "⭐".repeat(stars);
+
+      const score = document.createElement("p");
+      score.textContent = quiz.firstTry + " of " + total + " right on the first try";
+
+      const again = document.createElement("button");
+      again.type = "button";
+      again.className = "primary-button";
+      again.textContent = "🔁 Play again";
+      again.addEventListener("click", startQuiz);
+
+      result.append(big, title, score, again);
+      quizBox.replaceChildren(result);
+      speak("Wow! You did it! Great job!");
+    }
+
+    document.getElementById("quiz-start").addEventListener("click", startQuiz);
+  </script>
+</body>
+</html>
