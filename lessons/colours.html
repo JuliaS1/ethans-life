@@ -266,7 +266,7 @@
       border-radius: 50%;
     }
 
-    .found-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 12px 0; }
+    .found-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin: 12px 0; }
 
     .found-card {
       display: flex;
@@ -320,7 +320,7 @@
     <section id="lesson" class="section">
       <div class="lesson-card">
         <h3>🎨 Mix the paints!</h3>
-        <p class="lesson-hint">Pick two paints, then press Mix. What new colour will you make?</p>
+        <p class="lesson-hint">Pick two paints from the 8 colours, then press Mix. How many new colours can you find?</p>
         <div id="bowl-view" class="scene"></div>
         <div class="palette"><span class="pal-label">1st paint</span><span id="palette-a" class="palette"></span></div>
         <div class="palette"><span class="pal-label">2nd paint</span><span id="palette-b" class="palette"></span></div>
@@ -452,29 +452,59 @@
       red: { name: "Red", color: "#e63946" },
       yellow: { name: "Yellow", color: "#ffd60a" },
       blue: { name: "Blue", color: "#3a86ff" },
-      white: { name: "White", color: "#ffffff" }
+      white: { name: "White", color: "#ffffff" },
+      black: { name: "Black", color: "#222222" },
+      green: { name: "Green", color: "#2ecc71" },
+      orange: { name: "Orange", color: "#ff9f1c" },
+      purple: { name: "Purple", color: "#9b5de5" }
     };
 
-    const MIXES = {
-      "red+yellow": { name: "Orange", color: "#ff9f1c" },
-      "blue+yellow": { name: "Green", color: "#2ecc71" },
-      "blue+red": { name: "Purple", color: "#9b5de5" },
-      "red+white": { name: "Pink", color: "#ff8fab" },
-      "blue+white": { name: "Light blue", color: "#9fd3ff" },
-      "white+yellow": { name: "Light yellow", color: "#fff3a8" }
-    };
-
-    const FOUND_KEY = "ethanColourMixes";
-    let found = [];
-
-    try {
-      found = JSON.parse(localStorage.getItem(FOUND_KEY) || "[]");
-      if (!Array.isArray(found)) found = [];
-    } catch {
-      found = [];
-    }
+    // [farba 1, farba 2, nazwa nowego koloru, kolor]
+    const MIX_LIST = [
+      ["red", "yellow", "Orange", "#ff9f1c"], ["blue", "yellow", "Green", "#2ecc71"],
+      ["blue", "red", "Purple", "#9b5de5"], ["red", "white", "Pink", "#ff8fab"],
+      ["blue", "white", "Light blue", "#9fd3ff"], ["white", "yellow", "Light yellow", "#fff3a8"],
+      ["black", "white", "Grey", "#9a9aa5"], ["black", "red", "Dark red", "#7a1118"],
+      ["black", "blue", "Dark blue", "#16337a"], ["black", "yellow", "Olive green", "#8a8a1e"],
+      ["black", "green", "Dark green", "#146b3a"], ["black", "orange", "Brown", "#8a5a33"],
+      ["black", "purple", "Dark purple", "#3f1f63"], ["green", "red", "Brown", "#8a5a33"],
+      ["green", "yellow", "Lime green", "#b6e03a"], ["blue", "green", "Turquoise", "#1fb5a8"],
+      ["green", "white", "Light green", "#b8f0c0"], ["green", "orange", "Brown", "#8a5a33"],
+      ["green", "purple", "Brown", "#8a5a33"], ["orange", "red", "Red orange", "#f0541e"],
+      ["orange", "yellow", "Gold", "#ffb703"], ["blue", "orange", "Brown", "#8a5a33"],
+      ["orange", "white", "Peach", "#ffd2b0"], ["orange", "purple", "Brown", "#8a5a33"],
+      ["purple", "red", "Magenta", "#c2185b"], ["blue", "purple", "Indigo", "#4b3a9e"],
+      ["purple", "yellow", "Brown", "#8a5a33"], ["purple", "white", "Lilac", "#d8c3f5"]
+    ];
 
     const pairKey = (a, b) => [a, b].sort().join("+");
+    const slugOf = name => name.toLowerCase().replace(/\s+/g, "-");
+    const MIXES = {};
+    MIX_LIST.forEach(([a, b, name, color]) => { MIXES[pairKey(a, b)] = { name, color }; });
+
+    // każdy nowy kolor liczy się raz (np. brązowy można dostać na kilka sposobów)
+    const RESULTS = [...new Map(MIX_LIST.map(([a, b, name, color]) => [name, { name, color }])).values()];
+    const colourOf = name => RESULTS.find(r => r.name === name).color;
+
+    const FOUND_KEY = "ethanColours2";
+    let found = {};
+
+    try {
+      found = JSON.parse(localStorage.getItem(FOUND_KEY) || "{}") || {};
+
+      // przeniesienie starych odkryć (zapisanych jako pary farb)
+      const old = JSON.parse(localStorage.getItem("ethanColourMixes") || "[]");
+      if (Array.isArray(old)) old.forEach(key => { if (MIXES[key]) found[slugOf(MIXES[key].name)] = found[slugOf(MIXES[key].name)] || key; });
+    } catch {
+      found = {};
+    }
+
+    function saveFound() {
+      try {
+        localStorage.setItem(FOUND_KEY, JSON.stringify(found));
+      } catch {}
+    }
+
     const dotHtml = color => `<span class="mix-dot" style="background:${color}"></span>`;
 
     // --- Miska z farbami ---
@@ -559,15 +589,16 @@
       const grid = $("found-grid");
       grid.replaceChildren();
 
-      Object.entries(MIXES).forEach(([key, mix]) => {
-        const [x, y] = key.split("+");
+      RESULTS.forEach(result => {
+        const pairId = found[slugOf(result.name)];
         const card = document.createElement("button");
         card.type = "button";
-        card.className = "found-card" + (found.includes(key) ? " found" : "");
+        card.className = "found-card" + (pairId ? " found" : "");
 
-        if (found.includes(key)) {
-          card.innerHTML = `<span class="equation">${dotHtml(PAINTS[x].color)}+${dotHtml(PAINTS[y].color)}=${dotHtml(mix.color)}</span><span>${mix.name}</span>`;
-          card.addEventListener("click", () => speak(PAINTS[x].name + " and " + PAINTS[y].name + " make " + mix.name.toLowerCase() + "."));
+        if (pairId) {
+          const [x, y] = pairId.split("+");
+          card.innerHTML = `<span class="equation">${dotHtml(PAINTS[x].color)}+${dotHtml(PAINTS[y].color)}=${dotHtml(result.color)}</span><span>${result.name}</span>`;
+          card.addEventListener("click", () => speak(PAINTS[x].name + " and " + PAINTS[y].name.toLowerCase() + " make " + result.name.toLowerCase() + "."));
         } else {
           card.innerHTML = `<span class="unknown">❓</span><span>Not found yet</span>`;
           card.addEventListener("click", () => speak("Mix two paints to find a new colour!"));
@@ -576,7 +607,7 @@
         grid.appendChild(card);
       });
 
-      $("found-count").textContent = "🎨 Colours found: " + found.length + " of " + Object.keys(MIXES).length;
+      $("found-count").textContent = "🎨 Colours found: " + Object.keys(found).length + " of " + RESULTS.length;
     }
 
     renderFound();
@@ -604,13 +635,11 @@
       $("grad-b").setAttribute("stop-color", b.color);
       $("liquid-mix").setAttribute("fill", result.color);
 
-      // 1) krople spadają do miski
       setTimeout(() => {
         $("blob-a").style.transform = "translate(185px, 158px)";
         $("blob-b").style.transform = "translate(215px, 158px)";
       }, 50);
 
-      // 2) mieszanie
       setTimeout(() => {
         $("blob-a").style.opacity = 0;
         $("blob-b").style.opacity = 0;
@@ -628,7 +657,6 @@
         requestAnimationFrame(spin);
       }, 1000);
 
-      // 3) nowy kolor
       setTimeout(() => {
         $("liquid-mix").style.opacity = 1;
         $("liquid-swirl").style.opacity = 0;
@@ -641,23 +669,21 @@
         $("mix-result").innerHTML = `${dotHtml(a.color)}<span>+</span>${dotHtml(b.color)}<span>=</span>${dotHtml(result.color)}<span>${result.name}!</span>`;
         speak(sentence);
 
-        const key = pairKey(pick.a, pick.b);
+        const slug = slugOf(result.name);
 
-        if (!result.same && !found.includes(key)) {
-          found.push(key);
-
-          try {
-            localStorage.setItem(FOUND_KEY, JSON.stringify(found));
-          } catch {}
-
+        if (!result.same && !found[slug]) {
+          found[slug] = pairKey(pick.a, pick.b);
+          saveFound();
           renderFound();
 
-          if (found.length === Object.keys(MIXES).length) {
-            $("mix-message").textContent = "🎉 You found all the colours!";
+          if (Object.keys(found).length === RESULTS.length) {
+            $("mix-message").textContent = "🎉 You found all " + RESULTS.length + " colours!";
             setTimeout(() => speak("Wow! You found all the colours!"), 2600);
           } else {
             $("mix-message").textContent = "⭐ A new colour: " + result.name + "!";
           }
+        } else if (!result.same) {
+          $("mix-message").textContent = "You already found " + result.name.toLowerCase() + ". Try new paints!";
         }
 
         mixing = false;
@@ -667,12 +693,13 @@
 
     $("mix-btn").addEventListener("click", mix);
 
+    // "Niespodzianka" wybiera parę, która jeszcze nic nowego nie dała
     $("surprise-btn").addEventListener("click", () => {
       if (mixing) return;
-      const keys = Object.keys(PAINTS);
-      const a = keys[Math.floor(Math.random() * keys.length)];
-      let b = keys[Math.floor(Math.random() * keys.length)];
-      if (a === b) b = keys[(keys.indexOf(b) + 1) % keys.length];
+
+      const unfound = MIX_LIST.filter(([, , name]) => !found[slugOf(name)]);
+      const pool = unfound.length ? unfound : MIX_LIST;
+      const [a, b] = pool[Math.floor(Math.random() * pool.length)];
 
       pick.a = a;
       pick.b = b;
@@ -739,7 +766,9 @@
       ["Yellow", "#ffd60a", "🍌", "The banana is yellow."], ["Green", "#2ecc71", "🐸", "The frog is green."],
       ["Blue", "#3a86ff", "🐳", "The whale is blue."], ["Purple", "#9b5de5", "🍇", "The grapes are purple."],
       ["Pink", "#ff8fab", "🐷", "The pig is pink."], ["Brown", "#8a5a33", "🐻", "The bear is brown."],
-      ["Black", "#222222", "🎱", "The ball is black."], ["White", "#ffffff", "☁️", "The cloud is white."]
+      ["Black", "#222222", "🎱", "The ball is black."], ["White", "#ffffff", "☁️", "The cloud is white."],
+      ["Grey", "#9a9aa5", "🐘", "The elephant is grey."], ["Gold", "#ffb703", "🥇", "The medal is gold."],
+      ["Silver", "#c0c0c8", "🥈", "The medal is silver."], ["Peach", "#ffd2b0", "🍑", "The peach is peach."]
     ];
 
     COLOUR_WORDS.forEach(([name, color, emoji, sentence]) => {
@@ -775,13 +804,25 @@
     const dotOption = (hex, label, correct) => ({ dot: hex, size: 46, label, ...(correct ? { correct: true } : {}) });
     const QUIZ_POOL = [
       { say: "Red and yellow make...?", options: [
-        dotOption("#ff9f1c", "Orange", true), dotOption("#2ecc71", "Green"), dotOption("#9b5de5", "Purple")] },
+        dotOption(colourOf("Orange"), "Orange", true), dotOption("#2ecc71", "Green"), dotOption("#9b5de5", "Purple")] },
       { say: "Yellow and blue make...?", options: [
         dotOption("#2ecc71", "Green", true), dotOption("#ff9f1c", "Orange"), dotOption("#e63946", "Red")] },
       { say: "Blue and red make...?", options: [
         dotOption("#9b5de5", "Purple", true), dotOption("#2ecc71", "Green"), dotOption("#ffd60a", "Yellow")] },
       { say: "Red and white make...?", options: [
-        dotOption("#ff8fab", "Pink", true), dotOption("#3a86ff", "Blue"), dotOption("#2ecc71", "Green")] },
+        dotOption(colourOf("Pink"), "Pink", true), dotOption("#3a86ff", "Blue"), dotOption("#2ecc71", "Green")] },
+      { say: "Black and white make...?", options: [
+        dotOption(colourOf("Grey"), "Grey", true), dotOption("#e63946", "Red"), dotOption("#ffd60a", "Yellow")] },
+      { say: "Red and green make...?", options: [
+        dotOption(colourOf("Brown"), "Brown", true), dotOption("#3a86ff", "Blue"), dotOption("#ffd60a", "Yellow")] },
+      { say: "Blue and green make...?", options: [
+        dotOption(colourOf("Turquoise"), "Turquoise", true), dotOption("#e63946", "Red"), dotOption("#ff9f1c", "Orange")] },
+      { say: "Orange and white make...?", options: [
+        dotOption(colourOf("Peach"), "Peach", true), dotOption("#3a86ff", "Blue"), dotOption("#2ecc71", "Green")] },
+      { say: "Purple and white make...?", options: [
+        dotOption(colourOf("Lilac"), "Lilac", true), dotOption("#ffd60a", "Yellow"), dotOption("#e63946", "Red")] },
+      { say: "Yellow and green make...?", options: [
+        dotOption(colourOf("Lime green"), "Lime green", true), dotOption("#e63946", "Red"), dotOption("#3a86ff", "Blue")] },
       { say: "Which one is red?", options: [
         { icon: "🍎", label: "Apple", correct: true }, { icon: "🐸", label: "Frog" }, { icon: "🐳", label: "Whale" }] },
       { say: "Which one is green?", options: [
@@ -797,7 +838,9 @@
       { say: "Which colour is the grass?", options: [
         dotOption("#2ecc71", "Green", true), dotOption("#e63946", "Red"), dotOption("#9b5de5", "Purple")] },
       { say: "Which colour is the sky on a sunny day?", options: [
-        dotOption("#3a86ff", "Blue", true), dotOption("#ffd60a", "Yellow"), dotOption("#ff8fab", "Pink")] }
+        dotOption("#3a86ff", "Blue", true), dotOption("#ffd60a", "Yellow"), dotOption("#ff8fab", "Pink")] },
+      { say: "Which colour is the elephant?", options: [
+        dotOption("#9a9aa5", "Grey", true), dotOption("#ff8fab", "Pink"), dotOption("#2ecc71", "Green")] }
     ];
 
     const quizBox = document.getElementById("quiz-box");
