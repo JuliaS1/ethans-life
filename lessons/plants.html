@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff5f8">
+  <title>Lesson 10: From Seed to Tree 🌱 - Ethan's Life</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+  <style>
+    /* Strona nigdy nie przesuwa się na boki (żeby po prawej nie było białego tła) */
+    html, body { max-width: 100%; overflow-x: hidden; }
+    @supports (overflow: clip) { html, body { overflow-x: clip; } }
+    img, svg, video, canvas { max-width: 100%; }
+    input, select, textarea, button { max-width: 100%; box-sizing: border-box; }
+    emoji-picker { width: 100%; max-width: 100%; }
+    .picker-panel { max-width: 100%; overflow-x: auto; }
+
+    [hidden] { display: none !important; }
+
+    .garage-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
+    /* Lekcje */
+    .lesson-card {
+      margin: 16px 0;
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 8px 24px rgba(255, 143, 171, 0.25);
+    }
+
+    .lesson-card h3 { margin-top: 0; }
+    .lesson-hint { margin-top: -6px; opacity: 0.8; }
+
+    .space-map svg, .mini-svg { display: block; width: 100%; height: auto; }
+    .space-map { max-width: 460px; margin: 0 auto; }
+
+    .orbit, .moon-orbit, .spin {
+      animation-name: lesson-spin;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+
+    .orbit { transform-origin: 210px 210px; }
+    .body { cursor: pointer; }
+
+    @keyframes lesson-spin { to { transform: rotate(360deg); } }
+
+    .space-caption {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      margin: 12px 0;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: #fff0f5;
+      font-size: 1.05rem;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      box-shadow: inset -3px -3px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    .dot-big { width: 44px; height: 44px; flex: none; }
+
+    .planet-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+
+    .planet-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border: 2px solid #ff8fab;
+      border-radius: 999px;
+      background: #fff;
+      color: #d6336c;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .planet-chip:active { transform: scale(0.95); }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .orbit, .moon-orbit, .spin { animation: none; }
+    }
+
+    .lesson-status {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .lesson-status.done { border: 3px solid #2ecc71; }
+    .status-text { font-size: 1.15rem; font-weight: 700; }
+
+    .quiz-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .quiz-options { display: flex; flex-wrap: wrap; gap: 12px; }
+
+    .quiz-option {
+      flex: 1 1 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      min-height: 120px;
+      padding: 12px;
+      border: 3px solid #ffc2d1;
+      border-radius: 20px;
+      background: #fff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .quiz-option:active { transform: scale(0.96); }
+    .quiz-option.right { border-color: #2ecc71; background: #eafff1; }
+    .quiz-option.wrong { border-color: #ff6b81; background: #fff0f2; opacity: 0.6; }
+    .quiz-icon { font-size: 3rem; line-height: 1; }
+    .quiz-result { text-align: center; }
+    .quiz-big { font-size: 3.5rem; line-height: 1.2; }
+
+    .space-caption { flex-wrap: wrap; }
+    .caption-text { flex: 1; min-width: 210px; }
+    .caption-detail { margin: 6px 0 8px; }
+    .fact-badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+
+    .fact-badge {
+      padding: 4px 10px;
+      border: 2px solid #ffc2d1;
+      border-radius: 999px;
+      background: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .map-legend { margin: 8px 0 0; font-size: 0.9rem; opacity: 0.8; }
+
+    .table-wrap { overflow-x: auto; }
+    .facts-table { width: 100%; border-collapse: collapse; }
+    .facts-table th, .facts-table td { padding: 10px 8px; text-align: left; white-space: nowrap; }
+    .facts-table thead th { border-bottom: 2px solid #ffc2d1; color: #d6336c; }
+    .fact-row { cursor: pointer; }
+    .fact-row td { border-bottom: 1px solid #ffe0e8; }
+    .fact-row:hover { background: #fff0f5; }
+    .caption-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border: 2px solid #ff8fab;
+      border-radius: 999px;
+      background: #fff;
+      color: #d6336c;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .chip:active { transform: scale(0.95); }
+    .chip.active { background: #ff8fab; color: #fff; }
+
+    .info-box {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      margin: 12px 0;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: #fff0f5;
+      font-size: 1.05rem;
+    }
+
+    .info-icon { font-size: 2.6rem; line-height: 1; }
+    .info-text { flex: 1; min-width: 200px; }
+
+    .fact-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      margin: 8px 0;
+      padding: 12px 14px;
+      border: 3px solid #ffc2d1;
+      border-radius: 18px;
+      background: #fff;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .fact-card:active { transform: scale(0.98); }
+    .fact-icon { flex: none; font-size: 2rem; line-height: 1; }
+
+    .scene svg { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; border-radius: 18px; }
+    .scene-note { min-height: 1.4em; margin: 10px 0 0; font-weight: 700; text-align: center; }
+    .big-slider { width: 100%; margin: 14px 0 4px; accent-color: #ff8fab; }
+
+
+    /* Lekcja 10: rośliny */
+    .plant-part, .kind { cursor: pointer; }
+    .plant-part.active, .kind.active { filter: drop-shadow(0 0 4px #ff2a6d) drop-shadow(0 0 6px #ff2a6d); }
+    .rain-drop { animation: drop-fall 0.9s linear infinite; }
+    @keyframes drop-fall { from { transform: translateY(-30px); opacity: 0; } 30% { opacity: 1; } to { transform: translateY(70px); opacity: 0; } }
+    .sway { transform-box: fill-box; transform-origin: 50% 100%; animation: sway 3s ease-in-out infinite alternate; }
+    @keyframes sway { to { transform: rotate(2deg); } }
+    .rings-view svg { display: block; width: 100%; max-width: 260px; height: auto; margin: 0 auto; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .rain-drop, .sway { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Lesson 10</p>
+      <h1>From Seed to Tree <span>🌱</span></h1>
+      <p>How a seed grows, what a plant is made of, and the difference between trees, bushes and small plants!</p>
+      <nav>
+        <a href="/">← Back to Ethan's Life</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="lesson-card lesson-status" id="lesson-status">
+      <span id="status-text" class="status-text"></span>
+      <button id="status-toggle" type="button" class="secondary-button"></button>
+    </div>
+
+    <section id="lesson" class="section">
+      <div class="lesson-card">
+        <h3>🌰 From a seed to a plant</h3>
+        <p class="lesson-hint">A seed is a baby plant. Drag the slider to watch it grow, or press the button!</p>
+        <div id="grow-view" class="scene"></div>
+        <input id="grow-slider" class="big-slider" type="range" min="0" max="100" value="0" aria-label="Make the plant grow">
+        <div id="grow-text" class="info-box" aria-live="polite"></div>
+        <div class="garage-actions">
+          <button id="grow-play" type="button" class="primary-button">▶ Watch the seed grow</button>
+          <button id="grow-reset" type="button" class="secondary-button">↺ Start again</button>
+          <button type="button" class="secondary-button" onclick="stopSpeaking()">⏹ Stop</button>
+        </div>
+        <p id="lesson-message" class="form-message" role="status"></p>
+      </div>
+
+      <div class="lesson-card">
+        <h3>💧☀️ What does a plant need?</h3>
+        <p class="lesson-hint">Tap to find out.</p>
+        <div id="needs-view" class="scene"><span data-need="none" hidden></span></div>
+        <div id="needs-chips" class="chip-row"></div>
+        <div id="needs-info" class="info-box" aria-live="polite"></div>
+      </div>
+
+      <div class="lesson-card">
+        <h3>🌿 What is a plant made of?</h3>
+        <p class="lesson-hint">Tap a part of the plant. Under the ground are the roots!</p>
+        <div id="parts-view" class="scene"></div>
+        <div id="parts-chips" class="chip-row"></div>
+        <div id="parts-info" class="info-box" aria-live="polite"></div>
+        <div class="garage-actions">
+          <button id="water-btn" type="button" class="primary-button">💧 Follow the water</button>
+        </div>
+      </div>
+
+      <div class="lesson-card">
+        <h3>🌳 Trees, bushes and small plants</h3>
+        <p class="lesson-hint">How are they different? Tap a plant. (Not to scale!)</p>
+        <div id="types-view" class="scene"></div>
+        <div id="types-chips" class="chip-row"></div>
+        <div id="types-info" class="info-box" aria-live="polite"></div>
+      </div>
+
+      <div class="lesson-card">
+        <h3>🪵 Inside a tree</h3>
+        <p class="lesson-hint">A tree grows one new ring every year. Slide to change the age!</p>
+        <div id="rings-view" class="rings-view"></div>
+        <input id="rings-slider" class="big-slider" type="range" min="1" max="15" value="8" aria-label="Age of the tree">
+        <p id="rings-text" class="scene-note" role="status"></p>
+        <div class="garage-actions">
+          <button id="rings-say" type="button" class="primary-button">🔊 Tell me about the rings</button>
+        </div>
+      </div>
+
+      <div class="content-heading">
+        <h3>🌬️ How do seeds travel?</h3>
+        <p>Tap a card to hear it.</p>
+      </div>
+      <div id="travel-list"></div>
+
+      <div class="content-heading">
+        <h3>💡 Plant facts</h3>
+        <p>Tap a card to hear it.</p>
+      </div>
+      <div id="facts-list"></div>
+
+      <div class="content-heading">
+        <h3>🌱 Plant words</h3>
+        <p>Tap a card to hear the word.</p>
+      </div>
+      <div id="plant-words" class="words-grid"></div>
+
+      <div class="lesson-card" id="quiz-card">
+        <h3>🧠 Quiz time!</h3>
+        <p class="lesson-hint">Listen and tap the right picture. You can do it! 💪</p>
+        <div id="quiz-box" class="quiz-box">
+          <button id="quiz-start" type="button" class="primary-button">▶ Start the quiz</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>Made with lots of love for Ethan 💛🌱🌳</footer>
+
+  <script>
+    function showMessage(id, message) {
+      document.getElementById(id).textContent = message;
+    }
+
+    function speak(text) {
+      if (!("speechSynthesis" in window)) {
+        showMessage("lesson-message", "Speech is not supported in this browser.");
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+
+      // Długi tekst mówimy zdanie po zdaniu, bo część przeglądarek ucina zbyt długie wypowiedzi
+      const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+
+      sentences.forEach(sentence => {
+        const part = sentence.trim();
+        if (!part) return;
+
+        const utterance = new SpeechSynthesisUtterance(part);
+        utterance.lang = "en-US";
+        utterance.rate = 0.8;
+        window.speechSynthesis.speak(utterance);
+      });
+    }
+
+    function stopSpeaking() {
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    }
+
+    // --- Postęp lekcji (zapisany na tym urządzeniu) ---
+
+    const LESSON_ID = "plants";
+    const PROGRESS_KEY = "ethanLessons";
+
+    function readProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(PROGRESS_KEY) || "{}") || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function setProgress(update) {
+      const all = readProgress();
+      all[LESSON_ID] = { ...(all[LESSON_ID] || {}), ...update };
+
+      try {
+        localStorage.setItem(PROGRESS_KEY, JSON.stringify(all));
+      } catch {}
+    }
+
+    const statusCard = document.getElementById("lesson-status");
+    const statusText = document.getElementById("status-text");
+    const statusToggle = document.getElementById("status-toggle");
+
+    function renderStatus() {
+      const progress = readProgress()[LESSON_ID] || {};
+      const done = Boolean(progress.done);
+
+      statusText.textContent = done
+        ? "✅ Lesson done! " + "⭐".repeat(Math.min(progress.stars || 0, 3))
+        : "🔲 Not done yet";
+      statusToggle.textContent = done ? "↩ Mark as not done" : "✅ Mark as done";
+      statusCard.classList.toggle("done", done);
+    }
+
+    statusToggle.addEventListener("click", () => {
+      const progress = readProgress()[LESSON_ID] || {};
+      setProgress({ done: !progress.done });
+      renderStatus();
+    });
+
+    renderStatus();
+
+    // --- Lekcja 10: rośliny ---
+
+    const $ = id => document.getElementById(id);
+    const clamp01 = v => Math.min(1, Math.max(0, v));
+
+    function buttonsFor(speakText) {
+      const buttons = document.createElement("div");
+      buttons.className = "caption-buttons";
+
+      const again = document.createElement("button");
+      again.type = "button";
+      again.className = "secondary-button";
+      again.textContent = "🔊 Tell me again";
+      again.addEventListener("click", () => speak(speakText));
+
+      const stop = document.createElement("button");
+      stop.type = "button";
+      stop.className = "secondary-button";
+      stop.textContent = "⏹ Stop";
+      stop.addEventListener("click", stopSpeaking);
+
+      buttons.append(again, stop);
+      return buttons;
+    }
+
+    function fillInfo(box, icon, title, lines, speakText) {
+      box.replaceChildren();
+
+      const iconEl = document.createElement("span");
+      iconEl.className = "info-icon";
+      iconEl.textContent = icon;
+
+      const text = document.createElement("div");
+      text.className = "info-text";
+
+      const titleEl = document.createElement("strong");
+      titleEl.textContent = title;
+      text.appendChild(titleEl);
+
+      lines.forEach(line => {
+        const div = document.createElement("div");
+        div.textContent = line;
+        text.appendChild(div);
+      });
+
+      text.appendChild(buttonsFor(speakText));
+      box.append(iconEl, text);
+    }
+
+    function addFactCards(list, items) {
+      items.forEach(([icon, text]) => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "fact-card";
+
+        const iconEl = document.createElement("span");
+        iconEl.className = "fact-icon";
+        iconEl.textContent = icon;
+
+        const textEl = document.createElement("span");
+        textEl.textContent = text;
+
+        card.append(iconEl, textEl);
+        card.addEventListener("click", () => speak(text));
+        list.appendChild(card);
+      });
+    }
+
+    // Wspólna obsługa: przyciski wyboru + ramka z opisem + podświetlanie na rysunku
+    function makeExplorer({ view, chips, info, items, selector, attr }) {
+      const select = key => {
+        const item = items[key];
+        view.querySelectorAll(selector).forEach(el => el.classList.toggle("active", el.dataset[attr] === key));
+        chips.querySelectorAll(".chip").forEach(chip => chip.classList.toggle("active", chip.dataset.key === key));
+        const story = item.name + ". " + item.say + " " + item.fun;
+        fillInfo(info, item.icon, item.name, [item.say, "💡 " + item.fun], story);
+        speak(story);
+      };
+
+      Object.entries(items).forEach(([key, item]) => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "chip";
+        chip.dataset.key = key;
+        chip.textContent = item.icon + " " + item.name;
+        chip.addEventListener("click", () => select(key));
+        chips.appendChild(chip);
+      });
+
+      view.querySelectorAll(selector).forEach(el => el.addEventListener("click", () => select(el.dataset[attr])));
+      return select;
+    }
+
+    // --- Od nasionka do rośliny ---
+
+    $("grow-view").innerHTML = `<svg viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A seed grows into a plant">
+      <rect width="400" height="260" rx="18" fill="#cdeeff"/>
+      <circle cx="350" cy="40" r="22" fill="#ffd60a"/>
+      <rect y="130" width="400" height="130" fill="#8a5a33"/>
+      <rect y="130" width="400" height="10" fill="#5fbf4f"/>
+      <g id="rain" style="opacity:0">
+        ${[150, 175, 200, 225, 250].map((x, i) => `<rect class="rain-drop" x="${x}" y="60" width="3" height="12" rx="2" fill="#4aa3df" style="animation-delay:-${i * 0.18}s"/>`).join("")}
+      </g>
+      <path id="g-root" fill="none" stroke="#f1deb8" stroke-width="4" stroke-linecap="round"/>
+      <path id="g-stem" fill="none" stroke="#3fa34d" stroke-width="7" stroke-linecap="round"/>
+      <ellipse id="g-seed" cx="200" cy="180" rx="11" ry="15" fill="#c98e4b" stroke="#8d5f2a" stroke-width="2"/>
+      <g id="g-leaves"></g>
+      <g id="g-flower"></g>
+      <g id="g-fruit"></g>
+    </svg>`;
+
+    const GROW_STAGES = [
+      [0, "🌰 A seed is a baby plant, sleeping in the soil."],
+      [0.12, "💧 The seed drinks water and wakes up. The first root grows down."],
+      [0.3, "🌱 A little shoot grows up, to find the light."],
+      [0.55, "🍃 Leaves open. They catch the sunlight."],
+      [0.8, "🌸 A flower opens. Bees come to visit."],
+      [0.95, "🍅 The flower becomes a fruit, with new seeds inside!"]
+    ];
+
+    const GROW_STORY = "A seed is a baby plant. With water, sun and soil, it grows roots, a stem, leaves and a flower. The flower makes a fruit with new seeds inside!";
+    const growSlider = $("grow-slider");
+    let growFrame = null;
+
+    function renderGrow(t) {
+      $("g-seed").style.opacity = 1 - clamp01((t - 0.28) / 0.2);
+      $("rain").style.opacity = t > 0.03 && t < 0.28 ? 1 : 0;
+
+      const root = clamp01((t - 0.08) / 0.3);
+      $("g-root").setAttribute("d", root > 0
+        ? `M200 188 L200 ${188 + 66 * root} M200 ${190 + 18 * root} L${200 - 38 * root} ${190 + 42 * root} M200 ${196 + 22 * root} L${200 + 38 * root} ${196 + 46 * root}`
+        : "");
+
+      const s = clamp01((t - 0.22) / 0.5);
+      const top = 180 - s * 135;
+      $("g-stem").setAttribute("d", s > 0 ? `M200 182 L200 ${top}` : "");
+
+      const l = clamp01((t - 0.5) / 0.25);
+      $("g-leaves").innerHTML = l > 0
+        ? `<ellipse cx="174" cy="${top + 34}" rx="${28 * l}" ry="${11 * l}" fill="#5fbf4f" transform="rotate(-25 174 ${top + 34})"/>
+           <ellipse cx="226" cy="${top + 50}" rx="${28 * l}" ry="${11 * l}" fill="#5fbf4f" transform="rotate(25 226 ${top + 50})"/>`
+        : "";
+
+      const f = clamp01((t - 0.78) / 0.15);
+      const fade = 1 - clamp01((t - 0.93) / 0.05);
+      let petals = "";
+
+      if (f > 0) {
+        for (let i = 0; i < 6; i++) {
+          const a = Math.PI / 3 * i;
+          petals += `<circle cx="${(200 + Math.cos(a) * 12 * f).toFixed(1)}" cy="${(top - 4 + Math.sin(a) * 12 * f).toFixed(1)}" r="${9 * f}" fill="#ff8fab"/>`;
+        }
+        petals += `<circle cx="200" cy="${top - 4}" r="${7 * f}" fill="#ffd60a"/>`;
+      }
+
+      $("g-flower").innerHTML = petals;
+      $("g-flower").style.opacity = fade;
+
+      const u = clamp01((t - 0.93) / 0.07);
+      $("g-fruit").innerHTML = u > 0
+        ? `<circle cx="200" cy="${top + 2}" r="${13 * u}" fill="#e63946"/><path d="M${200 - 6 * u} ${top - 10 * u} L200 ${top - 14 * u} L${200 + 6 * u} ${top - 10 * u}" stroke="#3fa34d" stroke-width="4" fill="none" stroke-linecap="round"/>`
+        : "";
+
+      let text = GROW_STAGES[0][1];
+      GROW_STAGES.forEach(([from, label]) => { if (t >= from) text = label; });
+      $("grow-text").textContent = text;
+    }
+
+    growSlider.addEventListener("input", () => {
+      cancelAnimationFrame(growFrame);
+      renderGrow(growSlider.value / 100);
+    });
+
+    $("grow-play").addEventListener("click", () => {
+      cancelAnimationFrame(growFrame);
+      growSlider.value = 0;
+      renderGrow(0);
+      speak(GROW_STORY);
+      const start = performance.now();
+
+      const step = now => {
+        const t = Math.min(1, (now - start) / 9000);
+        growSlider.value = Math.round(t * 100);
+        renderGrow(t);
+        if (t < 1) growFrame = requestAnimationFrame(step);
+      };
+
+      growFrame = requestAnimationFrame(step);
+    });
+
+    $("grow-reset").addEventListener("click", () => {
+      cancelAnimationFrame(growFrame);
+      growSlider.value = 0;
+      renderGrow(0);
+    });
+
+    renderGrow(0);
+
+    makeExplorer({
+      view: $("needs-view"), chips: $("needs-chips"), info: $("needs-info"), selector: "[data-need]", attr: "need",
+      items: {
+        water: { name: "Water", icon: "💧", say: "A seed needs water to wake up and grow.", fun: "Plants drink water with their roots." },
+        sun: { name: "Sunlight", icon: "☀️", say: "A plant needs sunlight to make its food.", fun: "Leaves catch the light." },
+        soil: { name: "Soil", icon: "🪴", say: "Soil holds the roots and gives the plant food.", fun: "Good soil is dark and soft." },
+        air: { name: "Air", icon: "💨", say: "Plants need air, too.", fun: "Plants also make fresh air for us." }
+      }
+    });
+
+    $("needs-info").textContent = "What does a plant need? Tap one! 👆";
+
+    // --- Z czego zbudowana jest roślina ---
+
+    $("parts-view").innerHTML = `<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The parts of a plant">
+      <rect width="400" height="300" rx="18" fill="#cdeeff"/>
+      <circle cx="352" cy="42" r="20" fill="#ffd60a"/>
+      <rect y="150" width="400" height="150" fill="#8a5a33"/>
+      <rect y="150" width="400" height="10" fill="#5fbf4f"/>
+      <g class="plant-part" data-part="roots">
+        <path d="M200 156 L200 262 M200 180 L158 222 M200 196 L246 236 M200 226 L170 258 M158 222 L140 246 M246 236 L262 258" stroke="#f1deb8" stroke-width="6" stroke-linecap="round" fill="none"/>
+        <polygon points="130,162 270,162 280,282 120,282" fill="transparent"/>
+      </g>
+      <g class="plant-part" data-part="stem"><rect x="194" y="62" width="12" height="96" rx="6" fill="#3fa34d"/><rect x="184" y="62" width="32" height="96" fill="transparent"/></g>
+      <g class="plant-part" data-part="leaves">
+        <ellipse cx="160" cy="122" rx="38" ry="14" fill="#5fbf4f" transform="rotate(-22 160 122)"/>
+        <ellipse cx="240" cy="100" rx="36" ry="13" fill="#5fbf4f" transform="rotate(22 240 100)"/>
+      </g>
+      <g class="plant-part" data-part="fruit">
+        <path d="M206 128 Q236 122 252 134" stroke="#3fa34d" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <circle cx="260" cy="142" r="15" fill="#e63946"/><path d="M252 132 L260 126 L268 132" stroke="#3fa34d" stroke-width="4" fill="none" stroke-linecap="round"/>
+      </g>
+      <g class="plant-part" data-part="flower">
+        ${[0, 1, 2, 3, 4, 5].map(i => `<circle cx="${(200 + Math.cos(Math.PI / 3 * i) * 15).toFixed(1)}" cy="${(52 + Math.sin(Math.PI / 3 * i) * 15).toFixed(1)}" r="11" fill="#ff8fab"/>`).join("")}
+        <circle cx="200" cy="52" r="9" fill="#ffd60a"/>
+      </g>
+      <g id="water-layer"></g>
+    </svg>`;
+
+    const PARTS = {
+      roots: { name: "Roots", icon: "🥕", say: "The roots grow under the ground. They drink water from the soil, and they hold the plant, so it does not fall over.", fun: "Some roots, like carrots, are good to eat." },
+      stem: { name: "Stem", icon: "🌿", say: "The stem holds the plant up. It carries water from the roots to the leaves.", fun: "It works like a drinking straw." },
+      leaves: { name: "Leaves", icon: "🍃", say: "The leaves catch sunlight. With sunlight, they make food for the plant.", fun: "Leaves are green because of a special green stuff inside them." },
+      flower: { name: "Flower", icon: "🌸", say: "The flower makes seeds. It has pretty colours and a sweet smell, so bees come to visit.", fun: "Bees carry pollen from flower to flower." },
+      fruit: { name: "Fruit", icon: "🍅", say: "The fruit grows after the flower. It keeps the seeds safe.", fun: "Apples and tomatoes are fruits." }
+    };
+
+    makeExplorer({
+      view: $("parts-view"), chips: $("parts-chips"), info: $("parts-info"), selector: ".plant-part", attr: "part", items: PARTS
+    });
+
+    $("parts-info").textContent = "Tap a part of the plant! 👆";
+
+    let waterBusy = false;
+
+    $("water-btn").addEventListener("click", () => {
+      if (waterBusy) return;
+      waterBusy = true;
+
+      const layer = $("water-layer");
+      speak("The roots drink water from the soil. The water goes up the stem, to the leaves.");
+
+      for (let i = 0; i < 8; i++) {
+        const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        dot.setAttribute("cx", 200 + (i % 2 ? 3 : -3));
+        dot.setAttribute("cy", 250);
+        dot.setAttribute("r", 5);
+        dot.setAttribute("fill", "#3a86ff");
+        layer.appendChild(dot);
+
+        if (dot.animate) {
+          dot.animate([
+            { transform: "translateY(0px)", opacity: 0 },
+            { opacity: 1, offset: 0.15 },
+            { transform: "translateY(-160px)", opacity: 1, offset: 0.85 },
+            { transform: "translateY(-175px)", opacity: 0 }
+          ], { duration: 3200, delay: i * 380, easing: "ease-in-out", fill: "forwards" });
+        }
+      }
+
+      setTimeout(() => {
+        layer.replaceChildren();
+        waterBusy = false;
+      }, 3200 + 8 * 380 + 100);
+    });
+
+    // --- Drzewa, krzewy i małe rośliny ---
+
+    $("types-view").innerHTML = `<svg viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A tree, a bush, a small flower and grass next to a child">
+      <rect width="400" height="260" rx="18" fill="#cdeeff"/>
+      <rect y="220" width="400" height="40" fill="#7bd36b"/>
+      <text x="14" y="228" font-size="56">🧒</text>
+      <g class="kind" data-kind="tree">
+        <rect x="122" y="130" width="18" height="92" rx="4" fill="#7a4a21"/>
+        <circle cx="131" cy="104" r="42" fill="#3fa34d"/><circle cx="100" cy="126" r="28" fill="#3fa34d"/><circle cx="162" cy="126" r="28" fill="#3fa34d"/>
+        <rect x="84" y="50" width="94" height="176" fill="transparent"/>
+      </g>
+      <g class="kind" data-kind="bush">
+        <path d="M222 222 L226 196 M238 222 L238 190 M252 222 L248 196" stroke="#7a4a21" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <circle cx="238" cy="190" r="26" fill="#5fbf4f"/><circle cx="216" cy="200" r="20" fill="#5fbf4f"/><circle cx="262" cy="200" r="20" fill="#5fbf4f"/>
+        <circle cx="228" cy="184" r="4" fill="#e63946"/><circle cx="248" cy="192" r="4" fill="#e63946"/><circle cx="256" cy="178" r="4" fill="#e63946"/>
+        <rect x="194" y="160" width="86" height="64" fill="transparent"/>
+      </g>
+      <g class="kind" data-kind="flower">
+        <path d="M312 222 L312 190" stroke="#3fa34d" stroke-width="4" stroke-linecap="round"/>
+        <ellipse cx="320" cy="208" rx="10" ry="4" fill="#5fbf4f"/>
+        ${[0, 1, 2, 3, 4].map(i => `<circle cx="${(312 + Math.cos(Math.PI * 2 / 5 * i) * 7).toFixed(1)}" cy="${(184 + Math.sin(Math.PI * 2 / 5 * i) * 7).toFixed(1)}" r="5.5" fill="#ff8fab"/>`).join("")}
+        <circle cx="312" cy="184" r="4" fill="#ffd60a"/>
+        <rect x="292" y="166" width="42" height="58" fill="transparent"/>
+      </g>
+      <g class="kind" data-kind="grass">
+        <path d="M346 222 L342 204 M354 222 L356 200 M362 222 L364 206 M370 222 L376 202 M378 222 L384 208" stroke="#3fa34d" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <rect x="336" y="194" width="58" height="30" fill="transparent"/>
+      </g>
+    </svg>`;
+
+    makeExplorer({
+      view: $("types-view"), chips: $("types-chips"), info: $("types-info"), selector: ".kind", attr: "kind",
+      items: {
+        tree: { name: "Tree", icon: "🌳", say: "A tree is tall. It has one thick, woody trunk, and branches high up. Trees live for many years.", fun: "Examples: an oak, an apple tree and a pine." },
+        bush: { name: "Bush", icon: "🌿", say: "A bush is not as tall as a tree. It has many woody stems that start at the ground, and no big trunk.", fun: "Examples: a rose bush, a blackberry bush and a hedge." },
+        flower: { name: "Small plant", icon: "🌷", say: "A small plant has soft green stems. It is small, and often lives for just one year.", fun: "Examples: a daisy, a tulip and mint." },
+        grass: { name: "Grass", icon: "🌾", say: "Grass has thin green leaves. It grows from the bottom, so it keeps growing when we cut it.", fun: "A lawn is made of lots of little grass plants." }
+      }
+    });
+
+    $("types-info").textContent = "Tap a plant to see how it is different! 👆";
+
+    // --- Słoje drzewa ---
+
+    function renderRings(age) {
+      let s = `<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A tree trunk with ${age} rings">
+        <circle cx="120" cy="120" r="${12 + 6 * age + 6}" fill="#7a4a21"/>
+        <circle cx="120" cy="120" r="${12 + 6 * age + 2}" fill="#e8c48a"/>`;
+
+      for (let i = age; i >= 0; i--) {
+        s += `<circle cx="120" cy="120" r="${12 + 6 * i - 2}" fill="none" stroke="#a96d22" stroke-width="${i % 2 ? 1.5 : 2.5}"/>`;
+      }
+
+      s += `<circle cx="120" cy="120" r="5" fill="#a96d22"/></svg>`;
+      $("rings-view").innerHTML = s;
+      $("rings-text").textContent = "🌳 This tree is " + age + (age === 1 ? " year" : " years") + " old. It has " + age + (age === 1 ? " ring." : " rings.");
+    }
+
+    $("rings-slider").addEventListener("input", () => renderRings(Number($("rings-slider").value)));
+
+    $("rings-say").addEventListener("click", () => {
+      const age = Number($("rings-slider").value);
+      speak("Look inside a tree trunk. Every year, a tree grows one new ring. Count the rings to see how old the tree is. This tree has " + age + " rings, so it is " + age + " years old.");
+    });
+
+    renderRings(Number($("rings-slider").value));
+
+    // --- Ciekawostki ---
+
+    addFactCards($("travel-list"), [
+      ["🌬️", "Dandelion seeds fly in the wind, like tiny parachutes."],
+      ["🌊", "Coconuts can float on the sea to a new island."],
+      ["🐿️", "Squirrels hide acorns, and some of them grow into oak trees."],
+      ["🦔", "Some seeds stick to the fur of animals, and travel far away."],
+      ["🍓", "Animals eat fruits, and the seeds come out in their poo, far away."]
+    ]);
+
+    addFactCards($("facts-list"), [
+      ["🌍", "Plants make fresh air for us to breathe."],
+      ["🍎", "Plants give us food: fruits, vegetables and bread."],
+      ["🍂", "In autumn, some trees drop their leaves. Pine trees keep their needles all year."],
+      ["🌲", "The tallest trees in the world are more than one hundred metres tall."],
+      ["🎋", "Bamboo is a giant grass, and it grows very fast."],
+      ["🌻", "Young sunflowers turn their faces to follow the sun."]
+    ]);
+
+    // --- Słowa ---
+
+    const WORDS = [
+      ["🌰", "Seed"], ["🌱", "Sprout"], ["🥕", "Root"], ["🍃", "Leaf"], ["🌸", "Flower"],
+      ["🍎", "Fruit"], ["🌳", "Tree"], ["🌾", "Grass"], ["☀️", "Sun"], ["💧", "Water"]
+    ];
+
+    WORDS.forEach(([emoji, word]) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "word-card";
+      card.setAttribute("aria-label", "Hear " + word);
+
+      const icon = document.createElement("span");
+      icon.className = "word-emoji";
+      icon.textContent = emoji;
+
+      const name = document.createElement("span");
+      name.className = "word-english";
+      name.textContent = word;
+
+      const hint = document.createElement("span");
+      hint.className = "word-hint";
+      hint.textContent = "Tap to listen 🔊";
+
+      card.append(icon, name, hint);
+      card.addEventListener("click", () => speak(word));
+      $("plant-words").appendChild(card);
+    });
+
+    // --- Pytania do quizu ---
+
+    const QUIZ_LENGTH = 5;
+    const QUIZ_POOL = [
+      { say: "What does a seed need to grow?", options: [
+        { icon: "💧", label: "Water", correct: true }, { icon: "🍫", label: "Chocolate" }, { icon: "🧸", label: "Toys" }] },
+      { say: "Which part of a plant is under the ground?", options: [
+        { icon: "🥕", label: "Roots", correct: true }, { icon: "🌸", label: "Flower" }, { icon: "🍃", label: "Leaves" }] },
+      { say: "Which part of a plant catches the sunlight?", options: [
+        { icon: "🍃", label: "Leaves", correct: true }, { icon: "🥕", label: "Roots" }, { icon: "🌰", label: "Seed" }] },
+      { say: "Which part of a plant makes the seeds?", options: [
+        { icon: "🌸", label: "Flower", correct: true }, { icon: "🥕", label: "Roots" }, { icon: "🍃", label: "Leaves" }] },
+      { say: "What comes first, the seed or the big tree?", options: [
+        { icon: "🌰", label: "Seed", correct: true }, { icon: "🌳", label: "Big tree" }] },
+      { say: "Which one is the tallest?", options: [
+        { icon: "🌳", label: "Tree", correct: true }, { icon: "🌷", label: "Small flower" }, { icon: "🌾", label: "Grass" }] },
+      { say: "Which one is a tree?", options: [
+        { icon: "🌳", label: "Tree", correct: true }, { icon: "🌷", label: "Tulip" }, { icon: "🌾", label: "Grass" }] },
+      { say: "Which plant has many stems and no big trunk?", options: [
+        { icon: "🌿", label: "Bush", correct: true }, { icon: "🌳", label: "Tree" }, { icon: "🌾", label: "Grass" }] },
+      { say: "How do dandelion seeds travel?", options: [
+        { icon: "🌬️", label: "In the wind", correct: true }, { icon: "🚗", label: "In a car" }, { icon: "🐟", label: "With fish" }] },
+      { say: "A tree has rings inside. What do the rings show?", options: [
+        { icon: "📅", label: "How old it is", correct: true }, { icon: "🎨", label: "Its colour" }, { icon: "🔊", label: "Its sound" }] },
+      { say: "Which one is a fruit?", options: [
+        { icon: "🍎", label: "Apple", correct: true }, { icon: "🪨", label: "Stone" }, { icon: "🧱", label: "Brick" }] },
+      { say: "What do roots do?", options: [
+        { icon: "💧", label: "Drink water", correct: true }, { icon: "📞", label: "Make phone calls" }, { icon: "🎵", label: "Sing songs" }] },
+      { say: "Who visits flowers and carries pollen?", options: [
+        { icon: "🐝", label: "Bee", correct: true }, { icon: "🐟", label: "Fish" }, { icon: "🐧", label: "Penguin" }] }
+    ];
+
+    const quizBox = document.getElementById("quiz-box");
+    let quiz = null;
+
+    function shuffle(list) {
+      const copy = [...list];
+
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+
+      return copy;
+    }
+
+    function optionButton(option, onPick) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "quiz-option";
+
+      const icon = document.createElement("span");
+      icon.className = "quiz-icon";
+
+      if (option.dot) {
+        icon.classList.add("dot");
+        icon.style.background = option.dot;
+        icon.style.width = icon.style.height = option.size + "px";
+      } else {
+        icon.textContent = option.icon;
+      }
+
+      const label = document.createElement("span");
+      label.textContent = option.label;
+
+      button.append(icon, label);
+      button.addEventListener("click", () => onPick(button));
+      return button;
+    }
+
+    function startQuiz() {
+      quiz = {
+        questions: shuffle(QUIZ_POOL).slice(0, QUIZ_LENGTH),
+        index: 0,
+        firstTry: 0,
+        missed: false,
+        locked: false
+      };
+
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const question = quiz.questions[quiz.index];
+      quiz.missed = false;
+      quiz.locked = false;
+
+      const head = document.createElement("div");
+      head.className = "quiz-head";
+
+      const counter = document.createElement("span");
+      counter.textContent = "Question " + (quiz.index + 1) + " of " + quiz.questions.length;
+
+      const replay = document.createElement("button");
+      replay.type = "button";
+      replay.className = "secondary-button";
+      replay.textContent = "🔊 Listen again";
+      replay.addEventListener("click", () => speak(question.say));
+
+      head.append(counter, replay);
+
+      const options = document.createElement("div");
+      options.className = "quiz-options";
+
+      const feedback = document.createElement("p");
+      feedback.id = "quiz-feedback";
+      feedback.className = "form-message";
+      feedback.setAttribute("role", "status");
+
+      shuffle(question.options).forEach(option => {
+        options.appendChild(optionButton(option, button => answer(option, button, question, feedback)));
+      });
+
+      quizBox.replaceChildren(head, options, feedback);
+      speak(question.say);
+    }
+
+    function answer(option, button, question, feedback) {
+      if (quiz.locked) return;
+
+      if (option.correct) {
+        quiz.locked = true;
+        if (!quiz.missed) quiz.firstTry++;
+
+        button.classList.add("right");
+        feedback.textContent = "🎉 Yes!";
+        speak("Yes! Great job!");
+
+        setTimeout(() => {
+          quiz.index++;
+
+          if (quiz.index < quiz.questions.length) showQuestion();
+          else finishQuiz();
+        }, 1500);
+
+        return;
+      }
+
+      quiz.missed = true;
+      button.classList.add("wrong");
+      button.disabled = true;
+      feedback.textContent = "Try again! 💫";
+      speak("Try again. " + question.say);
+    }
+
+    function finishQuiz() {
+      const total = quiz.questions.length;
+      const stars = quiz.firstTry >= total - 1 ? 3 : quiz.firstTry >= total - 2 ? 2 : 1;
+      const best = Math.max((readProgress()[LESSON_ID] || {}).stars || 0, stars);
+
+      setProgress({ done: true, stars: best });
+      renderStatus();
+
+      const result = document.createElement("div");
+      result.className = "quiz-result";
+
+      const big = document.createElement("div");
+      big.className = "quiz-big";
+      big.textContent = "🏆";
+
+      const title = document.createElement("h3");
+      title.textContent = "You did it! " + "⭐".repeat(stars);
+
+      const score = document.createElement("p");
+      score.textContent = quiz.firstTry + " of " + total + " right on the first try";
+
+      const again = document.createElement("button");
+      again.type = "button";
+      again.className = "primary-button";
+      again.textContent = "🔁 Play again";
+      again.addEventListener("click", startQuiz);
+
+      result.append(big, title, score, again);
+      quizBox.replaceChildren(result);
+      speak("Wow! You did it! Great job!");
+    }
+
+    document.getElementById("quiz-start").addEventListener("click", startQuiz);
+  </script>
+</body>
+</html>
