@@ -84,6 +84,32 @@
       outline-offset: 2px;
     }
 
+    /* Wstęp o Ethanie */
+    .about-card {
+      max-width: 560px;
+      margin: 18px auto 0;
+      padding: 18px 20px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: var(--shadow);
+      text-align: left;
+    }
+
+    .about-card h2 { margin: 0 0 10px; font-size: clamp(1.5rem, 5vw, 2rem); text-align: center; }
+    .about-list { margin: 0; padding: 0; list-style: none; }
+
+    .about-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 6px 0;
+      font-size: 1.1rem;
+    }
+
+    .about-list li > span:first-child { flex: none; font-size: 1.6rem; line-height: 1.2; }
+    .about-birthday { margin: 10px 0 0; font-weight: 700; text-align: center; color: #d6336c; }
+    .about-card .secondary-button { display: block; margin: 12px auto 0; }
+
     /* Wystrój F1 */
     .start-lights {
       display: flex;
@@ -446,6 +472,19 @@
       <p class="eyebrow">A little place full of love</p>
       <h1>Ethan's Life <span>💛</span></h1>
       <p>Memories, little pictures and big discoveries!</p>
+
+      <div class="about-card" id="about">
+        <h2>Hi, I'm Ethan! 👋</h2>
+        <ul class="about-list">
+          <li><span>🎂</span><span>I'm <strong id="ethan-age">5</strong> years old. My birthday is on 8 January.</span></li>
+          <li><span>🏎️</span><span>I love race cars, and I have been to a real Formula 1 race!</span></li>
+          <li><span>⚽</span><span>I want to be a famous football player one day.</span></li>
+          <li><span>😄</span><span>I love to play and to laugh.</span></li>
+          <li><span>🌍</span><span>I love to discover the world!</span></li>
+        </ul>
+        <p class="about-birthday" id="ethan-birthday" role="status"></p>
+        <button id="about-listen" type="button" class="secondary-button">🔊 Listen to me</button>
+      </div>
       <div class="start-lights" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
       <nav>
         <a href="#wordbook">📚 Wordbook</a>
@@ -657,17 +696,17 @@
         <a class="lesson-link" href="/lessons/bees.html" target="_blank" rel="noopener">
           <span class="lesson-emoji">🐝</span>
           <span class="lesson-title">Busy Bees</span>
-          <span class="lesson-sub">Lesson 9: Meet the bee, follow it to the flowers and learn how it makes honey!</span>
+          <span class="lesson-sub">Lesson 9: the bee, flowers, honey and how to help bees</span>
           <span class="lesson-go" data-lesson="bees">▶ Start</span>
         </a>
 
         <a class="lesson-link" href="/lessons/plants.html" target="_blank" rel="noopener">
           <span class="lesson-emoji">🌱</span>
           <span class="lesson-title">From Seed to Tree</span>
-          <span class="lesson-sub">How a seed grows, what a plant is made of, and the difference between trees, bushes and small plants!</span>
+          <span class="lesson-sub">Lesson 10: seeds, roots, leaves, and trees, bushes and small plants</span>
           <span class="lesson-go" data-lesson="plants">▶ Start</span>
         </a>
-        
+
         <div class="lesson-link soon">
           <span class="lesson-emoji">✨</span>
           <span class="lesson-title">More lessons soon</span>
@@ -1361,6 +1400,66 @@
 
     drawCar();
     buildGarage();
+
+    // --- Wstęp o Ethanie: wiek rośnie sam co roku 8 stycznia ---
+    const ETHAN_BIRTH_YEAR = 2021;
+    const ETHAN_BIRTH_MONTH = 0; // styczeń
+    const ETHAN_BIRTH_DAY = 8;
+    const NUMBER_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+      "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty"];
+
+    function ethanAgeOn(date) {
+      let age = date.getFullYear() - ETHAN_BIRTH_YEAR;
+      const birthdayThisYear = new Date(date.getFullYear(), ETHAN_BIRTH_MONTH, ETHAN_BIRTH_DAY);
+      if (date < birthdayThisYear) age--;
+      return age;
+    }
+
+    function daysToBirthday(date) {
+      const today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      let next = new Date(today.getFullYear(), ETHAN_BIRTH_MONTH, ETHAN_BIRTH_DAY);
+      if (next < today) next = new Date(today.getFullYear() + 1, ETHAN_BIRTH_MONTH, ETHAN_BIRTH_DAY);
+      return Math.round((next - today) / 86400000);
+    }
+
+    function renderAbout() {
+      const now = new Date();
+      const age = ethanAgeOn(now);
+      const days = daysToBirthday(now);
+
+      document.getElementById("ethan-age").textContent = age;
+
+      document.getElementById("ethan-birthday").textContent =
+        days === 0 ? "🎉 It's my birthday today! I'm " + age + "!" :
+        days === 1 ? "🎂 My birthday is tomorrow! I will be " + (age + 1) + "!" :
+        "🎂 I will be " + (age + 1) + " in " + days + " days!";
+    }
+
+    function aboutSpeech() {
+      const age = ethanAgeOn(new Date());
+      const ageWord = NUMBER_WORDS[age] || String(age);
+
+      return "Hi, I'm Ethan! I'm " + ageWord + " years old. My birthday is on the eighth of January. " +
+        "I love race cars, and I have been to a real Formula One race! " +
+        "I want to be a famous football player one day. I love to play and to laugh. I love to discover the world!";
+    }
+
+    document.getElementById("about-listen").addEventListener("click", () => {
+      if (!("speechSynthesis" in window)) return;
+
+      window.speechSynthesis.cancel();
+
+      // zdanie po zdaniu, bo część przeglądarek ucina długie wypowiedzi
+      (aboutSpeech().match(/[^.!?]+[.!?]*/g) || []).forEach(sentence => {
+        const utterance = new SpeechSynthesisUtterance(sentence.trim());
+        utterance.lang = "en-US";
+        utterance.rate = 0.85;
+        window.speechSynthesis.speak(utterance);
+      });
+    });
+
+    renderAbout();
+    document.addEventListener("visibilitychange", renderAbout);
 
     // --- Światła startowe w nagłówku ---
     (function startLights() {
