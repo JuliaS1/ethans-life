@@ -578,7 +578,7 @@
           <li><span>🌍</span><span>I love to discover the world!</span></li>
         </ul>
         <p class="about-birthday" id="ethan-birthday" role="status"></p>
-        <button id="about-listen" type="button" class="secondary-button">🔊 Listen to me</button>
+        
         </div>
         <figure class="photo-note photo-right empty" id="photo-right">
           <div class="photo-frame">
@@ -1551,31 +1551,9 @@
         "🎂 I will be " + (age + 1) + " in " + days + " days!";
     }
 
-    function aboutSpeech() {
-      const age = ethanAgeOn(new Date());
-      const ageWord = NUMBER_WORDS[age] || String(age);
+   
 
-      return "Hi, I'm Ethan! I'm " + ageWord + " years old. My birthday is on the eighth of January. " +
-        "I love race cars, and I have been to a real Formula One race! " +
-        "I want to be a famous football player one day. I love to play and to laugh. I love to discover the world!";
-    }
-
-    document.getElementById("about-listen").addEventListener("click", () => {
-      if (!("speechSynthesis" in window)) return;
-
-      window.speechSynthesis.cancel();
-
-      // zdanie po zdaniu, bo część przeglądarek ucina długie wypowiedzi
-      (aboutSpeech().match(/[^.!?]+[.!?]*/g) || []).forEach(sentence => {
-        const utterance = new SpeechSynthesisUtterance(sentence.trim());
-        utterance.lang = "en-US";
-        utterance.rate = 0.85;
-        window.speechSynthesis.speak(utterance);
-      });
-    });
-
-    renderAbout();
-    document.addEventListener("visibilitychange", renderAbout);
+   
 
     // --- Światła startowe w nagłówku ---
     (function startLights() {
