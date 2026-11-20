@@ -259,9 +259,11 @@ exports.handler = async (event) => {
         path =
           "notes?select=id,title,body,created_at" +
           "&status=eq.approved&order=created_at.desc&limit=100";
+      } else if (type === "profile") {
+        path = "profile_photos?select=slot,image_url,caption";
       } else {
         return reply(400, {
-          error: "Użyj ?type=words lub ?type=notes."
+          error: "Użyj ?type=words, ?type=notes lub ?type=profile."
         });
       }
 
@@ -351,6 +353,107 @@ exports.handler = async (event) => {
     ) {
       await sleep(600);
       return reply(401, { error: "Wrong password." });
+    }
+
+    // --- Zdjęcia we wstępie (lewa i prawa ramka) ---
+    if (data.type === "profile-photo" || data.type === "profile-photo-delete") {
+      if (!passwordMatches(data.password)) {
+        await sleep(600);
+        return reply(401, { error: "Wrong password." });
+      }
+
+      if (!SUPABASE_SERVICE_KEY) {
+        throw new Error("Brakuje SUPABASE_SERVICE_KEY w zmiennych Netlify.");
+      }
+
+      const slot = data.slot;
+
+      if (slot !== "left" && slot !== "right") {
+        return reply(400, { error: "Nieznana ramka na zdjęcie." });
+      }
+
+      const currentResponse = await supabaseRequest(
+        `profile_photos?slot=eq.${slot}&select=slot,image_url,caption`,
+        {},
+        SUPABASE_SERVICE_KEY
+      );
+
+      if (!currentResponse.ok) {
+        return reply(502, await supabaseError(currentResponse));
+      }
+
+      const current = (await currentResponse.json())[0] || null;
+
+      if (data.type === "profile-photo-delete") {
+        if (current) {
+          const removed = await supabaseRequest(
+            `profile_photos?slot=eq.${slot}`,
+            { method: "DELETE" },
+            SUPABASE_SERVICE_KEY
+          );
+
+          if (!removed.ok) {
+            return reply(502, await supabaseError(removed));
+          }
+
+          await removeImage(current.image_url);
+        }
+
+        return reply(200, { message: "Usunięto." });
+      }
+
+      const caption =
+        typeof data.caption === "string" ? data.caption.trim() : current?.caption || "";
+
+      if (caption.length > 160) {
+        return reply(400, { error: "Podpis może mieć maks. 160 znaków." });
+      }
+
+      let imageUrl = current?.image_url || null;
+      const previousUrl = imageUrl;
+
+      if (typeof data.imageData === "string" && data.imageData) {
+        const uploaded = await uploadImage(data.imageData);
+
+        if (uploaded.error) {
+          return reply(400, { error: uploaded.error });
+        }
+
+        if (uploaded.storageError) {
+          return reply(502, uploaded.storageError);
+        }
+
+        imageUrl = uploaded.url;
+      }
+
+      if (!imageUrl) {
+        return reply(400, { error: "Najpierw dodaj zdjęcie." });
+      }
+
+      const saved = await supabaseRequest(
+        "profile_photos?on_conflict=slot",
+        {
+          method: "POST",
+          headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+          body: JSON.stringify({
+            slot,
+            image_url: imageUrl,
+            caption: caption || null,
+            updated_at: new Date().toISOString()
+          })
+        },
+        SUPABASE_SERVICE_KEY
+      );
+
+      if (!saved.ok) {
+        return reply(502, await supabaseError(saved));
+      }
+
+      if (previousUrl && previousUrl !== imageUrl) {
+        await removeImage(previousUrl);
+      }
+
+      return reply(200, { message: "Zapisano." });
     }
 
     // --- Dodawanie słówka ---
