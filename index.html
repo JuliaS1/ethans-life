@@ -110,6 +110,87 @@
     .about-birthday { margin: 10px 0 0; font-weight: 700; text-align: center; color: #d6336c; }
     .about-card .secondary-button { display: block; margin: 12px auto 0; }
 
+    /* Zdjęcia we wstępie: ramki jak przyczepione notatki */
+    .hero-inner { max-width: 1000px; }
+
+    .about-stage {
+      display: grid;
+      grid-template-columns: minmax(150px, 210px) minmax(0, 560px) minmax(150px, 210px);
+      grid-template-areas: "left card right";
+      justify-content: center;
+      align-items: start;
+      gap: 26px;
+      margin-top: 18px;
+    }
+
+    .about-stage .about-card { grid-area: card; margin: 0; max-width: none; }
+
+    .photo-note {
+      position: relative;
+      margin: 10px 0 0;
+      padding: 12px 12px 14px;
+      border-radius: 6px;
+      background: #fff;
+      box-shadow: 0 10px 24px rgba(106, 78, 120, 0.22);
+    }
+
+    .photo-note::before {
+      content: "";
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      width: 72px;
+      height: 24px;
+      margin-left: -36px;
+      border-radius: 3px;
+      background: rgba(255, 214, 10, 0.6);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      transform: rotate(-2deg);
+    }
+
+    .photo-left { grid-area: left; transform: rotate(-3deg); }
+    .photo-right { grid-area: right; transform: rotate(3deg); }
+    .photo-note.empty { display: none; }
+    body.admin .photo-note.empty { display: block; }
+
+    .photo-frame {
+      display: grid;
+      place-items: center;
+      aspect-ratio: 4 / 5;
+      overflow: hidden;
+      border-radius: 4px;
+      background: #fff0f5;
+    }
+
+    .photo-frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .photo-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; color: #c9a6b8; font-size: 2.2rem; text-align: center; }
+    .photo-empty span { font-size: 0.85rem; }
+
+    .photo-caption {
+      min-height: 1.3em;
+      margin-top: 10px;
+      font-family: "Patrick Hand", cursive;
+      font-size: 1.15rem;
+      line-height: 1.25;
+      text-align: center;
+      overflow-wrap: anywhere;
+    }
+
+    .photo-tools { display: none; }
+    body.admin .photo-tools { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 10px; }
+    .photo-tools .secondary-button { padding: 6px 10px; font-size: 0.9rem; }
+
+    @media (max-width: 760px) {
+      .about-stage {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-areas: "left right" "card card";
+        gap: 20px 14px;
+      }
+
+      .photo-note { padding: 8px 8px 10px; }
+      .photo-caption { font-size: 1rem; }
+    }
+
     /* Wystrój F1 */
     .start-lights {
       display: flex;
@@ -473,7 +554,21 @@
       <h1>Ethan's Life <span>💛</span></h1>
       <p>Memories, little pictures and big discoveries!</p>
 
-      <div class="about-card" id="about">
+      <div class="about-stage">
+        <figure class="photo-note photo-left empty" id="photo-left">
+          <div class="photo-frame">
+            <img alt="" hidden loading="lazy">
+            <div class="photo-empty"><span aria-hidden="true">📷</span><span>Photo coming soon</span></div>
+          </div>
+          <figcaption class="photo-caption"></figcaption>
+          <div class="photo-tools">
+            <button type="button" class="secondary-button" data-act="change">📷 Add photo</button>
+            <button type="button" class="secondary-button" data-act="caption" hidden>✏️ Caption</button>
+            <button type="button" class="secondary-button" data-act="remove" hidden>🗑 Remove</button>
+            <input type="file" class="file-input" accept="image/jpeg,image/png,image/gif,image/webp" aria-label="Choose the left photo">
+          </div>
+        </figure>
+        <div class="about-card" id="about">
         <h2>Hi, I'm Ethan! 👋</h2>
         <ul class="about-list">
           <li><span>🎂</span><span>I'm <strong id="ethan-age">5</strong> years old. My birthday is on 8 January.</span></li>
@@ -484,6 +579,20 @@
         </ul>
         <p class="about-birthday" id="ethan-birthday" role="status"></p>
         <button id="about-listen" type="button" class="secondary-button">🔊 Listen to me</button>
+        </div>
+        <figure class="photo-note photo-right empty" id="photo-right">
+          <div class="photo-frame">
+            <img alt="" hidden loading="lazy">
+            <div class="photo-empty"><span aria-hidden="true">📷</span><span>Photo coming soon</span></div>
+          </div>
+          <figcaption class="photo-caption"></figcaption>
+          <div class="photo-tools">
+            <button type="button" class="secondary-button" data-act="change">📷 Add photo</button>
+            <button type="button" class="secondary-button" data-act="caption" hidden>✏️ Caption</button>
+            <button type="button" class="secondary-button" data-act="remove" hidden>🗑 Remove</button>
+            <input type="file" class="file-input" accept="image/jpeg,image/png,image/gif,image/webp" aria-label="Choose the right photo">
+          </div>
+        </figure>
       </div>
       <div class="start-lights" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
       <nav>
@@ -809,7 +918,11 @@
       withInput = false,
       okText = "OK",
       showCancel = true,
-      onSubmit = null
+      onSubmit = null,
+      inputType = "password",
+      initial = "",
+      allowEmpty = false,
+      maxLength = 0
     }) {
       const modal = document.getElementById("modal");
       const input = document.getElementById("modal-input");
@@ -820,7 +933,10 @@
       document.getElementById("modal-title").textContent = title;
       document.getElementById("modal-message").textContent = message;
       error.textContent = "";
-      input.value = "";
+      input.type = inputType;
+      input.value = initial;
+      if (maxLength) input.maxLength = maxLength;
+      else input.removeAttribute("maxlength");
       input.hidden = !withInput;
       cancel.hidden = !showCancel;
       ok.textContent = okText;
@@ -840,7 +956,7 @@
         ok.onclick = async () => {
           const value = input.value.trim();
 
-          if (withInput && !value) {
+          if (withInput && !value && !allowEmpty) {
             input.focus();
             return;
           }
@@ -1519,6 +1635,136 @@
     window.addEventListener("focus", refreshLessonProgress);
     document.addEventListener("visibilitychange", refreshLessonProgress);
     refreshLessonProgress();
+
+    // --- Zdjęcia we wstępie (lewa i prawa ramka, jak przyczepione notatki) ---
+
+    const PHOTO_SLOTS = ["left", "right"];
+    let profile = {};
+
+    function photoElements(slot) {
+      const figure = document.getElementById("photo-" + slot);
+
+      return {
+        figure,
+        input: figure.querySelector('input[type="file"]'),
+        img: figure.querySelector("img"),
+        empty: figure.querySelector(".photo-empty"),
+        caption: figure.querySelector(".photo-caption"),
+        change: figure.querySelector('[data-act="change"]'),
+        edit: figure.querySelector('[data-act="caption"]'),
+        remove: figure.querySelector('[data-act="remove"]')
+      };
+    }
+
+    function renderProfile() {
+      PHOTO_SLOTS.forEach(slot => {
+        const el = photoElements(slot);
+        const row = profile[slot];
+        const hasPhoto = Boolean(row && row.image_url);
+
+        el.figure.classList.toggle("empty", !hasPhoto);
+        el.img.hidden = !hasPhoto;
+        el.empty.hidden = hasPhoto;
+
+        if (hasPhoto) {
+          el.img.src = row.image_url;
+          el.img.alt = row.caption || "A photo of Ethan";
+        } else {
+          el.img.removeAttribute("src");
+        }
+
+        el.caption.textContent = hasPhoto ? row.caption || "" : "";
+        el.change.textContent = hasPhoto ? "📷 Change photo" : "📷 Add photo";
+        el.edit.hidden = !hasPhoto;
+        el.remove.hidden = !hasPhoto;
+      });
+    }
+
+    async function loadProfile() {
+      try {
+        const rows = await requestJSON(API_URL + "?type=profile");
+        profile = {};
+        if (Array.isArray(rows)) rows.forEach(row => { profile[row.slot] = row; });
+      } catch {
+        profile = {};
+      }
+
+      renderProfile();
+    }
+
+    async function profileRequest(payload) {
+      try {
+        await postJSON({ ...payload, password: adminPassword });
+        await loadProfile();
+      } catch (error) {
+        openModal({ title: "Couldn't save", message: error.message, showCancel: false });
+        if (/wrong password/i.test(error.message)) lockAdmin();
+      }
+    }
+
+    function askCaption(slot) {
+      return openModal({
+        title: "Photo caption",
+        message: "Write a short caption for this photo. You can leave it empty.",
+        withInput: true,
+        inputType: "text",
+        allowEmpty: true,
+        initial: (profile[slot] && profile[slot].caption) || "",
+        maxLength: 160,
+        okText: "Save"
+      });
+    }
+
+    PHOTO_SLOTS.forEach(slot => {
+      const el = photoElements(slot);
+
+      el.change.addEventListener("click", () => el.input.click());
+
+      el.input.addEventListener("change", async () => {
+        const file = el.input.files[0];
+        if (!file) return;
+
+        let base64;
+
+        try {
+          let blob = file;
+
+          if (file.type === "image/gif") {
+            if (file.size > MAX_GIF_BYTES) throw new Error("This GIF is too big (max 2.5 MB).");
+          } else if (file.type.startsWith("image/")) {
+            blob = await shrinkImage(file);
+          } else {
+            throw new Error("Please choose a picture.");
+          }
+
+          base64 = await readAsBase64(blob);
+        } catch (error) {
+          el.input.value = "";
+          openModal({ title: "Couldn't use this photo", message: error.message, showCancel: false });
+          return;
+        }
+
+        el.input.value = "";
+        const caption = await askCaption(slot);
+        if (caption === null) return;
+
+        await profileRequest({ type: "profile-photo", slot, caption, imageData: base64 });
+      });
+
+      el.edit.addEventListener("click", async () => {
+        const caption = await askCaption(slot);
+        if (caption === null) return;
+        await profileRequest({ type: "profile-photo", slot, caption });
+      });
+
+      el.remove.addEventListener("click", async () => {
+        const confirmed = await openModal({ title: "Remove photo?", message: "This photo will be removed from the page.", okText: "Remove" });
+        if (!confirmed) return;
+        await profileRequest({ type: "profile-photo-delete", slot });
+      });
+    });
+
+    loadProfile();
 
     // --- Kategorie ---
 
